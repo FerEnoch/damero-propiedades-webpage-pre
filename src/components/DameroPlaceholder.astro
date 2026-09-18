@@ -1,0 +1,128 @@
+---
+/**
+ * DameroPlaceholder — the brand placeholder tile (docs/DESIGN.md §7).
+ *
+ * A flat, graphic tile that must never be mistakable for a photograph. It
+ * carries the same 3:2 box metrics as a real photo, so swapping one in is a
+ * `src` change that shifts nothing (§7).
+ *
+ * The damero pattern is a single SVG data-URI (`--pattern-damero-tile`, token
+ * layer) tiled over the frame; it is deliberately NOT built with
+ * `transform: rotate()` on DOM elements (T1 removed the blanket transform
+ * reset, and brand geometry must not depend on layout transforms).
+ *
+ * The cluster mark reuses `public/images/damero_mark.svg` as a CSS mask, which
+ * renders the whole cluster as a single `--color-text-primary` (forest-ink)
+ * silhouette at 20% opacity — no asset is redrawn.
+ */
+interface Props {
+  /** Real photograph. When present, the tile renders an `<img>` in the same frame. */
+  src?: string;
+  /** Alternative text for the photograph. Decorative by default (the card title names it). */
+  alt?: string;
+  /** Intrinsic width, reserved in layout to avoid CLS. */
+  width?: number;
+  /** Intrinsic height, reserved in layout to avoid CLS. */
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  /**
+   * Draw the §7 hairline. Off when the tile is embedded in a PropertyCard
+   * whose own border already frames the media, so a real photo and the
+   * placeholder are visually interchangeable.
+   */
+  bordered?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  alt = '',
+  width = 1600,
+  height = 1067,
+  loading = 'lazy',
+  fetchpriority,
+  bordered = true,
+  class: className,
+} = Astro.props;
+
+const hasPhoto = typeof src === 'string' && src.length > 0;
+---
+
+<div
+  class:list={[
+    'damero-placeholder',
+    { 'damero-placeholder--borderless': !bordered },
+    className,
+  ]}
+>
+  {
+    hasPhoto ? (
+      <img
+        class="damero-placeholder__photo"
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding="async"
+        fetchpriority={fetchpriority}
+      />
+    ) : (
+      <>
+        <span class="damero-placeholder__pattern" aria-hidden="true" />
+        <span class="damero-placeholder__mark" aria-hidden="true" />
+      </>
+    )
+  }
+</div>
+
+<style>
+  .damero-placeholder {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background-color: var(--color-bg-page);
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-md);
+  }
+
+  .damero-placeholder--borderless {
+    border: 0;
+  }
+
+  .damero-placeholder__pattern {
+    position: absolute;
+    inset: 0;
+    background-image: var(--pattern-damero-tile);
+    /* 4 cells × the 56px damero cell grid. */
+    background-size: 224px 224px;
+    background-repeat: repeat;
+  }
+
+  .damero-placeholder__mark {
+    position: absolute;
+    inset: 0;
+    width: 24px;
+    height: 32px;
+    margin: auto;
+    background-color: var(--color-text-primary);
+    opacity: 0.2;
+    -webkit-mask-image: url('/images/damero_mark.svg');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: url('/images/damero_mark.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+
+  .damero-placeholder__photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+</style>

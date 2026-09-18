@@ -1,0 +1,198 @@
+---
+/**
+ * PropertyCard — docs/DESIGN.md §6.
+ *
+ * One link target to `/propiedades/<slug>`. The media is flush with the card
+ * edges; the badge lives in the body, never overlaid on the photograph. The
+ * component accepts the collection entry's `data` (or a structurally identical
+ * object) and does not import the collection itself.
+ *
+ * Price rendering ruling: the currency code and the amount render together on
+ * the price line (code in `--text-label-sm` mono, amount in the price token).
+ * §3 states every price renders as `USD 95.000` with the code present; §6's
+ * badge-row mention of the currency code is superseded by that stated output
+ * and by the validated screens / PRD §5.
+ */
+import DameroPlaceholder from './DameroPlaceholder.astro';
+import OperationBadge from './OperationBadge.astro';
+import { formatAmount } from '../lib/format';
+
+export interface PropiedadCardData {
+  titulo: string;
+  slug: string;
+  operacion: 'venta' | 'alquiler';
+  precio: number;
+  moneda: 'USD' | 'ARS';
+  zona: string;
+  localidad: string;
+  fotos: Array<{ src: string; titulo?: string }>;
+}
+
+interface Props {
+  propiedad: PropiedadCardData;
+  variant?: 'lead' | 'compact';
+  /**
+   * Above-the-fold media: `loading="eager"` + `fetchpriority="high"` (§7).
+   * Off by default so below-the-fold cards stay lazy.
+   */
+  priority?: boolean;
+}
+
+const { propiedad, variant = 'lead', priority = false } = Astro.props;
+const { titulo, slug, operacion, precio, moneda, zona, localidad, fotos } = propiedad;
+
+// Cover = first entry in `fotos` (PRD §7).
+const cover = fotos[0];
+const amount = formatAmount(precio);
+---
+
+<a class:list={['card', `card--${variant}`]} href={`/propiedades/${slug}`}>
+  <div class="card__media">
+    {/*
+      A real photo and the brand placeholder share DameroPlaceholder's frame,
+      so swapping one in is a `src` change and shifts nothing (DESIGN.md §7).
+    */}
+    <DameroPlaceholder
+      src={cover?.src}
+      alt=""
+      bordered={false}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : undefined}
+    />
+  </div>
+
+  <div class="card__body">
+    <div class="card__badge-row">
+      <OperationBadge operacion={operacion} />
+    </div>
+
+    <h3 class:list={['card__title', `card__title--${variant}`]}>{titulo}</h3>
+
+    <p class:list={['card__price', `card__price--${variant}`]}>
+      <span class="card__price-currency">{moneda}</span>
+      <span class="card__price-amount">{amount}</span>
+    </p>
+
+    <p class="card__location">{zona} · {localidad}</p>
+  </div>
+</a>
+
+<style>
+  .card {
+    display: block;
+    overflow: hidden;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+
+  /* Hover: border colour and lift; no shadow at rest (§4, §6). */
+  .card:hover {
+    border-color: var(--color-border-interactive);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card__media {
+    position: relative;
+  }
+
+  /* Media rounds its top corners only; the card clips the outer frame. */
+  .card__media :global(.damero-placeholder) {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .card__body {
+    padding: var(--card-body-pad);
+  }
+
+  .card--compact .card__body {
+    padding: var(--space-4);
+  }
+
+  .card__badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .card__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    margin: 0 0 var(--stack-sm);
+    font-family: var(--font-serif);
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .card__title--lead {
+    font-size: var(--text-card-title-lg);
+    line-height: var(--leading-card-title-lg);
+    letter-spacing: var(--tracking-card-title-lg);
+  }
+
+  .card__title--compact {
+    font-size: var(--text-card-title-sm);
+    line-height: var(--leading-card-title-sm);
+    letter-spacing: var(--tracking-card-title-sm);
+  }
+
+  .card__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1);
+    margin: 0 0 var(--stack-sm);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--color-text-primary);
+  }
+
+  .card__price-currency {
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+
+  .card__price--lead .card__price-amount {
+    font-size: var(--text-price-lg);
+    font-weight: 500;
+    line-height: var(--leading-price-lg);
+    letter-spacing: var(--tracking-price-lg);
+  }
+
+  .card__price--compact .card__price-amount {
+    font-size: var(--text-price-md);
+    font-weight: 500;
+    line-height: var(--leading-price-md);
+    letter-spacing: var(--tracking-price-md);
+  }
+
+  .card__location {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      transition:
+        border-color var(--duration-state) var(--ease-out-expo),
+        transform var(--duration-state) var(--ease-out-expo),
+        box-shadow var(--duration-state) var(--ease-out-expo);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+  }
+</style>

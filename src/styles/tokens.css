@@ -131,6 +131,15 @@
   --shadow-md: 0 10px 30px rgba(62, 72, 55, 0.08);
   --shadow-lg: 0 24px 56px rgba(62, 72, 55, 0.1);
 
+  /* ---- Graphic assets (DESIGN.md §7) ----
+     The damero tile is a single SVG data-URI: a checkerboard of 45°-rotated
+     squares on a 56px cell grid (transparent = canvas cell), plus a sage
+     diamond outline every fourth cell at 40% opacity. An SVG loaded as a CSS
+     background is its own document and cannot read the page's custom
+     properties, so the raw palette values have to be written here — the token
+     layer is the only place §13 permits raw values. */
+  --pattern-damero-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='224' height='224' viewBox='0 0 224 224'%3E%3Cpath fill='%23E8EBE3' d='M28 0L56 28L28 56L0 28ZM140 0L168 28L140 56L112 28ZM84 56L112 84L84 112L56 84ZM196 56L224 84L196 112L168 84ZM28 112L56 140L28 168L0 140ZM140 112L168 140L140 168L112 140ZM84 168L112 196L84 224L56 196ZM196 168L224 196L196 224L168 196Z'/%3E%3Cpath fill='none' stroke='%237C916F' stroke-width='1.5' opacity='0.4' d='M28 0L56 28L28 56L0 28Z'/%3E%3C/svg%3E");
+
   /* ---- Layout (DESIGN.md §5, §14) ---- */
   --container-content: 1280px;
   --container-bleed: 1600px;

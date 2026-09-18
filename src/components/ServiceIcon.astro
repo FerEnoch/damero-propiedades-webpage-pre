@@ -1,0 +1,61 @@
+---
+/**
+ * ServiceIcon — docs/DESIGN.md §8.
+ *
+ * The glyphs are inlined, never `<img src="icon.svg">`, so `stroke="currentColor"`
+ * resolves against the surrounding text colour (forest-ink by default, on-forest
+ * on the footer band). Each icon is decorative: the `<title>` is stripped and the
+ * root SVG carries `aria-hidden="true"` + `focusable="false"` — the adjacent text
+ * label is always the accessible name.
+ *
+ * Rendered at 24px by default and scaled by CSS; there are no size variants.
+ */
+import iconAppraisal from '../icons/services/icon-appraisal.svg?raw';
+import iconCamera from '../icons/services/icon-camera.svg?raw';
+import iconDocuments from '../icons/services/icon-documents.svg?raw';
+import iconHandshake from '../icons/services/icon-handshake.svg?raw';
+import iconKeys from '../icons/services/icon-keys.svg?raw';
+import iconMegaphone from '../icons/services/icon-megaphone.svg?raw';
+import iconPenSeal from '../icons/services/icon-pen-seal.svg?raw';
+import iconTarget from '../icons/services/icon-target.svg?raw';
+
+const ICONS = {
+  'icon-appraisal': iconAppraisal,
+  'icon-camera': iconCamera,
+  'icon-documents': iconDocuments,
+  'icon-handshake': iconHandshake,
+  'icon-keys': iconKeys,
+  'icon-megaphone': iconMegaphone,
+  'icon-pen-seal': iconPenSeal,
+  'icon-target': iconTarget,
+} as const;
+
+type ServiceIconName = keyof typeof ICONS;
+
+interface Props {
+  /** One of the eight service filenames, e.g. `icon-keys`. */
+  name: ServiceIconName;
+}
+
+const { name } = Astro.props;
+
+const svg = ICONS[name]
+  .replace(/<title[\s\S]*?<\/title>/gi, '')
+  .replace(/\s+role="img"/g, '')
+  .replace(/\s+focusable="false"/g, '')
+  .replace(
+    /<svg\b([^>]*)>/,
+    '<svg$1 focusable="false" aria-hidden="true" class="service-icon" width="24" height="24">',
+  );
+---
+
+<Fragment set:html={svg} />
+
+<style>
+  :global(.service-icon) {
+    display: block;
+    flex: none;
+    width: 24px;
+    height: 24px;
+  }
+</style>

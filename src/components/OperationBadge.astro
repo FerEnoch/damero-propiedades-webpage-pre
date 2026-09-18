@@ -1,0 +1,47 @@
+---
+/**
+ * OperationBadge — docs/DESIGN.md §6.
+ *
+ * Two operations, two weights. The distinction is fill weight, never hue, so
+ * it stays legible for colour-blind visitors (no icons, no ribbons, no colour
+ * coding beyond solid vs outline).
+ */
+interface Props {
+  operacion: 'venta' | 'alquiler';
+  class?: string;
+}
+
+const { operacion, class: className } = Astro.props;
+const label = operacion === 'venta' ? 'Venta' : 'Alquiler';
+---
+
+<span
+  class:list={['operation-badge', `operation-badge--${operacion}`, className]}
+>{label}</span>
+
+<style>
+  .operation-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+
+  .operation-badge--venta {
+    background-color: var(--color-action-primary);
+    border-color: var(--color-action-primary);
+    color: var(--color-text-on-inverse);
+  }
+
+  .operation-badge--alquiler {
+    background-color: transparent;
+    border-color: var(--color-border-interactive);
+    color: var(--color-text-primary);
+  }
+</style>
