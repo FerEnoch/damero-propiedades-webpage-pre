@@ -21,12 +21,14 @@
 - **Datos del stakeholder pendientes → placeholders explícitos, nunca inventados** (`DESIGN.md` §17.4). Stitch ya inventó datos legales una vez.
 - **Composición canónica de la landing = `DESIGN.md` §5.** No improvisar secciones.
 - **Directo a `main`** por PRD §9 (commit → CI gate). Sin PRs.
+- **E2E: solo Playwright**, sin unit testing (stakeholder, 2026-09-18). Runner `@playwright/test` como devDependency pinneada en el repo.
+- **Lockup de marca:** el logo real es un lockup completo y a 28/32px su wordmark es ilegible. Se usa `damero_mark.svg` (marca-solo) + wordmark en tipo. Bajo 768px el wordmark se acorta a "DAMERO" (decisión stakeholder, 2026-09-18).
 
 ## Tareas
 
 - [x] T0 — Migración de la política pnpm a `pnpm-workspace.yaml` (ver `damero-web-foundation.md`)
 - [x] T1 — Tokens CSS + estilos globales + las 3 fuentes (Newsreader, Hanken Grotesk, JetBrains Mono) según `DESIGN.md` §14, §3 y §13
-- [ ] T2 — Layout base: shell, header y footer con el bloque legal verbatim (`DESIGN.md` §6, §17.4)
+- [x] T2 — Layout base: shell, header y footer con el bloque legal verbatim (`DESIGN.md` §6, §17.4)
 - [ ] T3 — Content collection `propiedades` con el schema del PRD §4 + 3 listados semilla con placeholder de marca
 - [ ] T4 — Componentes base de `DESIGN.md` §6: Button, Property card, Operation badge, Filter input, WhatsApp CTA, Empty state
 - [ ] T5 — Landing `/` según `DESIGN.md` §5: hero (damero + titular + 1 CTA de búsqueda), bloque de destacadas, los 8 servicios con los SVG duotono, teaser de FAQ
@@ -79,6 +81,31 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 - **T5:** los headings display (`--text-display-*`) deben overridear line-height y tracking; el base layer deja `h1–h6` con métricas de card-title-lg (1.22 / −0.012em), que para el hero son flojas.
 - **T4/T5:** el patrón damero va como SVG data-URI (§7), no como `transform: rotate(45deg)`.
 
+### T2 — shell: header y footer (2026-09-18)
+
+| Check | Resultado |
+|---|---|
+| `pnpm build` | ✅ exit 0 |
+| Landmarks | ✅ `header` / `main` / `footer` presentes en `dist/index.html` |
+| Copy verbatim | ✅ las 2 líneas legales byte-equal al screen; `CCI 000` preservado |
+| Andamiaje de los screens | ✅ 0 Tailwind / Google Fonts / Material Symbols / blur en `dist/` |
+| Hex crudos fuera de `tokens.css` | ✅ grep vacío en componentes, layout y `site.ts` |
+| Header 64/72 (+hairline) | ✅ medido en Chrome real: **65px @390**, **73px @1280** |
+| Toggle a11y + fallback sin JS | ✅ verificado con contexto JS deshabilitado real (la nav sigue operable) |
+| Touch targets ≥44px | ✅ todos los interactivos |
+| Indicador activo | ✅ underline sage 2px; el texto sigue en forest-ink |
+| Verificación independiente | ✅ `success`, 0 CRITICAL, 0 WARNING, 4 SUGGESTION |
+
+**Hallazgo 1 — el logo real no sirve como lockup de header.** `damero_logo.png` es un lockup completo: clúster de 4 rombos + la palabra "DAMERO". A 28/32px (§6) el wordmark queda ilegible (~4px por letra). Decisión del stakeholder: **marca + wordmark en tipo**, como los screens. Se generaron `damero_mark.svg` (forest ink) y `damero_mark_white.svg` (knockout) recortando el `viewBox` al clúster medido por perfil de canal alfa (columnas 62–463, filas 130–663). No se hizo cirugía de paths porque el auto-trazado mete clúster y wordmark en un mismo `d`.
+
+**Hallazgo 2 — el header mobile hacía wrap (lo cazó el screenshot, no el build).** Con el nombre completo a 18px el lockup (236px) + WhatsApp (168px) + toggle (44px) no entran en los 350px de contenido a 390px: el header saltaba a 2 filas = 97px en vez de 64px. Corrección: bajo 768px el wordmark muestra solo **"DAMERO"** — que es exactamente el wordmark del logo real — y desde 768px el nombre completo. Medido después: 65px @390, 73px @1280.
+
+**Correcciones aplicadas respecto de los screens (gana `DESIGN.md`):** glassmorphism del header fuera (§11), nav en Public Sans 12px → Hanken 500 15px (§6), footer en `#bfcab4` off-palette → `--color-on-forest-muted`, teléfono en voz mono → `body-sm` (§6), columnas del footer 6–8 → 6–7 (§6), y el `wa.me` con número inventado → href inerte (`#whatsapp-pendiente`, §17.4).
+
+**Excepción donde gana el screen:** el badge de servicios usa `--color-bg-surface`. El `--color-bg-subtle` que pide §8 sería invisible sobre la banda `--color-bg-subtle` de §5. Aplica a T5.
+
+**Pendientes introducidos, centralizados en `src/data/site.ts`:** `WHATSAPP_URL_PENDING` (href inerte), `WHATSAPP_NUMBER_PENDING` (`+54 9 2304 000000`, tal cual lo trae el screen), `CCI 000`, `CONTACT_HOURS` y `SITE_TAGLINE`. **El número de WhatsApp y el CCI bloquean el lanzamiento.** Si preferís un label `PENDIENTE` explícito en lugar de un número que parece real, es un cambio de una línea.
+
 ## Pendientes del stakeholder (bloquean el lanzamiento, no el build)
 
 - Las 6 respuestas de FAQ (PRD §8) — hoy `[PENDIENTE]`.
@@ -92,3 +119,4 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 - **2026-09-18 (a):** decisiones del stakeholder — ruta ODD, migración a pnpm 12, primer entregable = fundación + landing.
 - **2026-09-18 (b):** T0 completado (migración de la política pnpm; detalle y evidencia en `damero-web-foundation.md`).
 - **2026-09-18 (c):** T1 completado. Tokens, base global y las 3 fuentes self-hosted, con verificación independiente en contexto fresco. 2 correcciones aplicadas post-verificación (reduced-motion y fallback de fuentes). Ver detalle arriba.
+- **2026-09-18 (d):** T2 completado. Shell (header/footer) convertido de los screens; lockup de marca resuelto con SVG marca-solo + wordmark en tipo; header mobile ajustado a 64px tras detectar wrap por screenshot. Verificación independiente en contexto fresco + medición real en Chrome. Commits: `73987cb`/`9261b3d` (T1) y el de T2 en el mismo día.
