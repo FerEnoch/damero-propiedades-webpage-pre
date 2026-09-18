@@ -1,0 +1,27 @@
+# ─── DEPENDENCIAS ──────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ─── BUILD OUTPUT ──────────────────────────────────────────────────
+dist/
+.astro/
+
+# ─── ENVIRONMENT — nunca commitear secretos ────────────────────────
+.env
+.env.local
+.env.*.local
+# Los templates sí se commitean:
+!.env.example
+
+# ─── LOGS ──────────────────────────────────────────────────────────
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# ─── ESTADO LOCAL DEL RUNTIME DE IA ────────────────────────────────
+.atl/
+
+# ─── SISTEMA OPERATIVO / EDITORES ──────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp

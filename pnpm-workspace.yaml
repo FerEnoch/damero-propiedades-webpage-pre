@@ -1,0 +1,49 @@
+# Este repo es un SINGLE-PACKAGE: el sitio vive en la raíz.
+# No se declara el campo `packages:` a propósito — la doc de pnpm dice que
+# cuando se omite, solo el paquete raíz queda incluido en el workspace.
+# Este archivo se usa exclusivamente como contenedor de los settings de
+# supply chain (en pnpm 11+ los settings ya no caben en .npmrc).
+
+# ─── SUPPLY CHAIN SECURITY ─────────────────────────────────────────
+# Bloquea instalar versiones publicadas recientemente (4320 min = 3 días).
+# La mayoría de versiones maliciosas se detectan y retiran del registry
+# en horas; esperar 3 días elimina prácticamente ese riesgo.
+# Aplica a TODAS las dependencias, incluidas transitivas. (pnpm >= 10.16)
+# Nota: en pnpm v11 el default es 1440 (1 día); 0 = desactivado.
+minimumReleaseAge: 4320
+
+# Excepción PUNTUAL autorizada por el stakeholder (2026-09-18): se usa
+# Astro 7.3.3, que tiene ~39 h de publicado, para no quedar en el patch
+# anterior. Es la única excepción; el resto del árbol sigue bajo los 3 días.
+# OJO: `minimumReleaseAgeStrict` NO se toca — su default es `true` cuando
+# `minimumReleaseAge` está seteado, y con `false` pnpm no elige una versión
+# más vieja: instala la que viola la cuarentena (bypass, no fallback).
+minimumReleaseAgeExclude:
+  - 'astro@7.3.3'
+
+# Falla si un paquete BAJA su nivel de confianza respecto a versiones
+# anteriores (ej.: antes tenía firma criptográfica, ahora no).
+# Detecta paquetes secuestrados que perdieron sus credenciales. (pnpm >= 10.21)
+trustPolicy: no-downgrade
+
+# Paquetes mayores a 30 días quedan exentos del trustPolicy:
+# legacy sin firma es razonablemente seguro. (pnpm >= 10.27)
+trustPolicyIgnoreAfter: 43200  # 30 días en minutos
+
+# Las dependencias TRANSITIVAS solo pueden venir del registry.
+# Fuentes exóticas (git, tarball URLs) solo como dependencias directas
+# con decisión explícita. (pnpm >= 10.26)
+blockExoticSubdeps: true
+
+# Lista blanca de paquetes que pueden ejecutar scripts de instalación
+# (preinstall/install/postinstall). Deny-by-default. (pnpm >= 10.27)
+# Formato: nombre (todas las versiones) o nombre@version (versión exacta).
+# Mantenerla actualizada: si pnpm bloquea un paquete con scripts,
+# evaluar si es legítimo y aprobarlo aquí con versión exacta.
+# NUNCA usar dangerouslyAllowAllBuilds: true.
+allowBuilds:
+  # vacía = NINGÚN script de build autorizado hasta revisión explícita
+
+# Scripts de build no aprobados = ERROR de instalación (no warning).
+# Un paquete nuevo con scripts hace fallar CI hasta ser revisado.
+strictDepBuilds: true

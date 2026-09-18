@@ -1,0 +1,34 @@
+name: supply-chain
+
+# Gate mínimo de supply chain: instalación reproducible + auditoría + build.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-audit-build:
+    name: Install (frozen) + Audit + Build
+    runs-on: ubuntu-latest
+    steps:
+      # MEJORA PENDIENTE: pinear estas actions por SHA de commit en vez de tags mutables
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Audit (HIGH/CRITICAL bloquea)
+        run: pnpm audit --audit-level high
+      - name: Build
+        run: pnpm build
