@@ -1,8 +1,10 @@
 # Este repo es un SINGLE-PACKAGE: el sitio vive en la raíz.
 # No se declara el campo `packages:` a propósito — la doc de pnpm dice que
 # cuando se omite, solo el paquete raíz queda incluido en el workspace.
-# Este archivo se usa exclusivamente como contenedor de los settings de
-# supply chain (en pnpm 11+ los settings ya no caben en .npmrc).
+# Este archivo es el contenedor de TODOS los settings de pnpm del repo
+# (supply chain + política de instalación). Desde pnpm 11 `.npmrc` solo se
+# lee para auth y registry: cualquier otro setting ahí se ignora en silencio.
+# Ver: https://pnpm.io/settings
 
 # ─── SUPPLY CHAIN SECURITY ─────────────────────────────────────────
 # Bloquea instalar versiones publicadas recientemente (4320 min = 3 días).
@@ -57,3 +59,36 @@ allowBuilds:
 # Scripts de build no aprobados = ERROR de instalación (no warning).
 # Un paquete nuevo con scripts hace fallar CI hasta ser revisado.
 strictDepBuilds: true
+
+# ─── POLÍTICA DE INSTALACIÓN (migrada desde .npmrc) ────────────────
+# Migrado el 2026-09-18 al subir a pnpm 12.4.2. Los 5 settings de abajo
+# vivían en `.npmrc` y con pnpm 12 habían dejado de tener efecto: `.npmrc`
+# solo se lee para auth y registry, así que se ignoraban en silencio
+# (verificado con `pnpm config get`, que devolvía `undefined` para todos).
+# Eso además rompía `pnpm install --frozen-lockfile` en local y en CI.
+
+# En CI/CD: instalar SIEMPRE con `pnpm install --frozen-lockfile`.
+# Este setting hace lo mismo localmente: si el lockfile no satisface
+# package.json, la instalación falla. Reproducibilidad garantizada.
+preferFrozenLockfile: true
+
+# Los peer dependencies faltantes son ERROR, no warning.
+strictPeerDependencies: true
+
+# No auto-instalar peers faltantes: deben declararse explícitamente.
+# Con strictPeerDependencies=true, un peer faltante falla la instalación.
+# Debe quedar en false para coincidir con `settings.autoInstallPeers`
+# del lockfile commiteado, o el install frozen falla por mismatch.
+autoInstallPeers: false
+
+# Convierte `engines` de package.json en restricción dura:
+# node/pnpm fuera de rango = error de instalación.
+engineStrict: true
+
+# NO ignorar scripts de instalación: así gobierna la allowlist
+# `allowBuilds` + `strictDepBuilds` de arriba. Si esto se pone en true,
+# la allowlist deny-by-default deja de evaluarse y los paquetes con
+# scripts se omiten en silencio (esbuild/sharp se rompen sin causa).
+# Nota: desde pnpm 11 el `ignore-scripts=true` del ~/.npmrc global ya no
+# se lee, pero se explicita igual como política del repo.
+ignoreScripts: false

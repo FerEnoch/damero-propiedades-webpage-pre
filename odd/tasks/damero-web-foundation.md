@@ -70,6 +70,14 @@
 - **pnpm 12.4.2 disponible**; el repo queda pinneado a `10.33.2` por consistencia con `realtor_sys`. `namedRegistries` (calificación por registry en el lockfile) requiere >= 11.20 si algún día se suma un registry privado.
 - **`realtor_sys` tiene el mismo problema de herencia**: su `.npmrc` no overridea el `ignore-scripts=true` global, así que su gate `strictDepBuilds` tampoco llega a evaluarse. Hoy no rompe nada porque no tiene dependencias instaladas.
 
+## Actualización post-cierre (2026-09-18)
+
+**Migración a pnpm 12.4.2.** El stakeholder subió `packageManager` de `10.33.2` a `12.4.2`. Eso dejó sin efecto los 5 settings que vivían en `.npmrc`: desde pnpm 11 ese archivo solo se lee para auth y registry (doc oficial: <https://pnpm.io/settings>). Efectos verificados: `pnpm install --frozen-lockfile` fallaba con `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` en local y en CI, y quedaban inertes `engine-strict`, `strict-peer-dependencies`, `auto-install-peers`, `prefer-frozen-lockfile` e `ignore-scripts=false`.
+
+**Mitigación aplicada:** los 5 settings se migraron a `pnpm-workspace.yaml` con sus nombres canónicos camelCase (`preferFrozenLockfile`, `strictPeerDependencies`, `autoInstallPeers`, `engineStrict`, `ignoreScripts`), y `.npmrc` se eliminó. Verificado: los 5 leen valor efectivo con `pnpm config get`, `pnpm install --frozen-lockfile` exit 0 sin modificar el lockfile, `pnpm build` exit 0, `pnpm audit --audit-level high` sin vulnerabilidades.
+
+Queda obsoleto lo que dice este documento sobre el pin a `10.33.2` y sobre el `ignore-scripts=false` en `.npmrc`. El resto de los gaps sigue vigente.
+
 ## Progreso
 
 - **2026-09-18 (a):** relevamiento del repo y de la convención de `realtor_sys`; tres hallazgos de seguridad verificados contra doc oficial (ver `security/pnpm-supply-chain` en Engram). Estructura decidida: Astro en la raíz.
