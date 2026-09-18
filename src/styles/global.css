@@ -1,0 +1,111 @@
+/* ==========================================================================
+   Global base layer — Damero Propiedades
+   Consumes tokens.css only; contains no raw values (DESIGN.md §13).
+   Component styles (buttons, cards, badges, header, footer) live elsewhere.
+   ========================================================================== */
+
+@import './tokens.css';
+
+/* ---- Reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Document base ---- */
+html,
+body {
+  min-height: 100dvh;
+}
+
+body {
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  font-weight: 400;
+  line-height: var(--leading-body-md);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- Headings default to the editorial serif ---- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: var(--leading-card-title-lg);
+  letter-spacing: var(--tracking-card-title-lg);
+}
+
+/* ---- Layout utility ---- */
+.container {
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---- Focus ---- */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---- Reduced motion (DESIGN.md §9) ----
+   Animations and transitions are neutralised, so anything that animated
+   lands directly on its final state.
+
+   Static transforms are deliberately NOT reset here. A blanket
+   `transform: none` would also destroy brand geometry — the 45°-rotated
+   square is a fixed shape, not motion — and reduced-motion users would
+   see the wrong geometry instead of the final state. Motion transforms
+   are authored inside `@media (prefers-reduced-motion: no-preference)`
+   by the component that introduces them. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
