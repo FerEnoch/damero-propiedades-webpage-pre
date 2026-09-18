@@ -1,12 +1,443 @@
 ---
+/**
+ * Landing `/` — the canonical composition fixed by docs/DESIGN.md §5:
+ * hero → destacadas → servicios → FAQ teaser. The header and footer come from
+ * `BaseLayout`; this page must not re-add them, re-import `global.css`, or
+ * duplicate `<Font>`.
+ */
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import PropertyCard from '../components/PropertyCard.astro';
+import ServiceIcon from '../components/ServiceIcon.astro';
+import { SITE_NAME } from '../data/site';
+import { FAQ_TEASER, FEATURED, HERO, SERVICES } from '../data/landing';
 
-// Placeholder entry point. The real landing (`/`) is built in the pages
-// track against docs/DESIGN.md; this exists so `astro build` has an entry
-// to compile and the scaffold can be verified end to end.
-const title = 'Damero Propiedades';
+const propiedades = await getCollection('propiedades');
+
+/*
+ * §5 fallback: the lead is the featured listing and the compact slots are
+ * filled with the remaining entries when there are fewer than three featured.
+ * The collection has no date field, so "most recent" resolves to collection
+ * order; the seed data is authored in the screens' order.
+ */
+const featured = propiedades.filter((entry) => entry.data.destacada);
+const others = propiedades.filter((entry) => !entry.data.destacada);
+const lead = featured[0] ?? others[0] ?? propiedades[0];
+const compacts = [...featured.slice(1), ...others]
+  .filter((entry) => entry.id !== lead?.id)
+  .slice(0, FEATURED.compactCount);
 ---
 
-<BaseLayout title={title}>
-  <h1>{title}</h1>
+<BaseLayout title={SITE_NAME}>
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__band" aria-hidden="true"></div>
+
+    <div class="hero__type">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow hero__eyebrow">{HERO.eyebrow}</p>
+          <h1 class="hero__headline" id="hero-title">{HERO.headline}</h1>
+          <p class="hero__subhead">{HERO.subhead}</p>
+          <div class="hero__action">
+            <Button href={HERO.cta.href}>{HERO.cta.label}</Button>
+          </div>
+        </div>
+
+        <!--
+          §5: columns 9–12 stay intentionally empty except for one oversized
+          diamond outline at 6% opacity bleeding off the right edge. The
+          screens carry three nested diamonds; §5 says one.
+        -->
+        <div class="hero__watermark" aria-hidden="true">
+          <span class="hero__diamond"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESTACADAS -->
+  <section class="featured" aria-labelledby="featured-title">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-heading">
+          <p class="eyebrow">{FEATURED.eyebrow}</p>
+          <h2 class="section-head__title" id="featured-title">{FEATURED.heading}</h2>
+        </div>
+        <div class="section-head__action">
+          <Button variant="text-link" href={FEATURED.link.href}>{FEATURED.link.label}</Button>
+        </div>
+      </div>
+
+      <div class="featured__grid">
+        {
+          lead && (
+            <ul class="featured__lead" role="list">
+              <li>
+                <PropertyCard propiedad={lead.data} variant="lead" priority />
+              </li>
+            </ul>
+          )
+        }
+
+        {
+          compacts.length > 0 && (
+            <ul class="featured__compacts" role="list">
+              {compacts.map((entry) => (
+                <li>
+                  <PropertyCard propiedad={entry.data} variant="compact" />
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section class="services" aria-labelledby="services-title">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-heading">
+          <p class="eyebrow">{SERVICES.eyebrow}</p>
+          <h2 class="section-head__title" id="services-title">{SERVICES.heading}</h2>
+        </div>
+      </div>
+
+      <ul class="services__list" role="list">
+        {
+          SERVICES.items.map((service) => (
+            <li class="services__item">
+              {/*
+                Deliberate exception where the screens beat DESIGN.md §8: the
+                badge fill is `--color-bg-surface`, not `--color-bg-subtle`,
+                because on the §5 subtle band a subtle badge would be invisible.
+              */}
+              <span class="services__badge" aria-hidden="true">
+                <ServiceIcon name={service.icon} />
+              </span>
+              <div class="services__body">
+                <h3 class="services__name">{service.name}</h3>
+                <p class="services__description">{service.description}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- FAQ TEASER -->
+  <section class="faq-teaser" aria-labelledby="faq-title">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-heading">
+          <p class="eyebrow">{FAQ_TEASER.eyebrow}</p>
+          <h2 class="section-head__title" id="faq-title">{FAQ_TEASER.heading}</h2>
+        </div>
+      </div>
+
+      <ul class="faq-teaser__list" role="list">
+        {
+          FAQ_TEASER.questions.map((question) => (
+            <li class="faq-teaser__item">
+              <p class="faq-teaser__marker">{FAQ_TEASER.pendingMarker}</p>
+              <h3 class="faq-teaser__question">{question}</h3>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="faq-teaser__action">
+        <Button variant="text-link" href={FAQ_TEASER.link.href}>{FAQ_TEASER.link.label}</Button>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  /* ---- Shared: eyebrow + section head ---------------------------------- */
+  .eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  .section-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-bottom: var(--space-12);
+  }
+
+  .section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .section-head__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-lg);
+    font-weight: 400;
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+  }
+
+  /* ---- Hero ------------------------------------------------------------- */
+  .hero {
+    background-color: var(--color-bg-page);
+  }
+
+  /* Full-bleed damero band, §5/§10. The tile is the same brand geometry the
+     placeholder uses (one geometry, repeated); no transform-based pattern.
+     The band runs the tile at 160px (40px cells) to match the density of the
+     validated screens; the photo placeholder keeps §7's 56px grid. */
+  .hero__band {
+    max-width: var(--container-bleed);
+    height: clamp(112px, 15vw, 200px);
+    margin-inline: auto;
+    background-color: var(--color-bg-page);
+    background-image: var(--pattern-damero-tile);
+    background-repeat: repeat;
+    background-size: 160px 160px;
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  .hero__type {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--section-y);
+  }
+
+  .hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  .hero__headline {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-xl);
+    font-weight: 400;
+    line-height: var(--leading-display-xl);
+    letter-spacing: var(--tracking-display-xl);
+    color: var(--color-text-primary);
+    text-align: left;
+  }
+
+  .hero__subhead {
+    max-width: 52ch;
+    margin: 0;
+    font-size: var(--text-body-lg);
+    line-height: var(--leading-body-lg);
+    color: var(--color-text-secondary);
+    text-align: left;
+  }
+
+  /* Mobile stacks band-then-type with no watermark (§10). */
+  .hero__watermark {
+    display: none;
+  }
+
+  /* ---- Destacadas ------------------------------------------------------- */
+  .featured {
+    padding-block: var(--section-y);
+    background-color: var(--color-bg-page);
+  }
+
+  .featured__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  /* ---- Servicios -------------------------------------------------------- */
+  .services {
+    max-width: var(--container-bleed);
+    margin-inline: auto;
+    padding-block: var(--section-y);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .services__list {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .services__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  /* 44px square, --radius-sm. Never a circle (§8). */
+  .services__badge {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+  }
+
+  .services__name {
+    margin: 0 0 var(--stack-xs);
+    font-family: var(--font-sans);
+    font-size: var(--text-heading-sm);
+    font-weight: 600;
+    line-height: var(--leading-heading-sm);
+    letter-spacing: var(--tracking-heading-sm);
+    color: var(--color-text-primary);
+  }
+
+  .services__description {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- FAQ teaser ------------------------------------------------------- */
+  .faq-teaser {
+    padding-block: var(--section-y);
+    background-color: var(--color-bg-page);
+  }
+
+  .faq-teaser__list {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-top: 1px solid var(--color-border-decorative);
+  }
+
+  .faq-teaser__item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  /* §17.3 pending-content marker; the answers themselves never ship (§11). */
+  .faq-teaser__marker {
+    margin: 0;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+  }
+
+  .faq-teaser__question {
+    margin: 0;
+    /*
+     * §3: a question is a sentence, so it takes the sans voice, not the serif
+     * reserved for names and titles. Matches the validated screens.
+     */
+    font-family: var(--font-sans);
+    font-size: var(--text-heading-sm);
+    font-weight: 600;
+    line-height: var(--leading-heading-sm);
+    letter-spacing: var(--tracking-heading-sm);
+    color: var(--color-text-primary);
+  }
+
+  .faq-teaser__action {
+    margin-top: var(--space-8);
+  }
+
+  /* ---- Desktop grid (§5: asymmetric 7/5 and 12-column splits, ≥768px) --- */
+  @media (min-width: 768px) {
+    .section-head {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .hero__grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: 24px;
+    }
+
+    .hero__copy {
+      grid-column: 1 / span 7;
+    }
+
+    .hero__watermark {
+      display: block;
+      grid-column: 9 / span 4;
+      position: relative;
+    }
+
+    /* One oversized diamond outline at 6% opacity, bleeding off the right
+       edge as a brand watermark (§5). Static brand geometry, not motion. */
+    .hero__diamond {
+      position: absolute;
+      top: 50%;
+      right: calc(-1 * var(--space-20));
+      width: 420px;
+      height: 420px;
+      transform: translateY(-50%) rotate(45deg);
+      border: 1px solid var(--color-text-primary);
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    .featured__grid {
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: 24px;
+    }
+
+    .featured__lead {
+      grid-column: 1 / span 7;
+    }
+
+    .featured__compacts {
+      display: flex;
+      grid-column: 9 / span 4;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    .services__list {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-16);
+    }
+
+    .faq-teaser__list {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-16);
+    }
+  }
+
+  /* §5: gutters widen to 32px at ≥1280px. */
+  @media (min-width: 1280px) {
+    .hero__grid,
+    .featured__grid {
+      column-gap: 32px;
+    }
+  }
+</style>
