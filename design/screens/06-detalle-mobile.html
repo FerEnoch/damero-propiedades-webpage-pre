@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DAMERO PROPIEDADES - Detalle de Propiedad</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400..700;1,400..700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&amp;family=Public+Sans:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed-dim": "#bfcab4",
+            "on-secondary-fixed-variant": "#394c2f",
+            "surface-dim": "#d9dad8",
+            "surface-container": "#edeeec",
+            "tertiary-container": "#394a2f",
+            "surface-container-low": "#f3f4f2",
+            "on-surface": "#191c1b",
+            "on-primary-container": "#abb6a1",
+            "on-primary-fixed-variant": "#404a39",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "inverse-primary": "#bfcab4",
+            "primary-fixed": "#dbe6cf",
+            "surface-tint": "#57624f",
+            "on-tertiary-fixed": "#101f08",
+            "on-tertiary": "#ffffff",
+            "tertiary": "#23331a",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed-dim": "#b8cda9",
+            "on-tertiary-container": "#a5b997",
+            "outline": "#757870",
+            "surface-variant": "#e2e3e1",
+            "on-surface-variant": "#454841",
+            "on-background": "#191c1b",
+            "background": "#f9faf8",
+            "surface-container-highest": "#e2e3e1",
+            "surface": "#f9faf8",
+            "secondary-container": "#d3eac2",
+            "on-primary-fixed": "#151e10",
+            "on-tertiary-fixed-variant": "#3a4c30",
+            "secondary-fixed-dim": "#b7cda8",
+            "secondary-fixed": "#d3eac2",
+            "on-error": "#ffffff",
+            "surface-bright": "#f9faf8",
+            "primary": "#283222",
+            "on-secondary-fixed": "#0f2007",
+            "inverse-surface": "#2e3130",
+            "tertiary-fixed": "#d4e9c4",
+            "on-secondary-container": "#566a4b",
+            "surface-container-high": "#e7e8e6",
+            "primary-container": "#3e4837",
+            "outline-variant": "#c5c7be",
+            "on-error-container": "#93000a",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#f0f1ef",
+            "secondary": "#506445",
+            "on-secondary": "#ffffff"
+          },
+          borderRadius: {
+            DEFAULT: "0.125rem",
+            lg: "0.25rem",
+            xl: "0.5rem",
+            full: "0.75rem"
+          },
+          fontFamily: {
+            "label-sm": ["Public Sans, sans-serif"],
+            "heading-sm": ["Hanken Grotesk, sans-serif"],
+            "card-title-sm": ["Newsreader, Georgia, serif"],
+            "price-lg": ["Public Sans, sans-serif"],
+            "body-md": ["Hanken Grotesk, sans-serif"],
+            "card-title-lg": ["Newsreader, Georgia, serif"],
+            "legal": ["Hanken Grotesk, sans-serif"],
+            "display-xl": ["Newsreader, Georgia, serif"],
+            "body-sm": ["Hanken Grotesk, sans-serif"],
+            "label-md": ["Public Sans, sans-serif"],
+            "price-md": ["Public Sans, sans-serif"],
+            "body-lg": ["Hanken Grotesk, sans-serif"],
+            "display-lg": ["Newsreader, Georgia, serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    .damero-pattern {
+      background-color: #F4F5F3;
+      background-image: 
+        linear-gradient(45deg, #E8EBE3 25%, transparent 25%), 
+        linear-gradient(-45deg, #E8EBE3 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #E8EBE3 75%), 
+        linear-gradient(-45deg, transparent 75%, #E8EBE3 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased selection:bg-secondary-container selection:text-on-secondary-container">
+<div class="max-w-[390px] mx-auto min-h-screen bg-surface-bright flex flex-col relative border-x border-outline-variant/40">
+<!-- 1. Header -->
+<header class="sticky top-0 w-full h-[64px] bg-surface-bright z-50 border-b border-[#DCE1D6] px-4 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 border border-primary rotate-45 flex items-center justify-center">
+<div class="w-2.5 h-2.5 bg-primary"></div>
+</div>
+<span class="font-card-title-lg text-[13px] tracking-wider text-primary uppercase font-bold">DAMERO PROPIEDADES</span>
+</div>
+<div class="flex items-center gap-3">
+<a class="hidden sm:inline-flex text-xs font-label-md text-primary hover:text-secondary" href="#contacto">WhatsApp</a>
+<button aria-label="Menú" class="p-1 text-primary hover:text-secondary">
+<span class="material-symbols-outlined text-xl">menu</span>
+</button>
+</div>
+</header>
+<!-- 2. Breadcrumb -->
+<nav aria-label="Breadcrumb" class="px-4 py-3 flex justify-between items-center text-xs border-b border-[#DCE1D6] bg-surface-container-low">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-sm">arrow_back</span> Propiedades
+      </a>
+<span class="font-label-sm tracking-wider text-primary font-semibold">LUJÁN</span>
+</nav>
+<!-- 3. Galería -->
+<section class="w-full bg-surface-container border-b border-[#DCE1D6]">
+<div class="w-full aspect-[3/2] relative bg-surface-container-high flex items-center justify-center overflow-hidden damero-pattern">
+<div class="absolute bottom-3 right-3 bg-primary/80 backdrop-blur-xs text-on-primary px-2.5 py-1 text-[11px] font-label-sm tracking-wider">
+          1 / 5
+        </div>
+</div>
+<!-- Carrusel de 4 miniaturas -->
+<div class="grid grid-cols-4 gap-1 p-1 bg-surface-container-low border-t border-[#DCE1D6]">
+<div class="aspect-[3/2] relative damero-pattern border-2 border-primary cursor-pointer"></div>
+<div class="aspect-[3/2] relative damero-pattern border border-[#DCE1D6] opacity-70 hover:opacity-100 cursor-pointer"></div>
+<div class="aspect-[3/2] relative damero-pattern border border-[#DCE1D6] opacity-70 hover:opacity-100 cursor-pointer"></div>
+<div class="aspect-[3/2] relative damero-pattern border border-[#DCE1D6] opacity-70 hover:opacity-100 cursor-pointer"></div>
+</div>
+</section>
+<!-- 4. Título y descripción -->
+<section class="px-4 py-6 border-b border-[#DCE1D6] bg-surface-bright">
+<h1 class="font-card-title-lg text-2xl text-primary leading-tight mb-2">
+        Casa 3 ambientes con patio en zona quinta
+      </h1>
+<p class="font-heading-sm text-sm text-on-surface-variant mb-4">
+        Una propiedad de carácter sereno emplazada en un entorno rural consolidado de Luján, diseñada para disfrutar de la amplitud visual y el silencio natural.
+      </p>
+<div class="w-full h-[1px] bg-[#DCE1D6] my-4"></div>
+<div class="mb-3">
+<span class="font-label-sm text-primary tracking-widest uppercase text-xs">DESCRIPCIÓN</span>
+</div>
+<div class="space-y-3 text-sm text-on-surface leading-relaxed font-body-md">
+<p>
+          Esta residencia de una planta combina una materialidad honesta con proporciones equilibradas. Cuenta con un estar comedor integrado de generosas dimensiones, orientado hacia el norte para aprovechar al máximo la luz natural durante todo el día, y una cocina independiente equipada con mobiliario de madera maciza.
+        </p>
+<p>
+          El área exterior privada incluye un patio pavimentado con ladrillo visto, galería semicubierta y parrilla propia, ideal para reuniones familiares. El terreno perimetral se encuentra completamente parquizado, ofreciendo un entorno verde inmediato sin resignar seguridad ni accesibilidad sobre camino consolidado.
+        </p>
+</div>
+</section>
+<!-- 5. Características -->
+<section class="px-4 py-6 border-b border-[#DCE1D6] bg-surface-container-low">
+<div class="mb-3">
+<span class="font-label-sm text-primary tracking-widest uppercase text-xs">CARACTERÍSTICAS</span>
+</div>
+<div class="flex flex-wrap gap-2 pt-1">
+<span class="px-3 py-1.5 bg-surface-bright border border-[#DCE1D6] text-xs font-label-sm text-on-surface rounded-lg">PATIO</span>
+<span class="px-3 py-1.5 bg-surface-bright border border-[#DCE1D6] text-xs font-label-sm text-on-surface rounded-lg">PARRILLA</span>
+<span class="px-3 py-1.5 bg-surface-bright border border-[#DCE1D6] text-xs font-label-sm text-on-surface rounded-lg">AGUA CORRIENTE</span>
+</div>
+</section>
+<!-- 6. Bloque de precios -->
+<section class="px-4 py-6 border-b border-[#DCE1D6] bg-surface-bright">
+<div class="bg-surface-container-low border border-[#DCE1D6] rounded-lg p-4">
+<span class="font-label-sm text-primary tracking-widest uppercase text-xs block mb-1">PRECIO</span>
+<div class="font-price-lg text-2xl font-bold text-primary mb-3">USD 95.000</div>
+<div class="w-full h-[1px] bg-[#DCE1D6] mb-3"></div>
+<div class="space-y-2 text-xs">
+<div class="flex justify-between py-1 border-b border-[#DCE1D6]/40">
+<span class="font-label-sm text-on-surface-variant">OPERACIÓN</span>
+<span class="font-body-md font-semibold text-on-surface">Venta</span>
+</div>
+<div class="flex justify-between py-1 border-b border-[#DCE1D6]/40">
+<span class="font-label-sm text-on-surface-variant">HABITACIONES</span>
+<span class="font-body-md font-semibold text-on-surface">3</span>
+</div>
+<div class="flex justify-between py-1 border-b border-[#DCE1D6]/40">
+<span class="font-label-sm text-on-surface-variant">COCHERA</span>
+<span class="font-body-md font-semibold text-on-surface">Sí</span>
+</div>
+<div class="flex justify-between py-1 border-b border-[#DCE1D6]/40">
+<span class="font-label-sm text-on-surface-variant">MONEDA</span>
+<span class="font-body-md font-semibold text-on-surface">USD</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="font-label-sm text-on-surface-variant">EXPENSAS</span>
+<span class="font-body-md font-semibold text-on-surface">No aplica</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. Zona y localidad -->
+<section class="px-4 py-6 border-b border-[#DCE1D6] bg-surface-bright">
+<div class="mb-2">
+<span class="font-label-sm text-primary tracking-widest uppercase text-xs">UBICACIÓN</span>
+</div>
+<p class="text-sm text-on-surface font-body-md">
+        Zona quintas, camino rural km 12 · Luján
+      </p>
+</section>
+<!-- 8. Estado de reserva del mapa (fallback) -->
+<section class="px-4 py-6 border-b border-[#DCE1D6] bg-surface-container-low">
+<div class="w-full aspect-[3/2] bg-surface-container border border-[#DCE1D6] rounded-lg p-6 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-3xl text-outline mb-2">home</span>
+<p class="text-xs text-on-surface-variant mb-3 font-body-sm">Ubicación no disponible momentáneamente.</p>
+<button class="text-xs font-label-md text-primary underline underline-offset-4 hover:text-secondary">Reintentar</button>
+</div>
+<div class="mt-3 flex justify-between items-center text-xs text-outline font-label-sm">
+<span>ZONA APROXIMADA · RADIO 400 M</span>
+<span>CONFidencial</span>
+</div>
+</section>
+<!-- Espaciador para la barra fija inferior -->
+<div class="h-20"></div>
+<!-- 9. Barra inferior fija -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[390px] mx-auto h-[56px] bg-primary z-40 flex items-center justify-center px-4 shadow-[0_-4px_20px_rgba(62,72,55,0.15)]" id="contacto">
+<a class="w-full h-full flex items-center justify-center gap-2 text-surface-bright text-xs font-label-md tracking-wider uppercase" href="#contacto">
+<span class="material-symbols-outlined text-lg">chat</span> Consultar por WhatsApp
+      </a>
+</div>
+<!-- 10. Pie de página -->
+<footer class="bg-primary text-surface-bright px-6 py-12 flex flex-col gap-8 border-t border-outline/30">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 border border-surface-bright rotate-45 flex items-center justify-center">
+<div class="w-2 h-2 bg-surface-bright"></div>
+</div>
+<span class="font-card-title-lg text-sm tracking-wider text-surface-bright uppercase font-bold">DAMERO PROPIEDADES</span>
+</div>
+<div class="flex flex-col gap-3 text-xs">
+<a class="hover:text-primary-fixed-dim transition-colors" href="#">Inicio</a>
+<a class="hover:text-primary-fixed-dim transition-colors" href="#">Propiedades</a>
+<a class="hover:text-primary-fixed-dim transition-colors" href="#">Preguntas frecuentes</a>
+</div>
+<div class="w-full h-[1px] bg-surface-bright/20"></div>
+<div class="text-[13px] font-legal text-on-primary-container leading-relaxed space-y-3">
+<p>Todas las propiedades exhibidas tienen el permiso firmado de los titulares para su difusión y promoción.</p>
+<p>Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 000.</p>
+</div>
+</footer>
+</div>
+</body></html>

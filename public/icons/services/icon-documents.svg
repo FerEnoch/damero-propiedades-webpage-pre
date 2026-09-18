@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" focusable="false">
+  <title>Documentos apilados con esquina doblada</title>
+  <path fill="#7C916F" d="M10.3 3.2H18.2A1 1 0 0 1 19.2 4.2V15.2A1 1 0 0 1 18.2 16.2H10.3A1 1 0 0 1 9.3 15.2V4.2A1 1 0 0 1 10.3 3.2Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5A1 1 0 0 1 5.5 6.5H11.5L15.5 10.5V20A1 1 0 0 1 14.5 21H5.5A1 1 0 0 1 4.5 20Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M11.5 6.5V10.5H15.5"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M7.5 13.5H12.5"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M7.5 16.5H10.5"/>
+</svg>

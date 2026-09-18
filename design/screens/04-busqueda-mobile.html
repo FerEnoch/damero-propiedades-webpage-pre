@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DAMERO PROPIEDADES - Búsqueda y Catálogo</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400..700;1,400..700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&amp;family=Public+Sans:ital,wght@0,400..700;1,400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-on-surface": "#f0f1ef",
+            "surface-container-low": "#f3f4f2",
+            "on-tertiary-fixed": "#101f08",
+            "surface-variant": "#e2e3e1",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed-variant": "#3a4c30",
+            "outline": "#757870",
+            "on-primary": "#ffffff",
+            "surface-bright": "#f9faf8",
+            "primary": "#283222",
+            "inverse-surface": "#2e3130",
+            "surface-container-highest": "#e2e3e1",
+            "secondary-fixed": "#d3eac2",
+            "secondary-container": "#d3eac2",
+            "secondary": "#506445",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "surface-container-high": "#e7e8e6",
+            "on-tertiary-container": "#a5b997",
+            "on-tertiary": "#ffffff",
+            "on-surface": "#191c1b",
+            "surface-container": "#edeeec",
+            "tertiary": "#23331a",
+            "primary-fixed": "#dbe6cf",
+            "on-surface-variant": "#454841",
+            "on-background": "#191c1b",
+            "primary-container": "#3e4837",
+            "primary-fixed-dim": "#bfcab4",
+            "on-secondary-fixed": "#0f2007",
+            "surface": "#f9faf8",
+            "on-error-container": "#93000a",
+            "tertiary-fixed-dim": "#b8cda9",
+            "surface-tint": "#57624f",
+            "on-primary-fixed-variant": "#404a39",
+            "outline-variant": "#c5c7be",
+            "on-primary-container": "#abb6a1",
+            "background": "#f9faf8",
+            "secondary-fixed-dim": "#b7cda8",
+            "surface-container-lowest": "#ffffff",
+            "inverse-primary": "#bfcab4",
+            "on-secondary-fixed-variant": "#394c2f",
+            "on-primary-fixed": "#151e10",
+            "on-secondary-container": "#566a4b",
+            "surface-dim": "#d9dad8",
+            "on-secondary": "#ffffff",
+            "tertiary-fixed": "#d4e9c4",
+            "tertiary-container": "#394a2f"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "40px",
+            "space-sm": "8px",
+            "space-md": "16px",
+            "space-lg": "24px",
+            "gutter": "clamp(1.25rem, 5vw, 3rem)",
+            "margin": "1.5rem",
+            "space-xs": "4px"
+          },
+          "fontFamily": {
+            "price-md": ["Public Sans, sans-serif"],
+            "label-sm": ["Public Sans, sans-serif"],
+            "body-sm": ["Hanken Grotesk, sans-serif"],
+            "label-md": ["Public Sans, sans-serif"],
+            "body-lg": ["Hanken Grotesk, sans-serif"],
+            "display-lg": ["Newsreader, Georgia, serif"],
+            "body-md": ["Hanken Grotesk, sans-serif"],
+            "legal": ["Hanken Grotesk, sans-serif"],
+            "card-title-lg": ["Newsreader, Georgia, serif"],
+            "price-lg": ["Public Sans, sans-serif"],
+            "display-xl": ["Newsreader, Georgia, serif"],
+            "heading-sm": ["Hanken Grotesk, sans-serif"],
+            "card-title-sm": ["Newsreader, Georgia, serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #F4F5F3;
+      color: #191c1b;
+      font-family: 'Hanken Grotesk', sans-serif;
+    }
+    .serif-title {
+      font-family: 'Newsreader', Georgia, serif;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col antialiased selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- Sticky Header -->
+<header class="sticky top-0 w-full h-[64px] z-40 bg-surface-container-lowest border-b border-outline-variant/40 flex items-center justify-between px-4 shadow-xs">
+<div class="flex items-center gap-3">
+<div class="w-4 h-4 border border-primary rotate-45 flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+</div>
+<span class="font-card-title-lg text-card-title-lg tracking-wider text-primary uppercase font-bold">DAMERO PROPIEDADES</span>
+</div>
+<div class="flex items-center gap-4">
+<a class="hidden sm:inline-flex items-center gap-1.5 font-label-md text-label-md text-secondary hover:text-primary transition-colors" href="https://wa.me/">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+<span>Consultar por WhatsApp</span>
+</a>
+<button aria-label="Menú" class="p-1 text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-[480px] mx-auto px-4 py-6 flex flex-col gap-6">
+<!-- Page Head -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-outline tracking-widest uppercase">CARTERA COMPLETA</span>
+<div class="w-2 h-2 border border-outline/65 rotate-45"></div>
+</div>
+<h1 class="serif-title text-[2.25rem] leading-[1.08] text-primary font-normal">Propiedades</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Filtrá por operación, zona y moneda. La búsqueda se puede compartir por URL.</p>
+</div>
+<!-- Collapsed Filter Bar -->
+<div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex items-center gap-1.5 px-3 py-2 bg-primary text-on-primary font-label-md text-label-md rounded shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Filtros</span>
+<span class="bg-surface-container-lowest text-primary px-1.5 py-0.2 rounded text-[10px] font-bold">3</span>
+</button>
+<div class="flex items-center gap-2 shrink-0">
+<span class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-surface-container-high border border-outline-variant text-on-surface font-label-sm text-label-sm rounded">
+          VENTA <span class="material-symbols-outlined text-[14px]">close</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-surface-container-high border border-outline-variant text-on-surface font-label-sm text-label-sm rounded">
+          LUJÁN <span class="material-symbols-outlined text-[14px]">close</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-surface-container-high border border-outline-variant text-on-surface font-label-sm text-label-sm rounded">
+          USD 30.000–150.000 <span class="material-symbols-outlined text-[14px]">close</span>
+</span>
+</div>
+</div>
+<!-- Results Header & Shareable URL -->
+<div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/30">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-primary tracking-wider uppercase font-semibold">RESULTADOS · 6</span>
+<span class="font-body-sm text-body-sm text-outline">Página 1 de 1</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low border border-outline-variant/60 px-3 py-2 rounded text-[12px] font-mono text-on-surface-variant">
+<span class="truncate pr-2">dameropropiedades.com.ar/buscar?op=venta&amp;loc=lujan&amp;min=30000</span>
+<button class="shrink-0 flex items-center gap-1 text-secondary font-label-sm hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span>Copiar búsqueda</span>
+</button>
+</div>
+</div>
+<!-- Results List -->
+<div class="flex flex-col gap-6"><article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-primary text-on-primary font-label-sm text-label-sm px-2.5 py-1 rounded">VENTA</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Casa 3 ambientes con patio en zona quinta</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">USD 95.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Zona quintas, camino rural km 12 · Luján</span>
+</div>
+</div>
+</article>
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-secondary text-on-secondary font-label-sm text-label-sm px-2.5 py-1 rounded">ALQUILER</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Departamento 2 ambientes con balcón</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">ARS 480.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Centro · Mercedes</span>
+</div>
+</div>
+</article>
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-primary text-on-primary font-label-sm text-label-sm px-2.5 py-1 rounded">VENTA</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Lote 600 m² apto crédito</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">USD 32.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Barrio Los Aromos · Luján</span>
+</div>
+</div>
+</article>
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-primary text-on-primary font-label-sm text-label-sm px-2.5 py-1 rounded">VENTA</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Casa 4 ambientes con parrilla y pileta</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">USD 128.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Barrio Los Paraísos · Carlos Keen</span>
+</div>
+</div>
+</article>
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-secondary text-on-secondary font-label-sm text-label-sm px-2.5 py-1 rounded">ALQUILER</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Local a la calle 80 m²</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">ARS 620.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Centro · Jáuregui</span>
+</div>
+</div>
+</article>
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded overflow-hidden flex flex-col shadow-xs">
+<div class="relative w-full aspect-[3/2]" style="background: #F4F5F3; background-image: repeating-linear-gradient(45deg, #E8EBE3 0, #E8EBE3 15px, transparent 0, transparent 30px);"></div>
+<div class="p-4 flex flex-col gap-3">
+<div class="self-start">
+<span class="inline-block bg-primary text-on-primary font-label-sm text-label-sm px-2.5 py-1 rounded">VENTA</span>
+</div>
+<h2 class="serif-title text-[1.25rem] leading-[1.2] text-primary">Parcela rural 2 ha con agua de red</h2>
+<div class="font-price-lg text-price-lg text-primary font-bold">USD 45.000</div>
+<div class="w-full h-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Colonia rural, km 8 · Suipacha</span>
+</div>
+</div>
+</article></div>
+<!-- View More Button -->
+<div class="pt-2 pb-6">
+<button class="w-full py-3.5 px-4 bg-transparent border border-secondary text-secondary font-label-md text-label-md rounded hover:bg-secondary-container/20 transition-colors flex items-center justify-center gap-2">
+<span>Ver más propiedades</span>
+<span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-primary text-surface-bright mt-auto">
+<div class="w-full max-w-[480px] mx-auto px-6 py-16 flex flex-col gap-10">
+<div class="flex items-center gap-3">
+<div class="w-4 h-4 border border-surface-bright rotate-45 flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-surface-bright"></div>
+</div>
+<span class="font-card-title-lg text-card-title-lg text-surface-bright tracking-wider uppercase font-bold">DAMERO PROPIEDADES</span>
+</div>
+<div class="grid grid-cols-2 gap-4 font-body-sm text-body-sm"><div class="flex flex-col gap-2.5 col-span-2"><a class="hover:text-secondary-fixed transition-colors" href="#">Inicio</a><a class="hover:text-secondary-fixed transition-colors" href="#">Propiedades</a><a class="hover:text-secondary-fixed transition-colors" href="#">Preguntas frecuentes</a></div></div>
+<div class="flex flex-col gap-2 text-surface-bright/80 font-body-sm text-body-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+<span>+54 9 2304 000000</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>Lunes a viernes 9 a 18 h</span>
+</div>
+</div>
+<div class="w-full h-[1px] bg-surface-bright/20"></div>
+<div class="flex flex-col gap-4 font-legal text-legal text-surface-bright/70"><p>Todas las propiedades exhibidas tienen el permiso firmado de los titulares para su difusión y promoción.</p><p>Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 000.</p></div>
+</div>
+</footer>
+<!-- Bottom Sheet Overlay & Drawer (SHOWN OPEN) -->
+<div class="fixed inset-0 z-50 flex flex-col justify-end">
+<!-- Dim Scrim -->
+<div class="absolute inset-0 bg-inverse-surface/60 backdrop-blur-[2px]"></div>
+<!-- Drawer Content -->
+<div class="relative w-full max-w-[480px] mx-auto bg-surface-container-lowest rounded-t-xl shadow-lg max-h-[751px] flex flex-col overflow-hidden">
+<!-- Top Handle -->
+<div class="w-full pt-3 pb-1 flex justify-center">
+<div class="w-12 h-1 bg-outline-variant/60 rounded"></div>
+</div>
+<!-- Sheet Header -->
+<div class="px-6 py-4 flex items-center justify-between border-b border-outline-variant/30">
+<h3 class="serif-title text-[1.25rem] text-primary font-medium">Filtros</h3>
+<button class="font-label-md text-label-md text-secondary hover:text-primary transition-colors">Limpiar</button>
+</div>
+<!-- Scrollable Filters Body -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6"><div class="flex flex-col gap-6"><div class="flex flex-col gap-2"><label class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Operación</label><div class="flex gap-2"><button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded">Venta</button><button class="px-4 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">Alquiler</button></div></div><div class="flex flex-col gap-2"><label class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Tipo</label><div class="flex flex-wrap gap-2"><button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded">Casa</button><button class="px-4 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">Depto</button><button class="px-4 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">Lote</button></div></div><div class="flex flex-col gap-2"><label class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Localidad</label><select class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded font-body-sm text-body-sm text-on-surface"><option>Luján</option></select></div><div class="flex flex-col gap-2"><label class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Habitaciones</label><div class="flex flex-wrap gap-2"><button class="px-3 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">1+</button><button class="px-3 py-2 bg-primary text-on-primary font-label-md text-label-md rounded">3+</button><button class="px-3 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">4+</button><button class="px-3 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">Todos</button></div></div><div class="flex items-center gap-3 py-2"><input class="w-4 h-4 text-primary border-outline-variant rounded" id="cochera" type="checkbox"/><label class="font-body-sm text-body-sm text-on-surface" for="cochera">Con cochera</label></div><div class="flex flex-col gap-2"><label class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Moneda</label><div class="flex gap-2"><button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded">USD</button><button class="px-4 py-2 bg-surface-container-high text-on-surface font-label-md text-label-md rounded">ARS</button></div></div></div></div>
+<!-- Sheet Footer CTA -->
+<div class="p-4 border-t border-outline-variant/30 bg-surface-container-lowest">
+<button class="w-full py-3.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded hover:bg-primary-container transition-colors text-center font-semibold">
+          Ver 6 propiedades
+        </button>
+</div>
+</div>
+</div>
+</body></html>

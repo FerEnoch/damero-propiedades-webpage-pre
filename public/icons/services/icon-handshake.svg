@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" focusable="false">
+  <title>Manos estrechadas</title>
+  <path fill="#7C916F" d="M10.2 10H13.8A1.6 1.6 0 0 1 15.4 11.6V14A1.6 1.6 0 0 1 13.8 15.6H10.2A1.6 1.6 0 0 1 8.6 14V11.6A1.6 1.6 0 0 1 10.2 10Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M2 10.6H8V15H2Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M22 10.6H16V15H22Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4.6 10.6V15"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M19.4 10.6V15"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 9.4H14A2 2 0 0 1 16 11.4V14.2A2 2 0 0 1 14 16.2H10A2 2 0 0 1 8 14.2V11.4A2 2 0 0 1 10 9.4Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M9.8 9.4V12.2"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9.4V12.2"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14.2 9.4V12.2"/>
+</svg>

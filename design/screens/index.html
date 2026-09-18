@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damero Propiedades — Pantallas exportadas</title>
+<style>
+  :root {
+    --bg: #f4f4f2;
+    --card: #ffffff;
+    --ink: #1c1c1a;
+    --muted: #6b6b66;
+    --line: #dcdcd6;
+    --accent: #2f3a2f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 24px 72px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  header { max-width: 1180px; margin: 0 auto 32px; }
+  h1 { font-size: 26px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 4px; }
+  .note {
+    max-width: 1180px;
+    margin: 24px auto 0;
+    padding: 14px 16px;
+    background: #fffdf0;
+    border: 1px solid #e6e0b8;
+    border-radius: 8px;
+    color: #5a5230;
+    font-size: 13.5px;
+  }
+  main { max-width: 1180px; margin: 0 auto; }
+  .row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: #fafaf8;
+  }
+  .idx {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 13px;
+    min-width: 22px;
+  }
+  .name { font-weight: 600; font-size: 16px; }
+  .tag {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    background: #fff;
+  }
+  .tag.desktop { border-color: #c9d3c9; background: #eef2ee; color: #33402f; }
+  .tag.mobile  { border-color: #d3c9c9; background: #f3eeee; color: #402f2f; }
+  .spacer { flex: 1 1 auto; }
+  .links { display: flex; gap: 14px; font-size: 13.5px; }
+  .links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid #b9c4b9; padding-bottom: 1px; }
+  .links a:hover { border-bottom-color: var(--accent); }
+  .preview {
+    max-height: 620px;
+    overflow: auto;
+    background:
+      repeating-linear-gradient(45deg, #f0f0ec 0 10px, #e9e9e4 10px 20px);
+    padding: 16px;
+    text-align: center;
+  }
+  .preview img {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    border: 1px solid var(--line);
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .preview img.desktop { max-width: min(100%, 1000px); }
+  .preview img.mobile  { max-width: min(100%, 360px); }
+  .hint { font-size: 12px; color: var(--muted); padding: 8px 18px 14px; }
+  footer { max-width: 1180px; margin: 40px auto 0; color: var(--muted); font-size: 13px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Damero Propiedades — Pantallas exportadas</h1>
+  <p class="sub">8 pantallas del proyecto Stitch <strong>Damero Propiedades</strong> (<code>1558288594788685169</code>).</p>
+  <p class="sub">PNG full-page + HTML original de cada pantalla. Todo funciona offline abriendo este archivo con <code>file://</code>.</p>
+  <div class="note">
+    <strong>Aviso sobre los renders:</strong> los PNG son capturas del <em>HTML exportado</em>, no del canvas de Stitch.
+    El mapa se ve como stand-in (marcador y grilla, o el mensaje «Ubicación no disponible momentáneamente»)
+    porque MapLibre no carga tiles en un navegador headless sin red.
+  </div>
+</header>
+
+<main>
+
+  <!-- 1 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">01</span>
+      <span class="name">Landing — Desktop</span>
+      <span class="tag desktop">Desktop</span>
+      <span class="tag">1280 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="01-landing-desktop.html">Abrir HTML original</a>
+        <a href="01-landing-desktop.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="desktop" src="01-landing-desktop.png" alt="Landing desktop de Damero Propiedades"></div>
+    <div class="hint">PNG 1280 × 3851 px · <code>01-landing-desktop.png</code></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">02</span>
+      <span class="name">Landing — Móvil</span>
+      <span class="tag mobile">Mobile</span>
+      <span class="tag">390 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="02-landing-mobile.html">Abrir HTML original</a>
+        <a href="02-landing-mobile.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="mobile" src="02-landing-mobile.png" alt="Landing móvil de Damero Propiedades"></div>
+    <div class="hint">PNG 780 × 8450 px · <code>02-landing-mobile.png</code> · render a 2x</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">03</span>
+      <span class="name">Búsqueda y catálogo — Desktop</span>
+      <span class="tag desktop">Desktop</span>
+      <span class="tag">1280 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="03-busqueda-desktop.html">Abrir HTML original</a>
+        <a href="03-busqueda-desktop.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="desktop" src="03-busqueda-desktop.png" alt="Pantalla de búsqueda y catálogo desktop"></div>
+    <div class="hint">PNG 1280 × 2978 px · <code>03-busqueda-desktop.png</code></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">04</span>
+      <span class="name">Búsqueda y catálogo — Móvil</span>
+      <span class="tag mobile">Mobile</span>
+      <span class="tag">390 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="04-busqueda-mobile.html">Abrir HTML original</a>
+        <a href="04-busqueda-mobile.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="mobile" src="04-busqueda-mobile.png" alt="Pantalla de búsqueda y catálogo móvil"></div>
+    <div class="hint">PNG 780 × 7762 px · <code>04-busqueda-mobile.png</code> · render a 2x · incluye el panel de filtros abierto</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">05</span>
+      <span class="name">Detalle de propiedad — Desktop</span>
+      <span class="tag desktop">Desktop</span>
+      <span class="tag">1280 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="05-detalle-desktop.html">Abrir HTML original</a>
+        <a href="05-detalle-desktop.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="desktop" src="05-detalle-desktop.png" alt="Pantalla de detalle de propiedad desktop"></div>
+    <div class="hint">PNG 1280 × 2250 px · <code>05-detalle-desktop.png</code></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">06</span>
+      <span class="name">Detalle de propiedad — Móvil</span>
+      <span class="tag mobile">Mobile</span>
+      <span class="tag">390 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="06-detalle-mobile.html">Abrir HTML original</a>
+        <a href="06-detalle-mobile.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="mobile" src="06-detalle-mobile.png" alt="Pantalla de detalle de propiedad móvil"></div>
+    <div class="hint">PNG 780 × 4612 px · <code>06-detalle-mobile.png</code> · render a 2x</div>
+  </section>
+
+  <!-- 7 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">07</span>
+      <span class="name">Preguntas frecuentes — Desktop</span>
+      <span class="tag desktop">Desktop</span>
+      <span class="tag">1280 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="07-faqs-desktop.html">Abrir HTML original</a>
+        <a href="07-faqs-desktop.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="desktop" src="07-faqs-desktop.png" alt="Pantalla de preguntas frecuentes desktop"></div>
+    <div class="hint">PNG 1280 × 1819 px · <code>07-faqs-desktop.png</code></div>
+  </section>
+
+  <!-- 8 -->
+  <section class="row">
+    <div class="meta">
+      <span class="idx">08</span>
+      <span class="name">Preguntas frecuentes — Móvil</span>
+      <span class="tag mobile">Mobile</span>
+      <span class="tag">390 px</span>
+      <span class="spacer"></span>
+      <span class="links">
+        <a href="08-faqs-mobile.html">Abrir HTML original</a>
+        <a href="08-faqs-mobile.png">Abrir PNG</a>
+      </span>
+    </div>
+    <div class="preview"><img class="mobile" src="08-faqs-mobile.png" alt="Pantalla de preguntas frecuentes móvil"></div>
+    <div class="hint">PNG 780 × 4090 px · <code>08-faqs-mobile.png</code> · render a 2x</div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Origen: proyecto Stitch <strong>Damero Propiedades</strong> · ID <code>1558288594788685169</code>. Ver <code>README.md</code> para la tabla completa de screen IDs.</p>
+</footer>
+
+</body>
+</html>

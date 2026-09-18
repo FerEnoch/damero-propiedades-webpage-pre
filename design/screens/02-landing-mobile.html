@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Damero Propiedades</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&amp;family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&amp;family=Public+Sans:ital,wght@0,300..900;1,300..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-fixed": "#dbe6cf",
+            "secondary-container": "#d3eac2",
+            "on-surface-variant": "#454841",
+            "inverse-surface": "#2e3130",
+            "background": "#f9faf8",
+            "on-surface": "#191c1b",
+            "on-primary-fixed-variant": "#404a39",
+            "surface": "#f9faf8",
+            "surface-tint": "#57624f",
+            "primary": "#283222",
+            "outline-variant": "#c5c7be",
+            "on-tertiary-fixed-variant": "#3a4c30",
+            "on-tertiary-fixed": "#101f08",
+            "error": "#ba1a1a",
+            "surface-dim": "#d9dad8",
+            "inverse-on-surface": "#f0f1ef",
+            "secondary-fixed-dim": "#b7cda8",
+            "primary-fixed-dim": "#bfcab4",
+            "surface-container-high": "#e7e8e6",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#d3eac2",
+            "secondary": "#506445",
+            "on-secondary-fixed": "#0f2007",
+            "primary-container": "#3e4837",
+            "on-primary-fixed": "#151e10",
+            "tertiary": "#23331a",
+            "on-background": "#191c1b",
+            "error-container": "#ffdad6",
+            "surface-bright": "#f9faf8",
+            "on-error-container": "#93000a",
+            "tertiary-fixed": "#d4e9c4",
+            "tertiary-fixed-dim": "#b8cda9",
+            "on-tertiary-container": "#a5b997",
+            "surface-variant": "#e2e3e1",
+            "surface-container-highest": "#e2e3e1",
+            "surface-container-low": "#f3f4f2",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#bfcab4",
+            "on-secondary-fixed-variant": "#394c2f",
+            "on-secondary-container": "#566a4b",
+            "surface-container": "#edeeec",
+            "outline": "#757870",
+            "on-primary-container": "#abb6a1",
+            "tertiary-container": "#394a2f",
+            "surface-container-lowest": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "16px",
+            "gutter": "clamp(1.25rem, 5vw, 3rem)",
+            "space-lg": "24px",
+            "margin": "1.5rem",
+            "space-xs": "4px",
+            "space-xl": "40px",
+            "space-sm": "8px"
+          },
+          "fontFamily": {
+            "body-lg": ["\"Hanken Grotesk, sans-serif\""],
+            "price-lg": ["\"Public Sans, sans-serif\""],
+            "body-sm": ["\"Hanken Grotesk, sans-serif\""],
+            "label-sm": ["\"Public Sans, sans-serif\""],
+            "heading-sm": ["\"Hanken Grotesk, sans-serif\""],
+            "card-title-sm": ["\"Newsreader, Georgia, serif\""],
+            "card-title-lg": ["\"Newsreader, Georgia, serif\""],
+            "price-md": ["\"Public Sans, sans-serif\""],
+            "display-lg": ["\"Newsreader, Georgia, serif\""],
+            "body-md": ["\"Hanken Grotesk, sans-serif\""],
+            "display-xl": ["\"Newsreader, Georgia, serif\""],
+            "label-md": ["\"Public Sans, sans-serif\""],
+            "legal": ["\"Hanken Grotesk, sans-serif\""]
+          },
+          "fontSize": {
+            "body-lg": ["1.125rem", { "lineHeight": "1.60", "letterSpacing": "0", "fontWeight": "400" }],
+            "price-lg": ["clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem)", { "lineHeight": "1.15", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.55", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1.25", "letterSpacing": "0.08em", "fontWeight": "600" }],
+            "heading-sm": ["1.0625rem", { "lineHeight": "1.35", "letterSpacing": "-0.004em", "fontWeight": "600" }],
+            "card-title-sm": ["1.125rem", { "lineHeight": "1.30", "letterSpacing": "-0.008em", "fontWeight": "500" }],
+            "card-title-lg": ["clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem)", { "lineHeight": "1.22", "letterSpacing": "-0.012em", "fontWeight": "500" }],
+            "price-md": ["1.0625rem", { "lineHeight": "1.20", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "display-lg": ["clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem)", { "lineHeight": "1.10", "letterSpacing": "-0.018em", "fontWeight": "400" }],
+            "body-md": ["1rem", { "lineHeight": "1.65", "letterSpacing": "0", "fontWeight": "400" }],
+            "display-xl": ["clamp(2.25rem, 1.35rem + 4.2vw, 4.25rem)", { "lineHeight": "1.04", "letterSpacing": "-0.022em", "fontWeight": "400" }],
+            "label-md": ["0.8125rem", { "lineHeight": "1.30", "letterSpacing": "0.06em", "fontWeight": "600" }],
+            "legal": ["0.8125rem", { "lineHeight": "1.60", "letterSpacing": "0", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .damero-pattern {
+      background-image: repeating-linear-gradient(45deg, #e2e3e1 0, #e2e3e1 15px, #f9faf8 15px, #f9faf8 30px);
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<div class="max-w-[390px] mx-auto min-h-screen flex flex-col bg-surface border-x border-outline-variant/30">
+<!-- 1. HEADER -->
+<header class="sticky top-0 w-full h-[64px] z-50 bg-surface-bright/95 backdrop-blur-sm border-b border-outline-variant/40 px-4 flex justify-between items-center shadow-xs">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 bg-primary flex items-center justify-center transform rotate-45 rounded-xs">
+<div class="w-3 h-3 bg-surface transform -rotate-45"></div>
+</div>
+<span class="font-card-title-lg text-card-title-lg tracking-wider text-primary uppercase font-bold text-sm">DAMERO PROPIEDADES</span>
+</div>
+<div class="flex items-center gap-3">
+<a class="text-xs font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#contacto">Consultar por WhatsApp</a>
+<button aria-label="Menú" class="p-1 text-on-surface hover:text-primary">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+</div>
+</header>
+<!-- 2. HERO -->
+<section class="w-full flex flex-col">
+<div class="w-full h-[120px] damero-pattern border-b border-outline-variant/30"></div>
+<div class="px-5 pt-8 pb-10 flex flex-col gap-6">
+<div class="flex flex-col gap-3">
+<span class="font-label-md text-label-md text-secondary tracking-widest uppercase">DAMERO PROPIEDADES</span>
+<h1 class="font-display-lg text-display-lg text-primary font-normal">Somos Damero Propiedades y resolvemos cada etapa para que vendas, compres o alquiles con tranquilidad.</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Tenés dudas y no sabés cómo encarar tu negocio? Podés resolver tu inquietud en nuestra sección de preguntas frecuentes o consultarnos sin compromiso en nuestros canales de contacto.</p>
+</div>
+<a class="w-full h-12 bg-[#3E4837] text-on-primary flex items-center justify-center rounded font-label-md tracking-wider uppercase hover:bg-primary transition-colors" href="#cartera">Ver cartera de propiedades</a>
+</div>
+</section>
+<!-- 3. FEATURED PROPERTIES -->
+<section class="px-5 py-10 flex flex-col gap-6 border-t border-outline-variant/30 bg-surface-container-low/50" id="cartera">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-secondary tracking-widest uppercase">SELECCIÓN</span>
+<h2 class="font-card-title-lg text-card-title-lg text-primary font-serif">Propiedades destacadas</h2>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Card 1 -->
+<article class="bg-surface border border-outline-variant/60 rounded-md overflow-hidden flex flex-col">
+<div class="w-full aspect-[3/2] damero-pattern relative flex items-center justify-center">
+<div class="w-10 h-10 bg-primary/20 transform rotate-45 flex items-center justify-center">
+<div class="w-4 h-4 bg-surface/80 transform -rotate-45"></div>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2">
+<div class="self-start">
+<span class="bg-primary text-on-primary text-[10px] font-label-sm px-2 py-0.5 rounded-xs tracking-wider">VENTA</span>
+</div>
+<h3 class="font-card-title-sm text-card-title-sm text-primary">Casa 3 ambientes con patio en zona quinta</h3>
+<p class="font-price-lg text-price-lg text-primary font-semibold">USD 95.000</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Zona quintas, camino rural km 12 · Luján</p>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface border border-outline-variant/60 rounded-md overflow-hidden flex flex-col">
+<div class="w-full aspect-[3/2] damero-pattern relative flex items-center justify-center">
+<div class="w-10 h-10 bg-primary/20 transform rotate-45 flex items-center justify-center">
+<div class="w-4 h-4 bg-surface/80 transform -rotate-45"></div>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2">
+<div class="self-start">
+<span class="border border-primary text-primary text-[10px] font-label-sm px-2 py-0.5 rounded-xs tracking-wider">ALQUILER</span>
+</div>
+<h3 class="font-card-title-sm text-card-title-sm text-primary">Departamento 2 ambientes con balcón</h3>
+<p class="font-price-lg text-price-lg text-primary font-semibold">ARS 480.000</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Centro · Mercedes</p>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-surface border border-outline-variant/60 rounded-md overflow-hidden flex flex-col">
+<div class="w-full aspect-[3/2] damero-pattern relative flex items-center justify-center">
+<div class="w-10 h-10 bg-primary/20 transform rotate-45 flex items-center justify-center">
+<div class="w-4 h-4 bg-surface/80 transform -rotate-45"></div>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2">
+<div class="self-start">
+<span class="bg-primary text-on-primary text-[10px] font-label-sm px-2 py-0.5 rounded-xs tracking-wider">VENTA</span>
+</div>
+<h3 class="font-card-title-sm text-card-title-sm text-primary">Lote 600 m² apto crédito</h3>
+<p class="font-price-lg text-price-lg text-primary font-semibold">USD 32.000</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Barrio Los Aromos · Luján</p>
+</div>
+</article>
+</div>
+<div class="pt-2">
+<a class="font-label-md text-label-md text-primary inline-flex items-center gap-1 hover:text-secondary transition-colors" href="#">Ver todas las propiedades →</a>
+</div>
+</section>
+<!-- 4. SERVICES -->
+<section class="w-full py-12 px-5 bg-[#E8EBE3] flex flex-col gap-8">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-secondary tracking-widest uppercase">QUÉ HACEMOS</span>
+<h2 class="font-card-title-lg text-card-title-lg text-primary font-serif">Nuestros servicios</h2>
+</div>
+<div class="flex flex-col">
+<!-- Row 1 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">balance</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Tasación</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Valoramos tu inmueble con precisión y conocimiento del mercado.</p>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">storefront</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Comercialización</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Promocionamos tu inmueble en los mejores canales para lograr la mejor venta.</p>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">handshake</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Negociación</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Te acompañamos en todo el proceso para lograr las mejores condiciones.</p>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">gavel</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Asesoramiento legal</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Brindamos asesoramiento legal integral para garantizar operaciones seguras.</p>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">description</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Gestión documental</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Nos ocupamos de toda la documentación para que no tengas que preocuparte por nada.</p>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">home</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Alquileres</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Administramos tu alquiler de forma profesional, cuidando tu propiedad y asegurando tranquilidad.</p>
+</div>
+</div>
+<!-- Row 7 -->
+<div class="py-4 border-b border-outline-variant/40 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">photo_camera</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Fotografía profesional</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mostramos tu inmueble con imágenes de calidad que enamoran.</p>
+</div>
+</div>
+<!-- Row 8 -->
+<div class="py-4 flex items-start gap-3">
+<div class="w-[44px] h-[44px] min-w-[44px] bg-surface rounded-xs flex items-center justify-center border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined text-xl">campaign</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-heading-sm text-heading-sm text-primary">Marketing inmobiliario</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Estrategias de marketing digital para llegar al público adecuado.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- FAQ SECTION -->
+<section class="w-full py-12 px-5 bg-surface flex flex-col gap-8 border-t border-outline-variant/30" id="faqs">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-secondary tracking-widest uppercase">CONSULTAS HABITUALES</span>
+<h2 class="font-card-title-lg text-card-title-lg text-primary font-serif">Preguntas frecuentes</h2>
+</div>
+<div class="flex flex-col gap-6">
+<!-- FAQ 1 -->
+<div class="flex flex-col gap-2 pb-6 border-b border-outline-variant/40">
+<div class="self-start">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-label-sm px-2 py-0.5 rounded-xs tracking-wider">[PENDIENTE]</span>
+</div>
+<h3 class="font-heading-sm text-heading-sm text-primary">¿Qué necesito para publicar mi propiedad en venta?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Respuesta: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+</div>
+<!-- FAQ 2 -->
+<div class="flex flex-col gap-2 pb-2">
+<div class="self-start">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-label-sm px-2 py-0.5 rounded-xs tracking-wider">[PENDIENTE]</span>
+</div>
+<h3 class="font-heading-sm text-heading-sm text-primary">¿Qué necesito para publicar mi propiedad en alquiler?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Respuesta: Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+</div>
+</div>
+<div class="pt-2">
+<a class="font-label-md text-label-md text-primary inline-flex items-center gap-1 hover:text-secondary transition-colors" href="/faqs">Ver todas las preguntas frecuentes →</a>
+</div>
+</section>
+<!-- 5. FOOTER -->
+<footer class="bg-[#3E4837] text-surface-bright px-6 py-16 flex flex-col gap-10" id="contacto">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 bg-surface-bright flex items-center justify-center transform rotate-45 rounded-xs">
+<div class="w-3 h-3 bg-[#3E4837] transform -rotate-45"></div>
+</div>
+<span class="font-card-title-lg text-card-title-lg text-surface-bright tracking-wider uppercase font-bold text-sm">DAMERO PROPIEDADES</span>
+</div>
+<p class="font-body-sm text-on-primary-container">Catálogo inmobiliario con respaldo jurídico.</p>
+<nav class="flex flex-col gap-2 pt-2">
+<a class="font-body-sm text-surface-bright hover:text-secondary-fixed transition-colors" href="#">Inicio</a>
+<a class="font-body-sm text-on-primary-container hover:text-surface-bright transition-colors" href="#cartera">Propiedades</a>
+<a class="font-body-sm text-on-primary-container hover:text-surface-bright transition-colors" href="#faqs">Preguntas frecuentes</a>
+</nav>
+<div class="flex flex-col gap-1 pt-2">
+<span class="font-label-sm text-on-primary-container uppercase tracking-wider">WhatsApp</span>
+<a class="font-heading-sm text-surface-bright hover:underline" href="https://wa.me/5492304000000">+54 9 2304 000000</a>
+<span class="font-legal text-on-primary-container text-xs">Lunes a viernes, 9 a 18 h</span>
+</div>
+</div>
+<div class="w-full h-[1px] bg-outline/30"></div>
+<div class="flex flex-col gap-4">
+<p class="font-legal text-legal text-on-primary-container">Todas las propiedades exhibidas tienen el permiso firmado de los titulares para su difusión y promoción.</p>
+<p class="font-legal text-legal text-on-primary-container">Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 000.</p>
+</div>
+</footer>
+</div>
+</body></html>
