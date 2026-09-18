@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** en curso (2026-09-18)
+**Estado:** T0–T5 ✅ commiteados (2026-09-18). Próxima sesión: **T6 + T7**. Ver "Próxima sesión — arrancar acá" más abajo.
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
@@ -10,6 +10,47 @@
 
 **Alcance:** tokens CSS, estilos globales y fuentes, layout base (header/footer), content collection de propiedades con datos semilla, componentes base de `DESIGN.md` §6, y la landing `/` (§5).
 **Fuera de alcance:** `/propiedades`, `/propiedades/<slug>` y `/faqs` (§17); los 5 checks de CI del PRD §9; el deploy.
+
+## Próxima sesión — arrancar acá (2026-09-18)
+
+**Estado:** T0–T5 ✅ commiteados en `main`, árbol limpio. Lo único untracked es `.opencode/` (ver gotchas). Quedan **T6** y **T7**, y después el track §17 (`/propiedades`, `/propiedades/<slug>`, `/faqs`).
+
+**Commits del track:**
+
+| Tarea | Commits |
+|---|---|
+| T1 — tokens, base y fuentes | `73987cb` (feat) + `9261b3d` (docs) |
+| T2 — shell header/footer | `564615e` (feat) + `6028a59` (docs) |
+| T3 — content collection + semillas | `3080dde` (feat) + `1bd82dd` (docs) |
+| T4 — componentes base | `f922c28` (feat) |
+| T5 — landing | `a6c07ef` (feat) + `0e891ee` (docs) |
+
+**Verificación ya hecha:** T1, T2 y T5 pasaron por verificador independiente en contexto fresco con Chrome real (contraste medido sobre computed styles, teclado, contexto sin JavaScript, overflow). T3 se probó con un test negativo del schema (enum inválido → exit 1). T4 lo auto-verificó el writer con un showcase temporal porque todavía no tenía consumidor. Criterios medidos: build 0 · sage como texto 0 · hex crudos fuera de `tokens.css` 0 · datos inventados 0 · un solo CTA primario por viewport · 0 overflow a 390 y 320.
+
+**Próximo paso concreto — T6.** Faltan `icon-house.svg` y `icon-search-house.svg` (T8 del track de diseño). Las referencias PNG están en `design/reference/house.png` y `design/reference/search_house.png`. Construcción §8: viewBox 24, stroke 1.5px, capa de acento `fill="#7C916F"` sin stroke y ≤40% del área, capa de línea `stroke="currentColor"`, `aria-hidden` + `focusable="false"`.
+**Antes de agregarlos, exportar un tipo compartido para `ServiceIcon`/`ServiceIconName`:** hoy el union está duplicado en `ServiceIcon.astro` y en `landing.ts` y va a driftear.
+
+**Después T7.** Build verde + contraste AA + mobile-first 390/1280 + 0 sage en texto renderizado, **y la suite e2e con `@playwright/test`**. La decisión de meterlo como devDependency del repo ya está tomada: pin exacto, y **va a necesitar una entrada en `allowBuilds` de `pnpm-workspace.yaml`** porque la política es deny-by-default con `strictDepBuilds: true` — esa fricción es el control, no un bug.
+Para verificación manual, ojo: el `playwright-cli` global pide el browser `chrome-for-testing`, que **no está instalado**. Funciona `playwright-core` con `executablePath: '/usr/bin/google-chrome'` (script de referencia: `/tmp/opencode/shot.cjs`).
+
+**Decisiones abiertas que esperan al stakeholder (menores, todas de T5 — ninguna se aplicó sin permiso):**
+1. El bajado del hero **no tiene el "¿" de apertura** (*"Tenés dudas y no sabés cómo encarar tu negocio?"*): se copió verbatim del screen.
+2. El watermark del hero es **1** diamante al 6% (§5 lo pide así); los screens muestran 3 anidados.
+3. Los screens llevan **hairline superior** en cada banda; §5 no lo especifica y se omitió.
+4. A **320px el header sube a 97px** porque el link de WhatsApp envuelve a 2 líneas. Cumple §12 (usable, sin overflow) pero no los 64px de §6.
+5. El **CTA del hero mobile** no es full-width ni uppercase como en el screen mobile; §6 no opina.
+6. `destacada: true` solo en la casa; los screens muestran las 3 bajo "Propiedades destacadas" (igual la landing compone 1 lead + 2 compactas por el fallback de §5).
+
+**Bloqueantes de lanzamiento (no de build):** las 6 respuestas de FAQ (PRD §8), WhatsApp y CCI reales, nombre del corredor (¿"Alejandro" o "Alejando"?), y confirmar el tinte `#C3CDB8` del logo knockout.
+
+**Gotchas de infraestructura:**
+- **No hay remote de git configurado** ni upstream en `main`: el CI del PRD §9 no puede correr. Todo es local.
+- **`.opencode/agent/engineering-astro-{implementer,mapper,verifier}.md` está untracked.** Son los 3 agentes de proyecto pinneados (implementer `kimi-k3` max, verifier `deepseek-v4-pro` high, mapper `deepseek-v4.1-flash` high), nombrados bajo el glob `engineering-*` de la allowlist del orquestador. **Requieren reiniciar opencode para cargarse** (verificado en caliente: `Unknown agent type`). Falta decidir si se commitean o se ignoran.
+- **El MCP de Engram falla en este proyecto** con "multiple active runtime sessions": usar el CLI `engram save <title> <content> --project realtor_pre_webpage --type ... --topic ...` como fallback.
+- **Componentes diferidos al track §17:** Filter input, WhatsApp CTA y Empty state. No los consume ninguna página de T1–T5 y `/propiedades` está fuera de alcance; se construyen con su primer consumidor.
+- **Coherencia a resolver en §17:** el teaser de FAQ usa voz sans para la pregunta; §17.3 pide serif para el acordeón de `/faqs`. Hay que alinearlos.
+- `@playwright/test` **todavía no está en `package.json`**: la decisión está tomada, falta ejecutarla en T7.
+- `/propiedades` y `/faqs` dan **404** hasta que existan: es esperado, no un defecto.
 
 ## Restricciones (decisiones cerradas)
 
