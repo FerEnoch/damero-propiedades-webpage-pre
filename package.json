@@ -1,0 +1,26 @@
+{
+  "name": "realtor-pre-webpage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Damero Propiedades — sitio público (Astro)",
+  "type": "module",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10.27"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "audit": "pnpm audit",
+    "audit:high": "pnpm audit --audit-level high",
+    "outdated": "pnpm outdated",
+    "check-deps": "pnpm audit --audit-level high && pnpm outdated",
+    "install:frozen": "pnpm install --frozen-lockfile"
+  },
+  "dependencies": {
+    "astro": "7.3.3"
+  }
+}

@@ -42,7 +42,17 @@ blockExoticSubdeps: true
 # evaluar si es legítimo y aprobarlo aquí con versión exacta.
 # NUNCA usar dangerouslyAllowAllBuilds: true.
 allowBuilds:
-  # vacía = NINGÚN script de build autorizado hasta revisión explícita
+  # esbuild@0.28.2 — aprobado 2026-09-18.
+  # Por qué: bundler de Vite (y por lo tanto de Astro); el scaffold oficial de
+  # Astro lo aprueba explícitamente (`allowScripts: {esbuild: true}`). Su
+  # postinstall valida el binario nativo.
+  # Vetado: repo canónico github.com/evanw/esbuild, publicado 2026-08-08
+  # (41 días, pasa la cuarentena), binario @esbuild/linux-x64@0.28.2 ya
+  # resuelto por optionalDependencies.
+  # Versión EXACTA a propósito: un bump de esbuild (vía Astro/Vite) vuelve a
+  # fallar el install hasta que un humano lo revise y apruebe. Esa fricción
+  # es el control, no un bug.
+  esbuild@0.28.2: true
 
 # Scripts de build no aprobados = ERROR de instalación (no warning).
 # Un paquete nuevo con scripts hace fallar CI hasta ser revisado.
