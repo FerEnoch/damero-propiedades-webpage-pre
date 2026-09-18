@@ -1,0 +1,199 @@
+---
+import {
+  CONTACT_HOURS,
+  FOOTER_CONTACT_HEADING,
+  FOOTER_NAV_HEADING,
+  LEGAL_LINES,
+  NAV_ROUTES,
+  SITE_NAME,
+  SITE_TAGLINE,
+  WHATSAPP_NUMBER_PENDING,
+  WHATSAPP_URL_PENDING,
+} from '../data/site';
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        {/*
+          Same lockup as the header: mark-only plus the wordmark in type. The
+          white knockout variant carries the footer's on-forest text colour.
+        */}
+        <div class="site-footer__lockup">
+          <img
+            class="site-footer__mark"
+            src="/images/damero_mark_white.svg"
+            alt=""
+            width="24"
+            height="32"
+            aria-hidden="true"
+          />
+          <span class="site-footer__wordmark">{SITE_NAME}</span>
+        </div>
+        <p class="site-footer__tagline">{SITE_TAGLINE}</p>
+      </div>
+
+      <nav class="site-footer__nav" aria-label="Navegación del pie de página">
+        <p class="site-footer__eyebrow">{FOOTER_NAV_HEADING}</p>
+        <ul class="site-footer__list" role="list">
+          {NAV_ROUTES.map((route) => (
+            <li>
+              <a class="site-footer__link" href={route.href}>{route.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="site-footer__contact">
+        <p class="site-footer__eyebrow">{FOOTER_CONTACT_HEADING}</p>
+        <a class="site-footer__link" href={WHATSAPP_URL_PENDING}>
+          {WHATSAPP_NUMBER_PENDING}
+        </a>
+        <p class="site-footer__hours">{CONTACT_HOURS}</p>
+      </div>
+    </div>
+
+    <hr class="site-footer__rule" />
+
+    <div class="site-footer__legal">
+      {LEGAL_LINES.map((line) => (
+        <p>{line}</p>
+      ))}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background-color: var(--color-bg-inverse);
+    color: var(--color-text-on-inverse);
+    padding-block: var(--section-y);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  .site-footer__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .site-footer__lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .site-footer__mark {
+    flex: none;
+    height: 32px;
+    width: auto;
+  }
+
+  .site-footer__wordmark {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-text-on-inverse);
+  }
+
+  .site-footer__tagline {
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-on-forest-muted);
+  }
+
+  .site-footer__eyebrow {
+    margin-bottom: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-on-forest-muted);
+  }
+
+  .site-footer__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .site-footer__link {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-on-inverse);
+    text-decoration: none;
+  }
+
+  .site-footer__link:hover {
+    color: var(--color-on-forest-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .site-footer__contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-footer__hours {
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-on-forest-muted);
+  }
+
+  .site-footer__rule {
+    border: 0;
+    border-top: 1px solid var(--color-border-on-forest);
+    margin-block: var(--space-10);
+  }
+
+  .site-footer__legal {
+    max-width: 80ch;
+    font-size: var(--text-legal);
+    line-height: var(--leading-legal);
+    color: var(--color-on-forest-muted);
+    text-align: left;
+  }
+
+  .site-footer__legal p + p {
+    margin-top: var(--space-2);
+  }
+
+  @media (min-width: 768px) {
+    .site-footer__grid {
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: var(--space-8);
+      row-gap: var(--space-12);
+    }
+
+    .site-footer__brand {
+      grid-column: 1 / span 4;
+    }
+
+    .site-footer__nav {
+      grid-column: 6 / span 2;
+    }
+
+    .site-footer__contact {
+      grid-column: 9 / span 4;
+    }
+  }
+</style>

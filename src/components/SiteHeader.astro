@@ -1,0 +1,370 @@
+---
+import {
+  BRAND_WORDMARK_LEAD,
+  BRAND_WORDMARK_TRAIL,
+  NAV_ROUTES,
+  SITE_NAME,
+  WHATSAPP_URL_PENDING,
+} from '../data/site';
+
+// Normalise `/propiedades/` to `/propiedades` so the active indicator does not
+// depend on Astro's trailing-slash policy.
+function normalisePath(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1);
+  return pathname;
+}
+
+const currentPath = normalisePath(Astro.url.pathname);
+
+// Exact match for the root; prefix match for section routes so a detail page
+// keeps its parent nav item active.
+function isActive(href: string): boolean {
+  if (href === '/') return currentPath === '/';
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<header class="site-header">
+  {/*
+    Progressive enhancement, no dependency:
+    - Without JS the toggle stays hidden and the nav renders as a plain,
+      always-visible list on mobile (fully operable).
+    - With JS `is-enhanced` collapses it behind the toggle.
+    The script is the first child so the class lands before the nav is parsed;
+    no flash of the expanded panel.
+  */}
+  <script is:inline>
+    document.currentScript.parentElement.classList.add('is-enhanced');
+  </script>
+
+  <div class="container site-header__inner">
+    {/*
+      Brand lockup: mark-only + wordmark in type. The full logo asset is a
+      lockup whose wordmark is illegible at 28/32px (DESIGN.md §6), so the
+      cluster ships alone (`damero_mark.svg`) and the wordmark is set in type.
+      Below 768px only `Damero` shows — the full name does not fit beside the
+      WhatsApp link and the menu affordance in the 64px header §6 requires,
+      and `Damero` is exactly the wordmark the real logo carries.
+    */}
+    <a class="site-header__brand" href="/">
+      <img
+        class="site-header__mark"
+        src="/images/damero_mark.svg"
+        alt=""
+        width="21"
+        height="28"
+        aria-hidden="true"
+      />
+      <span class="site-header__wordmark">{BRAND_WORDMARK_LEAD}<span
+          class="site-header__wordmark-trail"
+        > {BRAND_WORDMARK_TRAIL}</span></span>
+    </a>
+
+    <nav id="primary-navigation" class="site-nav" aria-label="Principal">
+      <ul class="site-nav__list" role="list">
+        {NAV_ROUTES.map((route) => (
+          <li class="site-nav__item">
+            <a
+              class:list={['site-nav__link', { 'is-active': isActive(route.href) }]}
+              href={route.href}
+              aria-current={isActive(route.href) ? 'page' : undefined}
+            >
+              {route.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <a class="site-header__whatsapp" href={WHATSAPP_URL_PENDING}>
+        Consultar por WhatsApp
+      </a>
+
+      <button
+        class="site-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        aria-label="Abrir menú"
+        data-nav-toggle
+      >
+        <svg
+          class="site-nav-toggle__icon"
+          viewBox="0 0 20 20"
+          width="20"
+          height="20"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            class="site-nav-toggle__icon-open"
+            d="M2 5h16M2 10h16M2 15h16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            class="site-nav-toggle__icon-close"
+            d="M4 4l12 12M16 4L4 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const header = document.querySelector('.site-header');
+      if (!header) return;
+
+      const wire = () => {
+        const toggle = header.querySelector('[data-nav-toggle]');
+        const panel = header.querySelector('#primary-navigation');
+        if (!toggle || !panel) return;
+
+        const setOpen = (open) => {
+          header.classList.toggle('is-nav-open', open);
+          toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+        };
+
+        toggle.addEventListener('click', () => {
+          setOpen(!header.classList.contains('is-nav-open'));
+        });
+
+        header.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && header.classList.contains('is-nav-open')) {
+            setOpen(false);
+            toggle.focus();
+          }
+        });
+
+        // Any in-page navigation closes the panel so it never stays over content.
+        panel.addEventListener('click', (event) => {
+          if (event.target instanceof HTMLAnchorElement) setOpen(false);
+        });
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wire, { once: true });
+      } else {
+        wire();
+      }
+    })();
+  </script>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+    min-height: 64px;
+  }
+
+  .site-header__brand {
+    order: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 44px;
+    min-height: 44px;
+    text-decoration: none;
+  }
+
+  .site-header__mark {
+    flex: none;
+    height: 28px;
+    width: auto;
+  }
+
+  .site-header__wordmark {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-text-primary);
+  }
+
+  /* The trailing word only appears once the header has room for it. */
+  .site-header__wordmark-trail {
+    display: none;
+  }
+
+  .site-header__actions {
+    order: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+  }
+
+  /* Text link, never a button (DESIGN.md §6). */
+  .site-header__whatsapp {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--color-text-accent) 40%, transparent);
+  }
+
+  .site-header__whatsapp:hover {
+    text-decoration-color: var(--color-text-accent);
+  }
+
+  .site-nav {
+    order: 3;
+    flex-basis: 100%;
+    border-top: 1px solid var(--color-border-decorative);
+    padding-block: var(--space-2) var(--space-4);
+  }
+
+  .site-nav__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .site-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    text-underline-offset: 6px;
+  }
+
+  /* Indicator, never coloured text (DESIGN.md §6). */
+  .site-nav__link.is-active {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-graphic-accent);
+  }
+
+  .site-nav__link:not(.is-active):hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--color-text-secondary);
+  }
+
+  /* Hidden by default; only JS-enhanced headers reveal the affordance. */
+  .site-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--color-text-primary);
+    cursor: pointer;
+  }
+
+  .site-nav-toggle__icon {
+    display: block;
+  }
+
+  .site-nav-toggle__icon-close {
+    display: none;
+  }
+
+  /* Enhanced state: collapse on mobile, reveal with JS. */
+  .site-header.is-enhanced .site-nav {
+    display: none;
+  }
+
+  .site-header.is-enhanced.is-nav-open .site-nav {
+    display: block;
+  }
+
+  .site-header.is-enhanced .site-nav-toggle {
+    display: inline-flex;
+  }
+
+  .site-header.is-enhanced.is-nav-open .site-nav-toggle__icon-open {
+    display: none;
+  }
+
+  .site-header.is-enhanced.is-nav-open .site-nav-toggle__icon-close {
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    .site-header__inner {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+
+    .site-header__brand {
+      gap: var(--space-3);
+    }
+
+    .site-header__mark {
+      height: 32px;
+    }
+
+    .site-header__wordmark {
+      font-size: 1.25rem;
+    }
+
+    .site-header__wordmark-trail {
+      display: inline;
+    }
+
+    .site-header__actions {
+      margin-left: 0;
+    }
+
+    .site-nav {
+      order: 2;
+      flex-basis: auto;
+      border-top: 0;
+      padding-block: 0;
+    }
+
+    .site-nav__list {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .site-header.is-enhanced .site-nav {
+      display: block;
+    }
+
+    .site-header.is-enhanced .site-nav-toggle {
+      display: none;
+    }
+  }
+</style>
