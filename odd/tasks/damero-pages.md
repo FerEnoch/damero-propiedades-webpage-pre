@@ -30,8 +30,8 @@
 - [x] T1 — Tokens CSS + estilos globales + las 3 fuentes (Newsreader, Hanken Grotesk, JetBrains Mono) según `DESIGN.md` §14, §3 y §13
 - [x] T2 — Layout base: shell, header y footer con el bloque legal verbatim (`DESIGN.md` §6, §17.4)
 - [ ] T3 — Content collection `propiedades` con el schema del PRD §4 + 3 listados semilla con placeholder de marca
-- [ ] T4 — Componentes base de `DESIGN.md` §6: Button, Property card, Operation badge, Filter input, WhatsApp CTA, Empty state
-- [ ] T5 — Landing `/` según `DESIGN.md` §5: hero (damero + titular + 1 CTA de búsqueda), bloque de destacadas, los 8 servicios con los SVG duotono, teaser de FAQ
+- [x] T4 — Componentes base que **consume la landing**: Button, Property card, Operation badge (+ `DameroPlaceholder` §7, `ServiceIcon` §8, `formatAmount`). **Diferidos al track §17** (no los consume ninguna página de T1–T5, y `/propiedades` está fuera de alcance): Filter input, WhatsApp CTA y Empty state.
+- [x] T5 — Landing `/` según `DESIGN.md` §5: hero (damero + titular + 1 CTA de búsqueda), bloque de destacadas, los 8 servicios con los SVG duotono, teaser de FAQ
 - [ ] T6 — Glifos de UI faltantes: `icon-house.svg` y `icon-search-house.svg` (T8 del track de diseño)
 - [ ] T7 — Verificación: build verde, contraste AA, mobile-first 390/1280, 0 ocurrencias de sage en texto renderizado
 
@@ -126,6 +126,61 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 
 **Limitación honesta:** el repo no tiene `typescript` ni `@astrojs/check`, así que `astro check` / `tsc` no pueden correr. La exposición de tipos se confirmó de forma estructural (tipos generados) y por comportamiento (build + probe temporal). Instalar un typechecker sería una dependencia nueva, prohibida en esta tarea sin reportar.
 
+### T4 — componentes base (2026-09-18)
+
+| Check | Resultado |
+|---|---|
+| `pnpm build` | ✅ exit 0 |
+| Render real (showcase temporal) | ✅ las 2 variantes de card, las 4 de botón, los 2 badges, el placeholder y un `ServiceIcon` real; la página temporal se borró y el build final quedó con solo `index.astro` |
+| Geometría 3:2 | ✅ 480×320 y 369×246, ratio 1.500; foto y frame con métricas idénticas |
+| `currentColor` en el icono inline | ✅ presente en el SVG emitido |
+| Hex crudo en componentes/util | ✅ grep vacío |
+| Sage como color de texto | ✅ grep vacío |
+| `999px` / emojis | ✅ 0 |
+| Screenshot headless del placeholder | ✅ damero tileado + clúster + outline sage |
+
+**Ruling aplicado (ambigüedad real de `DESIGN.md`):** §6 paso 3 pone el código de moneda en la fila del badge; §3 dice que todo precio se renderiza como `USD 95.000` con el código en `--text-label-sm` y el monto en el token de precio. Se aplicó **§3 + los screens + PRD §5**: código y monto juntos en la línea de precio, y el badge row queda solo con el `OperationBadge`.
+
+**Decisiones del implementador, todas fundadas:**
+1. **`--pattern-damero-tile`, token nuevo.** Un SVG data-URI es su propio documento y no puede leer custom properties, así que sus colores deben ser literales; §13 permite valores crudos solo en la capa de tokens.
+2. **`--color-forest-ink-hover` directo en el hover del botón primario.** §6 lo nombra explícitamente y no existe alias semántico para él.
+3. **`DameroPlaceholder` con prop `bordered` (default `true`).** §7 da hairline al tile y la card ya dibuja la suya; dentro de la card se pasa `bordered={false}` para que el placeholder y una foto real sean intercambiables sin doble línea.
+4. **Sin separador hairline entre media y body.** Los screens lo tienen, §6 no lo especifica. Se siguió §6. **Vetá esta si preferís el screen.**
+5. **`Button` variant `text-link` sin el padding de 24px** (conserva min-height 44 y el subrayado): §6 especifica el subrayado, no la caja, y con padding se desalineaba en una fila de heading.
+
+**Movimiento de assets:** los 8 SVG duotono pasaron de `public/icons/services/` a `src/icons/services/` (git detectó los renames). §8 exige inlinear el SVG para que `currentColor` resuelva, y `<img src="icon.svg">` está prohibido. `public/icons/` ya no existe.
+
+**Deuda de verificación declarada:** los componentes base no tienen consumidor hasta T5, así que su verificación independiente en contexto la hace la landing (que los renderiza con contenido real en 390 y 1280). Verificarlos aislados exigía una página temporal que un verificador read-only no puede escribir. Este es el único punto donde la verificación independiente se difiere a propósito.
+
+### T5 — landing `/` (2026-09-18)
+
+| Check | Resultado |
+|---|---|
+| `pnpm build` | ✅ exit 0 |
+| Orden de secciones en el DOM | ✅ `hero → destacadas → servicios → FAQ teaser` |
+| CTA primario por viewport | ✅ exactamente **1** en 1280, 390 y 320 (§6) |
+| Banda del hero | ✅ 192px @1280, 112px @390 y @320 (dentro del clamp de §5) |
+| Overflow horizontal | ✅ 0px a 390 y 320 |
+| Sage como texto | ✅ 0 elementos; sage solo en masa de icono, borde del badge `alquiler` y underline activo |
+| Matriz de contraste §2 | ✅ los 11 pares renderizados medidos sobre computed styles, todos dentro de su veredicto |
+| Semántica | ✅ un `<h1>`, sin saltos de nivel, landmarks presentes, todas las secciones nombradas |
+| Teclado + foco | ✅ 15 interactivos alcanzables en orden de DOM; foco `2px #4F6144` offset 2px |
+| Datos inventados | ✅ 0; placeholders visibles: `PENDIENTE` ×2, el teléfono y `CCI 000` |
+| Verificación independiente | ✅ `success`, 0 CRITICAL, 1 WARNING, 5 SUGGESTION |
+
+**Único gap de fidelidad contra los screens (WARNING, corregido):** la densidad del damero. El tile de §7 usa celdas de 56px (≈25% de cobertura de tinte); los screens usan un tejido de 40px desktop / 30px mobile (≈75% / 50%). Se corrigió la **banda del hero** a celdas de 40px (`background-size: 160px 160px`); el placeholder de las cards conserva los 56px que §7 especifica literalmente.
+
+**Sugerencias no aplicadas (quedan a decisión del stakeholder):**
+- El watermark del hero es **1** diamante al 6% (§5 lo pide así); los screens muestran 3 anidados.
+- Los screens llevan hairline superior en cada banda; §5 no lo especifica y se omitió.
+- El CTA del hero mobile no es full-width ni uppercase como en el screen mobile; §6 no opina.
+- A **320px el header sube a 97px** porque el link de WhatsApp envuelve a 2 líneas. §12 exige usabilidad a 320 (se cumple: sin overflow y todo operable) pero no los 64px de §6.
+- El bajado del hero **no tiene el "¿" de apertura** ("Tenés dudas y no sabés cómo encarar tu negocio?"): se copió verbatim del screen. Es un typo del copy del stakeholder y no se corrigió sin autorización.
+
+**Copy tomado verbatim de los screens:** titular y bajada del hero, eyebrow, label del CTA, eyebrows y títulos de sección, los 8 pares servicio + descripción, y las 2 preguntas del teaser de FAQ. Las respuestas de FAQ **no se escribieron**: los screens las rellenan con texto de relleno y §11 lo prohíbe, así que se renderiza el marcador `PENDIENTE` y ningún cuerpo de respuesta.
+
+**Arrastres para T6/T7:** (a) `/propiedades` y `/faqs` dan 404 hasta que existan, esperado; (b) `priority` es no-op mientras `fotos: []` — el wiring queda activo cuando lleguen fotos reales; (c) el teaser usa voz sans para la pregunta y §17.3 pide serif para el acordeón de `/faqs`, hay que alinear cuando se haga ese track; (d) `ServiceIcon` y el union `ServiceIconName` de `landing.ts` están duplicados: al agregar `icon-house`/`icon-search-house` en T6 conviene exportar un tipo compartido.
+
 ## Pendientes del stakeholder (bloquean el lanzamiento, no el build)
 
 - Las 6 respuestas de FAQ (PRD §8) — hoy `[PENDIENTE]`.
@@ -141,3 +196,5 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 - **2026-09-18 (c):** T1 completado. Tokens, base global y las 3 fuentes self-hosted, con verificación independiente en contexto fresco. 2 correcciones aplicadas post-verificación (reduced-motion y fallback de fuentes). Ver detalle arriba.
 - **2026-09-18 (d):** T2 completado. Shell (header/footer) convertido de los screens; lockup de marca resuelto con SVG marca-solo + wordmark en tipo; header mobile ajustado a 64px tras detectar wrap por screenshot. Verificación independiente en contexto fresco + medición real en Chrome. Commits: `73987cb` + `9261b3d` (T1), `564615e` + `6028a59` (T2).
 - **2026-09-18 (e):** T3 completado. Content collection `propiedades` con schema estricto del PRD §4 y 3 semillas tomadas de los screens; schema probado con test negativo y spot check del padre. Commit: `3080dde`.
+- **2026-09-18 (f):** T4 completado. Primitivas que consume la landing (`DameroPlaceholder` §7, `Button`, `OperationBadge`, `PropertyCard`, `ServiceIcon`, `formatAmount`) y los 8 SVG duotono movidos a `src/icons/services/` para poder inlinearlos con `currentColor`. Filter input, WhatsApp CTA y Empty state diferidos al track §17 por no tener consumidor en T1–T5.
+- **2026-09-18 (g):** T5 completado. Landing `/` compuesta según §5 con las primitivas de T4 y las 3 semillas. Verificación independiente con Chrome real (orden de secciones, un solo CTA primario por viewport, los 11 pares de contraste medidos sobre computed styles, semántica, teclado, 0 overflow a 390/320) y corrección del único gap de fidelidad visual: la densidad del damero en la banda del hero.
