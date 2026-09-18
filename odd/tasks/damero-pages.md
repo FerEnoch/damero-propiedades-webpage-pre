@@ -106,6 +106,26 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 
 **Pendientes introducidos, centralizados en `src/data/site.ts`:** `WHATSAPP_URL_PENDING` (href inerte), `WHATSAPP_NUMBER_PENDING` (`+54 9 2304 000000`, tal cual lo trae el screen), `CCI 000`, `CONTACT_HOURS` y `SITE_TAGLINE`. **El número de WhatsApp y el CCI bloquean el lanzamiento.** Si preferís un label `PENDIENTE` explícito en lugar de un número que parece real, es un cambio de una línea.
 
+### T3 — content collection y semillas (2026-09-18)
+
+| Check | Resultado |
+|---|---|
+| `pnpm astro sync` | ✅ exit 0 — tipos generados con `propiedades` |
+| `pnpm build` | ✅ exit 0 |
+| Schema aplicado (test negativo) | ✅ `operacion: "permuta"` → **exit 1** con `InvalidContentEntryDataError`; revertido → exit 0 |
+| `.strict()` real | ✅ clave desconocida → `Unrecognized key` |
+| Spot check del padre (re-corrido por el orquestador) | ✅ baseline 0 → inválido 1 → restaurado 0, árbol limpio |
+| Readback campo por campo contra PRD §4 | ✅ 18 campos con requeridos/opcionales correctos |
+| Datos inventados | ✅ grep de CUCICBA / Ley 5115 / testimonios / métricas: vacío |
+
+**API usada:** content layer de Astro 7 — `src/content.config.ts` + `defineCollection` + loader `glob` de `astro/loaders` + `z` de `astro/zod`. Verificado contra la doc vía Context7; **no** es la API legacy `src/content/config.ts`.
+
+**Decisiones de contenido:** `fotos: []` en las 3 semillas (no existe fotografía real; la UI cae al placeholder de marca §7). `expensas` omitido. `map_lat`/`map_lon` son centros aproximados de zona con el offset que pide el PRD §11 y no se renderizan como números. `whatsapp` lleva el placeholder pendiente — el frontmatter no puede importar `site.ts`, así que el valor está espejado y comentado.
+
+**Bandera para T5:** solo la casa quedó `destacada: true`; los 3 screens las muestran todas bajo "Propiedades destacadas". `DESIGN.md` §5 cubre el caso (menos de 3 destacadas → completar con las más recientes), así que la landing igual compone 1 lead + 2 compactas. Si preferís fidelidad literal al screen, se marca `destacada: true` en las 3.
+
+**Limitación honesta:** el repo no tiene `typescript` ni `@astrojs/check`, así que `astro check` / `tsc` no pueden correr. La exposición de tipos se confirmó de forma estructural (tipos generados) y por comportamiento (build + probe temporal). Instalar un typechecker sería una dependencia nueva, prohibida en esta tarea sin reportar.
+
 ## Pendientes del stakeholder (bloquean el lanzamiento, no el build)
 
 - Las 6 respuestas de FAQ (PRD §8) — hoy `[PENDIENTE]`.
@@ -119,4 +139,5 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 - **2026-09-18 (a):** decisiones del stakeholder — ruta ODD, migración a pnpm 12, primer entregable = fundación + landing.
 - **2026-09-18 (b):** T0 completado (migración de la política pnpm; detalle y evidencia en `damero-web-foundation.md`).
 - **2026-09-18 (c):** T1 completado. Tokens, base global y las 3 fuentes self-hosted, con verificación independiente en contexto fresco. 2 correcciones aplicadas post-verificación (reduced-motion y fallback de fuentes). Ver detalle arriba.
-- **2026-09-18 (d):** T2 completado. Shell (header/footer) convertido de los screens; lockup de marca resuelto con SVG marca-solo + wordmark en tipo; header mobile ajustado a 64px tras detectar wrap por screenshot. Verificación independiente en contexto fresco + medición real en Chrome. Commits: `73987cb`/`9261b3d` (T1) y el de T2 en el mismo día.
+- **2026-09-18 (d):** T2 completado. Shell (header/footer) convertido de los screens; lockup de marca resuelto con SVG marca-solo + wordmark en tipo; header mobile ajustado a 64px tras detectar wrap por screenshot. Verificación independiente en contexto fresco + medición real en Chrome. Commits: `73987cb` + `9261b3d` (T1), `564615e` + `6028a59` (T2).
+- **2026-09-18 (e):** T3 completado. Content collection `propiedades` con schema estricto del PRD §4 y 3 semillas tomadas de los screens; schema probado con test negativo y spot check del padre. Commit: `3080dde`.
