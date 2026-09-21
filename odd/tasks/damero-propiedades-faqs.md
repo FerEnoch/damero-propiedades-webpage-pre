@@ -1,6 +1,6 @@
 # ODD — Damero: track §17 (búsqueda, detalle y FAQs)
 
-**Estado:** plan cerrado 2026-09-21. Slices S1–S4 pendientes, S5 es el cierre documental.
+**Estado:** plan cerrado 2026-09-21. S1: delegación lanzada a `engineering-astro-implementer` y **cancelada por el runtime antes de empezar** — cero output, cero cambios en el árbol. Slices S1–S4 pendientes, S5 es el cierre documental. Para retomar: re-delegar S1 con el prompt ya definido en esta sesión.
 
 **Objetivo:** construir las 3 páginas de fase 2 de `docs/DESIGN.md` §17 — `/propiedades`, `/propiedades/<slug>` y `/faqs` — más los 3 componentes que T4 difirió (Filter input, WhatsApp CTA, Empty state) y el glifo `icon-house.svg`, cada ruta con sus specs e2e.
 
@@ -156,3 +156,4 @@ Estrategia: `ask-on-risk`. **Cada slice que supere ~400 líneas autoradas se par
 ## Progreso
 
 - **2026-09-21 (a):** plan del track cerrado. Exploración con 2 subagentes mapeadores sobre `DESIGN.md` §17 + los 6 screens + la capa de datos. 2 bloqueantes que parecían reales se disolvieron al leer el PRD: las 6 preguntas de FAQ **son** las semilla del PRD §8 (verificado 1:1) y la arquitectura de filtros **ya estaba decidida** en el PRD §10 (client-side, static output). Se detectó un defecto latente en `Button` (borde sage sobre `surface-tint`, prohibido por §2:87) y 33 divergencias screens↔DESIGN. Decisión del stakeholder: **MapLibre como manda el spec**. Verificado empíricamente que `maplibre-gl@6.10.0` instala sin tocar `pnpm-workspace.yaml`.
+- **2026-09-21 (b):** cierre de sesión. S1 nunca empezó: la delegación a `engineering-astro-implementer` fue cancelada por el runtime (`Task cancelled`) antes de producir output. El árbol quedó intacto — el último commit es el plan (`b8e7432`). `maplibre-gl` **no** se instaló, `src/` intacto, gate T7 sin correr en esta sesión (no había nada que verificar). Retomar re-delegando S1.
