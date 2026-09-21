@@ -1,0 +1,880 @@
+---
+/**
+ * Detail page `/propiedades/<slug>` — docs/DESIGN.md §17.2, ODD §17 rulings
+ * R3/R4/R11/R12/R13.
+ *
+ * DIVERGENCE, documented per open item #4 of the track plan: §17.2:671 fixes
+ * the section order as gallery → title/description → characteristics →
+ * price → zone → map → WhatsApp CTA, but §17.2:697 places the CTA inside the
+ * price panel (columns 9–12). §17.2:697 wins; the CTA renders inside the
+ * panel (band `price`), so the literal DOM order no longer ends with the
+ * CTA. The band order rendered here is: gallery → title → characteristics →
+ * price (with the CTA inside) → zone → map.
+ *
+ * R4 — with `fotos: []` the gallery renders the brand placeholder tile and
+ * OMITS the counter: a `1 / 5` line with no photographs behind it would be
+ * fabricated data (§11). The thumbnail rail, the counter and the arrow-key
+ * behaviour below exist for the day real photography arrives; with the
+ * current seeds they are unreachable (same untestable-by-design status as
+ * R13).
+ *
+ * R11 — every WhatsApp href comes from `resolveWhatsAppHref` and stays the
+ * inert `#whatsapp-pendiente` anchor until the stakeholder supplies the real
+ * number; no `wa.me` URL ever ships pointing at the placeholder.
+ *
+ * R12 — ficha técnica degradation: `expensas` null/absent renders the
+ * `EXPENSAS — No aplica` row (never a dropped row); a numeric `cochera`
+ * renders `Sí`; `caracteristicas` render slug → words uppercased with NO
+ * dictionary, so an unmapped slug still renders (§17.2:686).
+ *
+ * R13 — `descripcion` is required by the schema, so the §17.2:693 "absent
+ * description" collapse cannot occur today; it is implemented (conditional
+ * render of the summary line) for robustness but is not testable.
+ *
+ * §17.2:705 — no numeric coordinate appears anywhere in this markup. The
+ * map centre reaches the client exclusively through the build-emitted JSON
+ * asset (`[slug].json.ts`), fetched by the script below only at map init.
+ */
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import DameroPlaceholder from '../../components/DameroPlaceholder.astro';
+import WhatsAppCta from '../../components/WhatsAppCta.astro';
+import { formatAmount } from '../../lib/format';
+import { CONTACT_HOURS } from '../../data/site';
+import iconHouse from '../../icons/icon-house.svg?raw';
+
+interface Props {
+  entry: CollectionEntry<'propiedades'>;
+}
+
+export async function getStaticPaths() {
+  const propiedades = await getCollection('propiedades');
+  return propiedades.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const {
+  titulo,
+  descripcion,
+  slug,
+  operacion,
+  precio,
+  moneda,
+  expensas,
+  habitaciones,
+  cochera,
+  caracteristicas,
+  zona,
+  localidad,
+  whatsapp,
+  fotos,
+} = entry.data;
+const { Content } = await render(entry);
+
+const amount = formatAmount(precio);
+const operacionLabel = operacion === 'venta' ? 'Venta' : 'Alquiler';
+
+// R12: a numeric count still renders `Sí`; the exact number is not promised.
+const cocheraLabel =
+  cochera === true || (typeof cochera === 'number' && cochera > 0) ? 'Sí' : 'No';
+
+// R12: the row is never dropped — null/absent renders `No aplica`.
+const expensasLabel =
+  expensas === null || expensas === undefined ? 'No aplica' : formatAmount(expensas);
+
+/** §17.2:686 — slug → words, uppercased, no dictionary. */
+const characteristicLabel = (value: string) => value.replace(/-/g, ' ').toUpperCase();
+
+const localidadHref = `/propiedades?localidad=${encodeURIComponent(localidad)}`;
+
+// R4: with no photographs the rail, its buttons and the counter are omitted.
+const hasFotos = fotos.length > 0;
+
+/*
+ * The §17.2:709 house glyph, inlined with the same treatment as ServiceIcon:
+ * the `<title>` is stripped and the SVG is `aria-hidden` — the adjacent
+ * message is the accessible name. Its sage accent mass is the documented
+ * raw-hex exception (§8).
+ */
+const houseGlyph = iconHouse
+  .replace(/<title[\s\S]*?<\/title>/gi, '')
+  .replace(/\s+role="img"/g, '')
+  .replace(/\s+focusable="false"/g, '')
+  .replace(
+    /<svg\b([^>]*)>/,
+    '<svg$1 focusable="false" aria-hidden="true" class="map-fallback__icon" width="24" height="24">',
+  );
+---
+
+<BaseLayout title={`${titulo} | Damero Propiedades`}>
+  <div class="detail-page" data-detail-page>
+    <div class="container detail-grid">
+      {/* Breadcrumb (§17.2:673): mono uppercase, `/` separators, ancestors
+          are links in text-secondary, the current segment is plain
+          text-primary — not a link. Sits above the gallery at full width. */}
+      <nav class="breadcrumb" aria-label="Miga de pan">
+        <ol class="breadcrumb__list">
+          <li class="breadcrumb__item">
+            <a class="breadcrumb__link" href="/propiedades">PROPIEDADES</a>
+          </li>
+          <li class="breadcrumb__item">
+            <a class="breadcrumb__link" href={localidadHref}>{localidad}</a>
+          </li>
+          <li class="breadcrumb__item">
+            <span class="breadcrumb__current" aria-current="page">{titulo}</span>
+          </li>
+        </ol>
+      </nav>
+
+      {/* 1. Gallery (§17.2:675-681). Lead 3:2, eager + high priority; rail
+          and counter only exist when real photographs do (R4). */}
+      <section class="gallery" data-band="gallery" data-gallery aria-label="Galería de fotos de la propiedad">
+        <div class="gallery__lead" data-gallery-lead>
+          <DameroPlaceholder
+            src={hasFotos ? fotos[0].src : undefined}
+            alt={hasFotos ? (fotos[0].titulo ?? '') : ''}
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        {
+          hasFotos && (
+            <div class="gallery__rail" data-gallery-rail>
+              {fotos.map((foto, index) => (
+                <button
+                  type="button"
+                  class="gallery__thumb"
+                  data-gallery-thumb
+                  data-alt={foto.titulo ?? ''}
+                  aria-current={index === 0 ? 'true' : undefined}
+                  aria-label={`Ver foto ${index + 1} de ${fotos.length}`}
+                >
+                  <img
+                    src={foto.src}
+                    alt=""
+                    width="320"
+                    height="213"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </button>
+              ))}
+              {/* §17.2:678 — counter at the end of the rail, mono label-sm. */}
+              <span class="gallery__counter" data-gallery-counter>
+                1 / {fotos.length}
+              </span>
+            </div>
+          )
+        }
+      </section>
+
+      {/* 2. Title / description (§17.2:671). R13: the summary collapses if
+          `descripcion` were ever absent — unreachable with today's schema. */}
+      <section class="detail-head" data-band="title" aria-labelledby="detail-title">
+        <h1 class="detail-head__title" id="detail-title">{titulo}</h1>
+        {descripcion ? <p class="detail-head__summary">{descripcion}</p> : null}
+        <h2 class="eyebrow detail-head__eyebrow">DESCRIPCIÓN</h2>
+        <div class="detail-head__body">
+          <Content />
+        </div>
+      </section>
+
+      {/* 3. Characteristics (§17.2:683-686): labels, not controls — no ×, no
+          hover, no border, no icon. */}
+      <section
+        class="characteristics"
+        data-band="characteristics"
+        aria-labelledby="characteristics-heading"
+      >
+        <h2 class="eyebrow" id="characteristics-heading">CARACTERÍSTICAS</h2>
+        <ul class="characteristics__list" role="list">
+          {
+            caracteristicas.map((value) => (
+              <li class="characteristics__item">{characteristicLabel(value)}</li>
+            ))
+          }
+        </ul>
+      </section>
+
+      {/* 4. Ficha técnica / price panel (§17.2:688-694) + the desktop CTA
+          (§17.2:697 — see the divergence note in the module docblock). */}
+      <aside class="price-panel" data-band="price" aria-labelledby="price-heading">
+        <h2 class="eyebrow" id="price-heading">PRECIO</h2>
+        <p class="price-panel__amount">
+          <span class="price-panel__currency">{moneda}</span>
+          <span class="price-panel__value">{amount}</span>
+        </p>
+        <hr class="price-panel__rule" />
+        <dl class="price-panel__rows">
+          <div class="price-panel__row">
+            <dt>OPERACIÓN</dt>
+            <dd>{operacionLabel}</dd>
+          </div>
+          <div class="price-panel__row">
+            <dt>HABITACIONES</dt>
+            <dd>{habitaciones}</dd>
+          </div>
+          <div class="price-panel__row">
+            <dt>COCHERA</dt>
+            <dd>{cocheraLabel}</dd>
+          </div>
+          <div class="price-panel__row">
+            <dt>MONEDA</dt>
+            <dd>{moneda}</dd>
+          </div>
+          <div class="price-panel__row">
+            <dt>EXPENSAS</dt>
+            <dd>{expensasLabel}</dd>
+          </div>
+        </dl>
+        <hr class="price-panel__rule" />
+        {/*
+          Desktop (≥ md): the CTA lives here, inside the panel (§17.2:697).
+          Mobile (< md): the in-flow CTA is omitted and the §6 sticky bar
+          takes over (§17.2:698) — exactly one primary action per viewport.
+        */}
+        <div class="price-panel__cta">
+          <WhatsAppCta variant="inline" whatsapp={whatsapp} titulo={titulo} slug={slug} />
+          <p class="price-panel__note">Respuesta por WhatsApp. {CONTACT_HOURS}</p>
+        </div>
+      </aside>
+
+      {/* 5. Zone + locality, then 6. the map (§17.2:701-710), grouped under
+          the UBICACIÓN eyebrow — the band order is unchanged. */}
+      <section class="zone" data-band="zone" aria-labelledby="zone-heading">
+        <h2 class="eyebrow" id="zone-heading">UBICACIÓN</h2>
+        <p class="zone__line">{zona} · {localidad}</p>
+
+        <div class="map-band" data-band="map">
+          {/*
+            §17.2:702 — the frame: bg-subtle surface, radius-md, hairline,
+            overflow hidden. The map never bleeds past it.
+            §17.2:709 — the fallback is the DEFAULT state (honest
+            degradation, same 3:2 box metrics so nothing shifts): with JS
+            disabled it is all that renders, and while the style loads it
+            covers the canvas; the script reveals the map only on a
+            successful load. It is announced via role="status", is not an
+            error dialog and never mentions the tile provider.
+          */}
+          <div class="map-frame" data-map-frame>
+            <div
+              class="map-canvas"
+              data-map-canvas
+              role="region"
+              aria-label="Mapa de la zona aproximada"
+            ></div>
+            <div class="map-fallback" data-map-fallback role="status">
+              <Fragment set:html={houseGlyph} />
+              <p class="map-fallback__text">Ubicación no disponible momentáneamente.</p>
+              <Button variant="ghost" class="map-fallback__retry">Reintentar</Button>
+            </div>
+          </div>
+          <p class="map-caption">ZONA APROXIMADA · RADIO 400 M</p>
+          <p class="map-note">La zona se muestra como referencia aproximada.</p>
+        </div>
+      </section>
+
+      {/* Locality link from the validated desktop screen: a real, working
+          S2 filter URL — desktop-only, as the mobile screen omits it. */}
+      <div class="detail-more" data-band="more">
+        <Button variant="text-link" href={localidadHref}>
+          Ver más propiedades de {localidad} →
+        </Button>
+      </div>
+    </div>
+
+    {/* Mobile (< md): the §6 sticky bar is the page's only primary action.
+        The page reserves its height below via padding-bottom (§17.2:698). */}
+    <WhatsAppCta variant="sticky" whatsapp={whatsapp} titulo={titulo} slug={slug} />
+  </div>
+</BaseLayout>
+
+<script>
+  /**
+   * Detail page behaviour — gallery rail (§17.2:680) and map init (R3,
+   * §17.2:703). Plain script, no framework: MapLibre arrives via dynamic
+   * `import()`, so it never enters the initial bundle; the basemap style is
+   * fetched by MapLibre itself. The coordinates arrive via the per-listing
+   * JSON asset, never through the markup (§17.2:705).
+   */
+  const pageRoot = document.querySelector<HTMLElement>('[data-detail-page]');
+
+  if (pageRoot) {
+    // ---- Gallery (inert with `fotos: []`, per R4) ----------------------
+    const gallery = pageRoot.querySelector<HTMLElement>('[data-gallery]');
+    const leadImg = gallery?.querySelector<HTMLImageElement>('.gallery__lead img');
+    const thumbs = Array.from(
+      gallery?.querySelectorAll<HTMLButtonElement>('[data-gallery-thumb]') ?? [],
+    );
+    const counter = gallery?.querySelector<HTMLElement>('[data-gallery-counter]');
+
+    if (gallery && leadImg && thumbs.length > 0) {
+      const activate = (index: number) => {
+        const thumb = thumbs[index];
+        const img = thumb.querySelector('img');
+        if (!img) return;
+        leadImg.src = img.currentSrc || img.src;
+        leadImg.alt = thumb.dataset.alt ?? '';
+        thumbs.forEach((other, otherIndex) => {
+          if (otherIndex === index) other.setAttribute('aria-current', 'true');
+          else other.removeAttribute('aria-current');
+        });
+        if (counter) counter.textContent = `${index + 1} / ${thumbs.length}`;
+        // §17.2:679 — the active thumbnail scrolls into view.
+        thumb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      };
+
+      thumbs.forEach((thumb, index) => {
+        thumb.addEventListener('click', () => activate(index));
+      });
+
+      // §17.2:680 — left/right arrow keys move the active index. Focus
+      // follows the active thumbnail so the change is perceivable.
+      gallery.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const focused = document.activeElement;
+        const current = thumbs.findIndex((thumb) => thumb === focused);
+        if (current === -1) return;
+        event.preventDefault();
+        const next =
+          event.key === 'ArrowRight'
+            ? (current + 1) % thumbs.length
+            : (current - 1 + thumbs.length) % thumbs.length;
+        activate(next);
+        thumbs[next].focus();
+      });
+    }
+
+    // ---- Map (§17.2:701-710) --------------------------------------------
+    const frame = pageRoot.querySelector<HTMLElement>('[data-map-frame]');
+    const canvas = pageRoot.querySelector<HTMLElement>('[data-map-canvas]');
+    const fallback = pageRoot.querySelector<HTMLElement>('[data-map-fallback]');
+    const retry = pageRoot.querySelector<HTMLElement>('.map-fallback__retry');
+
+    if (frame && canvas && fallback) {
+      let mapStarted = false;
+
+      const initMap = async () => {
+        if (mapStarted) return;
+        mapStarted = true;
+        try {
+          // The coordinates come from the build-emitted JSON asset, never
+          // from the markup (§17.2:705).
+          const url = `${window.location.pathname.replace(/\/+$/, '')}.json`;
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error(`map payload: ${response.status}`);
+          const payload: unknown = await response.json();
+          const { lat, lon } = (payload ?? {}) as { lat?: unknown; lon?: unknown };
+          if (typeof lat !== 'number' || typeof lon !== 'number') {
+            throw new Error('map payload: unexpected shape');
+          }
+
+          const { initDetailMap } = await import('../../lib/map/detail-map');
+          initDetailMap({
+            container: canvas,
+            lat,
+            lon,
+            onReady: () => {
+              canvas.classList.add('is-ready');
+              fallback.hidden = true;
+            },
+            onError: () => {
+              // The fallback stays; `Reintentar` may try again.
+              mapStarted = false;
+            },
+          });
+        } catch {
+          // Fetch/import failure: the §17.2:709 fallback is already visible.
+          mapStarted = false;
+        }
+      };
+
+      retry?.addEventListener('click', () => {
+        void initMap();
+      });
+
+      // Lazy init: the map loads only when its frame approaches the
+      // viewport; without IntersectionObserver it initialises immediately.
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((entryItem) => entryItem.isIntersecting)) {
+              observer.disconnect();
+              void initMap();
+            }
+          },
+          { rootMargin: '256px 0px' },
+        );
+        observer.observe(frame);
+      } else {
+        void initMap();
+      }
+    }
+  }
+</script>
+
+<style>
+  /* The `hidden` attribute must win over display classes on this page. */
+  [hidden] {
+    display: none !important;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  /* ---- Page grid ---------------------------------------------------------
+     Desktop: §5's 12 columns — content in 1–7, the static panel in 9–12
+     (§17.2:697). Mobile: one column, DOM order (§10). */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: var(--space-10);
+    padding-block: var(--space-8);
+  }
+
+  /* ---- Breadcrumb (§17.2:673) ------------------------------------------- */
+  .breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+
+  .breadcrumb__item {
+    display: flex;
+    align-items: center;
+  }
+
+  .breadcrumb__item + .breadcrumb__item::before {
+    content: '/';
+    margin-inline: var(--space-2);
+    color: var(--color-text-secondary);
+  }
+
+  /* 44px touch targets on the ancestor links (§12). */
+  .breadcrumb__link {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+
+  .breadcrumb__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The current segment is plain text-primary — not a link (§17.2:673). */
+  .breadcrumb__current {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-text-primary);
+  }
+
+  /* ---- 1. Gallery (§17.2:675-681) --------------------------------------- */
+  .gallery__rail {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .gallery__rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Inactive thumbnails are NOT dimmed; the active one takes the
+     interactive border (§17.2:677). 96×64 keeps the 44px touch minimum. */
+  .gallery__thumb {
+    flex: none;
+    width: 96px;
+    aspect-ratio: 3 / 2;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+  }
+
+  .gallery__thumb[aria-current='true'] {
+    border-color: var(--color-border-interactive);
+  }
+
+  .gallery__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Counter at the end of the rail (§17.2:678). */
+  .gallery__counter {
+    flex: none;
+    align-self: center;
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- 2. Title / description ------------------------------------------- */
+  .detail-head__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-lg);
+    font-weight: 400;
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+  }
+
+  .detail-head__summary {
+    max-width: 52ch;
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-body-lg);
+    line-height: var(--leading-body-lg);
+    color: var(--color-text-secondary);
+  }
+
+  .detail-head__eyebrow {
+    margin-top: var(--space-8);
+  }
+
+  /* §3: long-form listing description caps at 68ch. */
+  .detail-head__body {
+    max-width: 68ch;
+    margin-top: var(--space-4);
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* The markdown body renders plain paragraphs without the page's scope
+     attribute, so the rules go through :global. */
+  .detail-head__body :global(p) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .detail-head__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* ---- 3. Characteristics (§17.2:683-686) -------------------------------- */
+  .characteristics__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Labels, not controls: no ×, no hover, no border, no icon. */
+  .characteristics__item {
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    color: var(--color-text-primary);
+  }
+
+  /* ---- 4. Ficha técnica (§17.2:688-694) ---------------------------------- */
+  .price-panel {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-surface);
+    /* No shadow at rest (§4): the surface is defined by the hairline. */
+  }
+
+  .price-panel__amount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1);
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--color-text-primary);
+  }
+
+  /* The currency code is always present (§17.2:690, §3). */
+  .price-panel__currency {
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+
+  .price-panel__value {
+    font-size: var(--text-price-lg);
+    font-weight: 500;
+    line-height: var(--leading-price-lg);
+    letter-spacing: var(--tracking-price-lg);
+  }
+
+  .price-panel__rule {
+    margin: var(--space-5) 0;
+    border: 0;
+    border-top: 1px solid var(--color-border-decorative);
+  }
+
+  .price-panel__rows {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .price-panel__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .price-panel__row dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .price-panel__row dd {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: right;
+    color: var(--color-text-primary);
+  }
+
+  .price-panel__cta {
+    margin-top: var(--space-5);
+  }
+
+  .price-panel__cta :global(.whatsapp-cta) {
+    width: 100%;
+  }
+
+  .price-panel__note {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- 5–6. Zone + map (§17.2:701-710) ----------------------------------- */
+  .zone__line {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-primary);
+  }
+
+  .map-band {
+    margin-top: var(--space-5);
+  }
+
+  /* §17.2:702 — the frame. The map never bleeds past it. */
+  .map-frame {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-subtle);
+  }
+
+  /*
+   * The canvas keeps its box while hidden (`visibility`, not `display`) so
+   * MapLibre measures the right size at init, and so a covered map is never
+   * focusable nor exposed to assistive tech before it is ready.
+   */
+  .map-canvas {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+  }
+
+  .map-canvas.is-ready {
+    visibility: visible;
+  }
+
+  /*
+   * §17.2:709 — fallback: same 3:2 box metrics as the map (it sits in the
+   * same frame), bg-subtle, left-aligned content: 24px house glyph,
+   * message, `Reintentar` as a ghost text link.
+   */
+  .map-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .map-fallback__icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    color: var(--color-text-primary);
+  }
+
+  .map-fallback__text {
+    margin: 0;
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-primary);
+  }
+
+  /* §17.2:708 — the caption stays in every state. */
+  .map-caption {
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  /* §17.2:708 — the muted note is added on mobile only. */
+  .map-note {
+    display: none;
+  }
+
+  /*
+   * §17.2:707 — the attribution control is mandatory and permanent: never
+   * removed, never collapsed (initialised `compact: false`), never restyled
+   * below legibility. This only re-skins it onto the system tokens: a
+   * surface chip, radius-xs, label-sm. muted-text on surface measures
+   * 5.63:1 (§2) — AA.
+   */
+  .map-canvas :global(.maplibregl-ctrl-attrib) {
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .map-canvas :global(.maplibregl-ctrl-attrib a) {
+    color: inherit;
+  }
+
+  /* ---- Locality link (desktop screen) ------------------------------------- */
+  .detail-more {
+    display: none;
+  }
+
+  /* ---- Mobile layout (< 768px) ------------------------------------------- */
+  @media (max-width: 767.98px) {
+    /* §17.2:698 — reserve the sticky bar's height plus the safe area so
+       nothing is ever occluded. */
+    .detail-page {
+      padding-bottom: calc(56px + env(safe-area-inset-bottom));
+    }
+
+    /* §17.2:679 — the rail scrolls with mandatory x snap. */
+    .gallery__rail {
+      scroll-snap-type: x mandatory;
+    }
+
+    .gallery__thumb {
+      scroll-snap-align: start;
+    }
+
+    /* The in-flow CTA is omitted; the sticky bar takes over (§17.2:698). */
+    .price-panel__cta {
+      display: none;
+    }
+
+    .map-note {
+      display: block;
+      margin: var(--space-2) 0 0;
+      font-size: var(--text-body-sm);
+      line-height: var(--leading-body-sm);
+      color: var(--color-text-secondary);
+    }
+  }
+
+  /* ---- Desktop layout (≥ 768px) ------------------------------------------ */
+  @media (min-width: 768px) {
+    .detail-grid {
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: var(--space-8);
+      row-gap: var(--space-12);
+      padding-block: var(--space-10) var(--section-y-tight);
+    }
+
+    .breadcrumb {
+      grid-column: 1 / -1;
+    }
+
+    .gallery,
+    .detail-head,
+    .characteristics,
+    .zone,
+    .detail-more {
+      grid-column: 1 / span 7;
+    }
+
+    /* The static right-hand column (columns 9–12, §17.2:697): aligned with
+       the gallery through the characteristics band. Never sticky. */
+    .price-panel {
+      grid-column: 9 / span 4;
+      grid-row: 2 / span 3;
+      align-self: start;
+    }
+
+    .detail-more {
+      display: block;
+    }
+  }
+</style>
