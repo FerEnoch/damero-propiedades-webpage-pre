@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** T0–T5 ✅ commiteados (2026-09-18). Próxima sesión: **T6 + T7**. Ver "Próxima sesión — arrancar acá" más abajo.
+**Estado:** T0–T5 ✅ commiteados (2026-09-18). **T7 en curso** (2026-09-21): suite e2e con Playwright + verificación consolidada. **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). Ver "Próxima sesión — arrancar acá" más abajo.
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
@@ -11,9 +11,11 @@
 **Alcance:** tokens CSS, estilos globales y fuentes, layout base (header/footer), content collection de propiedades con datos semilla, componentes base de `DESIGN.md` §6, y la landing `/` (§5).
 **Fuera de alcance:** `/propiedades`, `/propiedades/<slug>` y `/faqs` (§17); los 5 checks de CI del PRD §9; el deploy.
 
-## Próxima sesión — arrancar acá (2026-09-18)
+## Próxima sesión — arrancar acá (2026-09-21)
 
-**Estado:** T0–T5 ✅ commiteados en `main`, árbol limpio. Lo único untracked es `.opencode/` (ver gotchas). Quedan **T6** y **T7**, y después el track §17 (`/propiedades`, `/propiedades/<slug>`, `/faqs`).
+**Estado:** T0–T5 ✅ commiteados en `main`, árbol limpio. Esta sesión: **T7** (suite e2e con Playwright + verificación consolidada). **T6 quedó diferido al track §17** por decisión del stakeholder (2026-09-21).
+
+**Por qué T6 se difiere:** `icon-house.svg` es el glifo del empty state y `icon-search-house.svg` el del buscador (`DESIGN.md` §8, línea 406). **Ninguno de los dos consumidores existe todavía** — ambos viven en el track §17. Construirlos ahora dejaría la única verificación honesta en "cumple la spec de construcción a ojo". Se construyen junto a su primer consumidor, con el mismo criterio con el que T4 difirió Filter input, WhatsApp CTA y Empty state.
 
 **Commits del track:**
 
@@ -24,14 +26,42 @@
 | T3 — content collection + semillas | `3080dde` (feat) + `1bd82dd` (docs) |
 | T4 — componentes base | `f922c28` (feat) |
 | T5 — landing | `a6c07ef` (feat) + `0e891ee` (docs) |
+| handoff de cierre | `33bde6b` (docs) |
 
-**Verificación ya hecha:** T1, T2 y T5 pasaron por verificador independiente en contexto fresco con Chrome real (contraste medido sobre computed styles, teclado, contexto sin JavaScript, overflow). T3 se probó con un test negativo del schema (enum inválido → exit 1). T4 lo auto-verificó el writer con un showcase temporal porque todavía no tenía consumidor. Criterios medidos: build 0 · sage como texto 0 · hex crudos fuera de `tokens.css` 0 · datos inventados 0 · un solo CTA primario por viewport · 0 overflow a 390 y 320.
+**Verificación ya hecha (T1–T5):** T1, T2 y T5 pasaron por verificador independiente en contexto fresco con Chrome real (contraste medido sobre computed styles, teclado, contexto sin JavaScript, overflow). T3 se probó con un test negativo del schema (enum inválido → exit 1). T4 lo auto-verificó el writer con un showcase temporal porque todavía no tenía consumidor. Criterios medidos: build 0 · sage como texto 0 · hex crudos fuera de `tokens.css` 0 · datos inventados 0 · un solo CTA primario por viewport · 0 overflow a 390 y 320.
 
-**Próximo paso concreto — T6.** Faltan `icon-house.svg` y `icon-search-house.svg` (T8 del track de diseño). Las referencias PNG están en `design/reference/house.png` y `design/reference/search_house.png`. Construcción §8: viewBox 24, stroke 1.5px, capa de acento `fill="#7C916F"` sin stroke y ≤40% del área, capa de línea `stroke="currentColor"`, `aria-hidden` + `focusable="false"`.
-**Antes de agregarlos, exportar un tipo compartido para `ServiceIcon`/`ServiceIconName`:** hoy el union está duplicado en `ServiceIcon.astro` y en `landing.ts` y va a driftear.
+### T7 — suite e2e con Playwright + verificación consolidada
 
-**Después T7.** Build verde + contraste AA + mobile-first 390/1280 + 0 sage en texto renderizado, **y la suite e2e con `@playwright/test`**. La decisión de meterlo como devDependency del repo ya está tomada: pin exacto, y **va a necesitar una entrada en `allowBuilds` de `pnpm-workspace.yaml`** porque la política es deny-by-default con `strictDepBuilds: true` — esa fricción es el control, no un bug.
-Para verificación manual, ojo: el `playwright-cli` global pide el browser `chrome-for-testing`, que **no está instalado**. Funciona `playwright-core` con `executablePath: '/usr/bin/google-chrome'` (script de referencia: `/tmp/opencode/shot.cjs`).
+**Objetivo:** reemplazar la verificación manual por una suite ejecutable y repetible que cubra los criterios de aceptación del track, y correrla como gate antes de abrir el track §17.
+
+**Decisiones técnicas ya tomadas** (verificadas contra el registry, no volver a debatirlas durante la implementación):
+
+1. **Runner:** `@playwright/test` **pin exacto `1.63.0`** como `devDependency`. Publicado 2026-09-04 → 16 días de antigüedad, pasa la cuarentena de `minimumReleaseAge: 4320`. Exacto, sin caret: el repo pinnea exacto.
+2. **NO hace falta tocar `pnpm-workspace.yaml`.** La nota anterior de este doc decía que Playwright iba a necesitar una entrada en `allowBuilds`; **es incorrecta**. Verificado contra el packument: `@playwright/test@1.63.0`, `playwright@1.63.0` y `playwright-core@1.63.0` **no declaran `scripts`** — la descarga del browser la hace el CLI `playwright install`, no un postinstall. Si el install real demuestra lo contrario, ahí sí se evalúa la entrada; no antes.
+3. **Ninguna dependencia nueva más allá de `@playwright/test`.** En particular **no** se agrega `@axe-core/playwright` (el contraste se mide con `page.evaluate` sobre computed styles, que es exactamente como ya se midió a mano en T1/T2/T5) ni `typescript` (Playwright transpila `.ts` sin ese paquete).
+4. **Browser:** el chromium que trae Playwright (default: sin `channel` ni `executablePath`), bajado una sola vez con `pnpm exec playwright install chromium`. El revision de 1.63.0 es 1243; el cache local tiene 1223, así que baja uno nuevo y queda cacheado. **Fallback documentado:** si la descarga falla o está bloqueada, `use: { channel: 'chrome' }` contra el Chrome 153 del sistema (`/usr/bin/google-chrome`) — nunca un `executablePath` hardcodeado.
+5. **Servidor:** `webServer` de Playwright con `pnpm build && pnpm preview --port 4321`, `reuseExistingServer` fuera de CI. El build es parte del gate: la suite corre contra `dist/`, no contra el dev server.
+
+**Inventario mínimo de la suite** (el implementador puede agregar casos, no quitar). Los selectores salen del markup real: las secciones son `.hero` / `.featured` / `.services` / `.faq-teaser` con `aria-labelledby` a `#hero-title` / `#featured-title` / `#services-title` / `#faq-title`; el CTA primario es `.button--primary` (todas las demás CTAs son `variant="text-link"`).
+
+| # | Assertion | Criterio que cubre |
+|---|---|---|
+| 1 | `/` responde 200, tiene `<title>` y **exactamente un `<h1>`** | Semántica |
+| 2 | Orden de secciones en el DOM: hero → destacadas → servicios → FAQ teaser | `DESIGN.md` §5 |
+| 3 | **Exactamente 1** `.button--primary` visible por viewport, a 1280, 390 y 320 | §6 |
+| 4 | Landmarks `header` / `main` / `footer` presentes | Semántica |
+| 5 | Sin saltos de nivel de heading (h1 → h2 → h3) | Semántica |
+| 6 | **0 elementos con texto cuyo `color` computado sea `#7C916F`** | Sage nunca en texto |
+| 7 | 0 ocurrencias de datos inventados: `CUCICBA`, `Ley 5115`, testimonios, métricas | §17.4 |
+| 8 | La FAQ teaser renderiza el marcador `PENDIENTE` y **ningún cuerpo de respuesta** | §11 / §17.4 |
+| 9 | **0 overflow horizontal** (`scrollWidth <= clientWidth + 1`) a 390 y 320 | §12 |
+| 10 | Touch targets de todo interactivo ≥ 44px a 390 | §12 |
+| 11 | Matriz de contraste de `DESIGN.md` §2 sobre computed styles: ≥4.5:1 (o ≥3:1 en texto grande) | §2 |
+| 12 | Todo interactivo alcanzable por teclado, en orden de DOM, con foco visible | §12 |
+
+**Lo que la suite NO debe afirmar** — son las 6 decisiones abiertas del stakeholder, y asertarlas congela una decisión que todavía no se tomó: la altura del header a 320px (hoy 97px, §6 pide 64), la cantidad de watermarks del hero, los hairlines de banda, el uppercase/full-width del CTA mobile, `destacada: true` en las 3 propiedades, y la presencia o ausencia del "¿" de apertura del bajado.
+
+**Work units planeados:** (1) `test(e2e): ...` — dep + config + specs + scripts, con la corrida verde como evidencia en el mismo commit; (2) `docs(odd): ...` — evidencia cruda de la corrida y veredicto del verificador independiente.
 
 **Decisiones abiertas que esperan al stakeholder (menores, todas de T5 — ninguna se aplicó sin permiso):**
 1. El bajado del hero **no tiene el "¿" de apertura** (*"Tenés dudas y no sabés cómo encarar tu negocio?"*): se copió verbatim del screen.
@@ -45,11 +75,11 @@ Para verificación manual, ojo: el `playwright-cli` global pide el browser `chro
 
 **Gotchas de infraestructura:**
 - **No hay remote de git configurado** ni upstream en `main`: el CI del PRD §9 no puede correr. Todo es local.
-- **`.opencode/agent/engineering-astro-{implementer,mapper,verifier}.md` está untracked.** Son los 3 agentes de proyecto pinneados (implementer `kimi-k3` max, verifier `deepseek-v4-pro` high, mapper `deepseek-v4.1-flash` high), nombrados bajo el glob `engineering-*` de la allowlist del orquestador. **Requieren reiniciar opencode para cargarse** (verificado en caliente: `Unknown agent type`). Falta decidir si se commitean o se ignoran.
-- **El MCP de Engram falla en este proyecto** con "multiple active runtime sessions": usar el CLI `engram save <title> <content> --project realtor_pre_webpage --type ... --topic ...` como fallback.
+- **`.opencode/agent/engineering-astro-{implementer,mapper,verifier}.md` está untracked.** Son los 3 agentes de proyecto pinneados (implementer `kimi-k3` max, verifier `deepseek-v4-pro` high, mapper `deepseek-v4.1-flash` high), nombrados bajo el glob `engineering-*` de la allowlist del orquestador. **Actualización 2026-09-21:** ya cargan (opencode se reinició) y están en uso. `.opencode/` ahora también tiene `package.json` + `package-lock.json` + `node_modules` del plugin de opencode, pero su `.gitignore` propio ya los cubre, así que commitear solo `agent/*` es limpio. **Falta decidir si se commitean.**
+- **El MCP de Engram fallaba en este proyecto** con "multiple active runtime sessions" (2026-09-18). **Actualización 2026-09-21:** funciona — `mem_current_project`, `mem_context`, `mem_search` y `mem_get_observation` responden bien. Si vuelve a fallar, el fallback es el CLI `engram save <title> <content> --project realtor_pre_webpage --type ... --topic ...`.
 - **Componentes diferidos al track §17:** Filter input, WhatsApp CTA y Empty state. No los consume ninguna página de T1–T5 y `/propiedades` está fuera de alcance; se construyen con su primer consumidor.
 - **Coherencia a resolver en §17:** el teaser de FAQ usa voz sans para la pregunta; §17.3 pide serif para el acordeón de `/faqs`. Hay que alinearlos.
-- `@playwright/test` **todavía no está en `package.json`**: la decisión está tomada, falta ejecutarla en T7.
+- `@playwright/test` **todavía no está en `package.json`**: se instala en T7 con pin exacto `1.63.0`. **No necesita `allowBuilds`** (ver decisión 2 de T7). Para la suite se usa el chromium propio de Playwright; `channel: 'chrome'` (Chrome del sistema) queda como fallback documentado, no como default.
 - `/propiedades` y `/faqs` dan **404** hasta que existan: es esperado, no un defecto.
 
 ## Restricciones (decisiones cerradas)
@@ -70,11 +100,11 @@ Para verificación manual, ojo: el `playwright-cli` global pide el browser `chro
 - [x] T0 — Migración de la política pnpm a `pnpm-workspace.yaml` (ver `damero-web-foundation.md`)
 - [x] T1 — Tokens CSS + estilos globales + las 3 fuentes (Newsreader, Hanken Grotesk, JetBrains Mono) según `DESIGN.md` §14, §3 y §13
 - [x] T2 — Layout base: shell, header y footer con el bloque legal verbatim (`DESIGN.md` §6, §17.4)
-- [ ] T3 — Content collection `propiedades` con el schema del PRD §4 + 3 listados semilla con placeholder de marca
+- [x] T3 — Content collection `propiedades` con el schema del PRD §4 + 3 listados semilla con placeholder de marca
 - [x] T4 — Componentes base que **consume la landing**: Button, Property card, Operation badge (+ `DameroPlaceholder` §7, `ServiceIcon` §8, `formatAmount`). **Diferidos al track §17** (no los consume ninguna página de T1–T5, y `/propiedades` está fuera de alcance): Filter input, WhatsApp CTA y Empty state.
 - [x] T5 — Landing `/` según `DESIGN.md` §5: hero (damero + titular + 1 CTA de búsqueda), bloque de destacadas, los 8 servicios con los SVG duotono, teaser de FAQ
-- [ ] T6 — Glifos de UI faltantes: `icon-house.svg` y `icon-search-house.svg` (T8 del track de diseño)
-- [ ] T7 — Verificación: build verde, contraste AA, mobile-first 390/1280, 0 ocurrencias de sage en texto renderizado
+- [—] T6 — **DIFERIDO al track §17** (stakeholder, 2026-09-21). Glifos de UI `icon-house.svg` (empty state) y `icon-search-house.svg` (buscador, `DESIGN.md` §8). Se construyen con su primer consumidor, igual que Filter input / WhatsApp CTA / Empty state en T4. Sigue abierto como T8 del track de diseño.
+- [ ] T7 — Verificación consolidada: build verde, contraste AA, mobile-first 390/1280/320, 0 sage en texto renderizado, datos inventados 0, **+ suite e2e ejecutable con `@playwright/test`** (spec completa arriba)
 
 ## Criterios de aceptación
 
@@ -90,6 +120,8 @@ Para verificación manual, ojo: el `playwright-cli` global pide el browser `chro
 ## Forecast de entrega
 
 Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima por encima de eso, así que se entrega en work-unit commits por tarea (T1…T5), directo a `main` según PRD §9. Estrategia: `ask-on-risk` — si un slice se pasa de ~400 líneas, se para y se avisa antes de seguir.
+
+**T7 (2026-09-21):** el forecast es de ~4 archivos nuevos (`playwright.config.ts` + 3–4 specs) más ediciones chicas en `package.json`. Se estima por debajo de las 400 líneas autoradas, así que va en un solo work-unit commit `test(e2e)`. Si la suite se pasa del presupuesto, se parte por spec file, no recortando cobertura.
 
 ## Verificación ejecutada
 
