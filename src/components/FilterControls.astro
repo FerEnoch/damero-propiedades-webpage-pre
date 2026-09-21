@@ -1,0 +1,215 @@
+---
+/**
+ * FilterControls — the docs/DESIGN.md §17.1:630 control set, shared verbatim
+ * by the desktop filter bar and the mobile bottom sheet so both surfaces edit
+ * the same search state with identical components (§17.1:659: the sheet
+ * reuses the §17.1 components unchanged).
+ *
+ * Control order (contractual): `OPERACIÓN` (segmented Todas / Venta /
+ * Alquiler), `TIPO` (select), `LOCALIDAD` (select), `HABITACIONES` (select),
+ * `COCHERA` (square checkbox + inline label), `MONEDA` (segmented USD / ARS),
+ * `PRECIO` (dual-thumb). Every control is 44px tall (§12, guaranteed by the
+ * primitives).
+ *
+ * Option lists are NOT decided here: they are derived from the rendered
+ * collection by the page and passed in (plan open items #2/#3 — never
+ * hard-coded).
+ *
+ * `MONEDA` scopes the price range; it is not a standalone set filter
+ * (§17.1:633: "The range applies only within the selected currency"). One
+ * PriceRange instance is rendered per currency that exists in the collection,
+ * each with its own derived domain, and only the active currency's pane is
+ * visible — so no control ever mutates another currency's domain and the
+ * component's own script keeps painting the right readout. A currency with
+ * no listings is never offered (derived set).
+ */
+import FilterCheckbox from './FilterCheckbox.astro';
+import FilterSelect from './FilterSelect.astro';
+import PriceRange from './PriceRange.astro';
+import SegmentedControl from './SegmentedControl.astro';
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  /** Unique id prefix per instance (`filter` / `sheet`) — element ids must stay unique. */
+  idPrefix: string;
+  /** `row` = the desktop bar's horizontal strip; `stack` = the sheet's vertical stack. */
+  layout: 'row' | 'stack';
+  tipos: Option[];
+  localidades: Option[];
+  habitaciones: Option[];
+  monedas: Option[];
+  priceDomains: Record<string, [number, number] | null>;
+  defaultCurrency: string;
+}
+
+const {
+  idPrefix,
+  layout,
+  tipos,
+  localidades,
+  habitaciones,
+  monedas,
+  priceDomains,
+  defaultCurrency,
+} = Astro.props;
+
+const pid = (id: string) => `${idPrefix}-${id}`;
+
+const domainEntries = Object.entries(priceDomains).filter(
+  (entry): entry is [string, [number, number]] => entry[1] !== null,
+);
+---
+
+<div class:list={['filter-controls', `filter-controls--${layout}`]}>
+  <SegmentedControl
+    name="operacion"
+    label="Operación"
+    filterKey="operacion"
+    value=""
+    options={[
+      { value: '', label: 'Todas' },
+      { value: 'venta', label: 'Venta' },
+      { value: 'alquiler', label: 'Alquiler' },
+    ]}
+  />
+
+  <FilterSelect
+    id={pid('tipo')}
+    label="Tipo"
+    filterKey="tipo"
+    options={[{ value: '', label: 'Todos los tipos' }, ...tipos]}
+  />
+
+  <FilterSelect
+    id={pid('localidad')}
+    label="Localidad"
+    filterKey="localidad"
+    options={[{ value: '', label: 'Todas las localidades' }, ...localidades]}
+  />
+
+  <FilterSelect
+    id={pid('habitaciones')}
+    label="Habitaciones"
+    filterKey="habitaciones"
+    options={[{ value: '', label: 'Indiferente' }, ...habitaciones]}
+  />
+
+  <div class="filter-controls__field">
+    {/* §17.1:629 — every control carries its label above it, so the checkbox
+        gets a group label in addition to its inline one. */}
+    <span class="filter-controls__group-label">Cochera</span>
+    <FilterCheckbox id={pid('cochera')} label="Con cochera" value="si" filterKey="cochera" />
+  </div>
+
+  <SegmentedControl
+    name="moneda"
+    label="Moneda"
+    filterKey="moneda"
+    value={defaultCurrency}
+    options={monedas}
+  />
+
+  {
+    domainEntries.map(([currency, domain]) => (
+      <div
+        class="filter-controls__price"
+        data-price-pane={currency}
+        hidden={currency !== defaultCurrency}
+      >
+        <PriceRange
+          id={pid(`precio-${currency.toLowerCase()}`)}
+          currency={currency as 'USD' | 'ARS'}
+          min={domain[0]}
+          max={domain[1]}
+          nameMin="precio_min"
+          nameMax="precio_max"
+          filterKey="precio"
+        />
+      </div>
+    ))
+  }
+
+  {/* Trailing slot: the desktop bar appends `Limpiar filtros` at the row end
+      (§17.1:634); the sheet passes nothing (its `Limpiar` sits in the header). */}
+  <slot />
+</div>
+
+<style>
+  /* Group label above the checkbox, same voice as the primitives' labels. */
+  .filter-controls__group-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  /*
+   * Row layout (desktop bar): a single horizontal strip of controls (§17.1:629).
+   * It wraps onto a second line when the viewport cannot hold all seven —
+   * §10's horizontal-overflow ban outranks the literal one-line reading; at
+   * wide viewports the strip resolves to a single row.
+   */
+  .filter-controls--row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4);
+  }
+
+  /* Child component roots carry their own scope ids, so layout reaches them
+     through :global — the same pattern EmptyState/WhatsAppCta already use. */
+  .filter-controls--row > :global(.filter-field) {
+    flex: 1 1 9rem;
+    min-width: 0;
+  }
+
+  .filter-controls--row > :global(.segmented) {
+    flex: none;
+  }
+
+  .filter-controls--row .filter-controls__price {
+    flex: 1 1 11rem;
+    min-width: 10rem;
+  }
+
+  .filter-controls--row .filter-controls__field {
+    flex: none;
+  }
+
+  /* Stack layout (bottom sheet): vertical, full width, --space-5 apart
+     (§17.1:659). */
+  .filter-controls--stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .filter-controls--stack > :global(.filter-field),
+  .filter-controls--stack > :global(.segmented),
+  .filter-controls--stack .filter-controls__price,
+  .filter-controls--stack .filter-controls__field {
+    width: 100%;
+  }
+
+  .filter-controls--stack :global(.segmented__track) {
+    display: flex;
+    width: 100%;
+  }
+
+  .filter-controls--stack :global(.segmented__option) {
+    flex: 1 1 0;
+  }
+
+  .filter-controls--stack :global(.segmented__segment) {
+    width: 100%;
+  }
+</style>

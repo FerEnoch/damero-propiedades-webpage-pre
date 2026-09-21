@@ -1,0 +1,1294 @@
+---
+/**
+ * Search page `/propiedades` — docs/DESIGN.md §17.1, ODD §17 rulings
+ * R1/R2/R9/R10/R14.
+ *
+ * R1 — filtering is client-side over the DOM: every listing renders at build
+ * and a plain script (no framework, no `client:*` directive) hides the
+ * non-matching cards, updates `RESULTADOS · n`, the chips and the URL.
+ * Without JS every listing stays visible — honest degradation, not an error.
+ *
+ * R2 — one URL form: path `/propiedades` with exactly the params
+ * `operacion, habitaciones, cochera, tipo, precio_min, precio_max, localidad,
+ * moneda`. The URL is the source of truth: state loads from it on first
+ * paint and every filter change rewrites it. `Ordenar` is deliberately NOT a
+ * URL param (R2 lists exactly eight).
+ *
+ * Moneda semantics (§17.1:630-633): the segmented `MONEDA` control scopes
+ * the dual-thumb range — "the range applies only within the selected
+ * currency" — it does not filter the set by itself: with a clean URL every
+ * listing renders (R1), the screens' chip row carries no moneda chip of its
+ * own (the single price chip carries the currency), and §17.1:633's
+ * currency-scope sentence would be redundant if the set were already
+ * currency-filtered. The price filter is active exactly when the range is
+ * narrower than the selected currency's derived domain; only then do
+ * listings in other currencies drop out.
+ *
+ * R9 — the schema has no date field, so `Más recientes` resolves to
+ * collection order (same criterion as index.astro). Price sorts are raw
+ * numeric orderings of the rendered set — never a currency conversion.
+ *
+ * R10 — `Ver más propiedades` renders only when the collection has more than
+ * 6 entries; with the current 3 seeds it is omitted (a pagination promise
+ * with no page behind it is fabricated data).
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import FilterChip from '../../components/FilterChip.astro';
+import FilterControls from '../../components/FilterControls.astro';
+import FilterSelect from '../../components/FilterSelect.astro';
+import PropertyCard from '../../components/PropertyCard.astro';
+
+const propiedades = await getCollection('propiedades');
+
+// R9: collection order is the canonical order — the schema has no date field.
+const entries = propiedades.map((entry, index) => ({ index, ...entry.data }));
+
+/*
+ * Derived option sets (plan open items #2/#3): every option comes from the
+ * rendered collection, never hard-coded — the same honesty rule §17.1:625
+ * applies to the results count. Ordering criterion: alphabetical in the `es`
+ * locale for strings, ascending numeric for room counts. A value absent from
+ * the collection never becomes an option, so no filter ships dead.
+ */
+const compareEs = (a: string, b: string) => a.localeCompare(b, 'es');
+const tipos = [...new Set(entries.map((entry) => entry.tipo))].sort(compareEs);
+const localidades = [...new Set(entries.map((entry) => entry.localidad))].sort(compareEs);
+/*
+ * Habitaciones semantics: minimum ("N+" = at least N rooms), per the screens'
+ * option labels. `0` (a lot) never produces a `0+` option — it would be
+ * equivalent to `Indiferente`.
+ */
+const habitacionesValues = [
+  ...new Set(entries.map((entry) => entry.habitaciones).filter((n) => n > 0)),
+].sort((a, b) => a - b);
+
+/*
+ * Price domain (open item #2): derived per currency from the rendered set —
+ * [min, max] of `precio` within each currency. The range applies only within
+ * the selected currency (§17.1:633), so the domain never mixes USD and ARS
+ * amounts and never implies a conversion. A currency with no listings is not
+ * offered in the segmented control.
+ */
+const CURRENCIES = ['USD', 'ARS'] as const;
+type Currency = (typeof CURRENCIES)[number];
+const priceDomains = Object.fromEntries(
+  CURRENCIES.map((currency) => {
+    const prices = entries
+      .filter((entry) => entry.moneda === currency)
+      .map((entry) => entry.precio);
+    return [currency, prices.length > 0 ? [Math.min(...prices), Math.max(...prices)] : null];
+  }),
+) as Record<Currency, [number, number] | null>;
+const DEFAULT_CURRENCY: Currency = 'USD';
+
+/** Slug to display label without a dictionary (same rule as §17.2:686). */
+const labelize = (slug: string) => slug.charAt(0).toUpperCase() + slug.slice(1);
+
+const tipoOptions = tipos.map((tipo) => ({ value: tipo, label: labelize(tipo) }));
+const localidadOptions = localidades.map((localidad) => ({ value: localidad, label: localidad }));
+const habitacionesOptions = habitacionesValues.map((n) => ({
+  value: String(n),
+  label: `${n}+`,
+}));
+const monedaOptions = CURRENCIES.filter((currency) => priceDomains[currency] !== null).map(
+  (currency) => ({ value: currency, label: currency }),
+);
+
+/** §17.1:623 — the first band shows at most 6 cards. */
+const FOLD_LIMIT = 6;
+const hasMore = entries.length > FOLD_LIMIT;
+
+const hasCochera = (cochera: boolean | number) =>
+  cochera === true || (typeof cochera === 'number' && cochera > 0);
+---
+
+<BaseLayout title="Propiedades | Damero Propiedades">
+  <div
+    data-search-page
+    data-price-domains={JSON.stringify(priceDomains)}
+    data-default-currency={DEFAULT_CURRENCY}
+  >
+    <!-- 1. Page head band -->
+    <section class="search-head" data-band="head" aria-labelledby="search-title">
+      <div class="container">
+        <p class="search-head__eyebrow">CARTERA COMPLETA</p>
+        <h1 class="search-head__title" id="search-title">Propiedades</h1>
+        <p class="search-head__subhead">
+          Filtrá por operación, zona y moneda. La búsqueda se puede compartir por URL.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. Collapsed filter bar (mobile < 768px only, §17.1:651-654) -->
+    <div class="mobile-bar">
+      <div class="mobile-bar__inner">
+        <button
+          class="mobile-bar__trigger"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="filter-sheet"
+          aria-expanded="false"
+          aria-label="Filtros"
+          data-sheet-open
+        >
+          <span class="mobile-bar__trigger-text">Filtros</span>
+          {/*
+            The badge counts ACTIVE FILTERS, never results (§17.1:653). It is
+            aria-hidden so it is never announced as a result count; the
+            trigger's aria-label carries the same information in words.
+          */}
+          <span class="mobile-bar__badge" data-filter-count-badge aria-hidden="true" hidden>
+            0
+          </span>
+        </button>
+        <div class="mobile-bar__rail" data-chips-rail></div>
+      </div>
+    </div>
+
+    <!-- 3. Filter bar (desktop ≥ 768px, §17.1:627-635) -->
+    <section class="search-filters" data-band="filters" aria-label="Filtros de búsqueda">
+      <div class="container">
+        <form class="filter-bar" data-filters="desktop">
+          <FilterControls
+            idPrefix="filter"
+            layout="row"
+            tipos={tipoOptions}
+            localidades={localidadOptions}
+            habitaciones={habitacionesOptions}
+            monedas={monedaOptions}
+            priceDomains={priceDomains}
+            defaultCurrency={DEFAULT_CURRENCY}
+          >
+            {/*
+              The row ends with `Limpiar filtros` as a ghost text link; the bar
+              contains no primary button — the page browses, it does not
+              convert (§17.1:634). It is a real link to the clean URL so it
+              also works without JS.
+            */}
+            <Button variant="ghost" href="/propiedades" class="filter-bar__clear">
+              Limpiar filtros
+            </Button>
+          </FilterControls>
+        </form>
+      </div>
+    </section>
+
+    <!-- 4. Applied filter chips, directly beneath the filter panel (§17.1:642) -->
+    <div class="container">
+      <div class="search-chips" data-chips-desktop></div>
+    </div>
+
+    <!-- 5. Shareable search strip (§17.1:644-649) -->
+    <section class="search-share" data-band="share" aria-label="Búsqueda compartible">
+      <div class="container search-share__row">
+        <div class="search-share__copy">
+          <p class="search-share__eyebrow">BÚSQUEDA COMPARTIBLE</p>
+          <p class="search-share__body">
+            Copiá este enlace para compartir exactamente los filtros aplicados actualmente.
+          </p>
+        </div>
+        <div class="search-share__action">
+          {/*
+            The query is split out so truncation clips the query's tail and the
+            params stay visible (§17.1:647). The full URL is on `title`; the
+            copy action uses the live `window.location.href`.
+          */}
+          <div class="search-share__field" title="/propiedades" data-share-field>
+            <span class="search-share__path">/propiedades</span><span
+              class="search-share__query"
+              data-share-query
+            ></span>
+          </div>
+          {/*
+            secondary-tint (R5): this is a tint band, where a sage border is
+            banned (§2:87). Never primary, never an icon-only affordance.
+          */}
+          <Button variant="secondary-tint" class="search-share__button">
+            Copiar búsqueda
+          </Button>
+        </div>
+        <p class="visually-hidden" role="status" data-share-status></p>
+      </div>
+    </section>
+
+    <!-- 6. Results -->
+    <section class="search-results" data-band="results" aria-labelledby="results-count">
+      <div class="container">
+        <div class="results-header">
+          {/*
+            `<n>` is derived from the rendered set — never a hard-coded claim
+            about the portfolio size (§17.1:625, §11).
+          */}
+          <h2 class="results-header__count" id="results-count" data-results-count>
+            RESULTADOS · {entries.length}
+          </h2>
+          <FilterSelect
+            id="ordenar"
+            label="Ordenar:"
+            class="results-sort"
+            options={[
+              { value: 'recientes', label: 'Más recientes' },
+              { value: 'precio-asc', label: 'Menor precio' },
+              { value: 'precio-desc', label: 'Mayor precio' },
+            ]}
+          />
+        </div>
+
+        {/* §12: filter state changes are announced via a live region. */}
+        <p class="visually-hidden" role="status" data-results-status></p>
+
+        <ul class="results-grid" role="list" data-results-grid>
+          {
+            entries.map((entry) => (
+              <li
+                class="results-grid__item"
+                data-card
+                data-index={entry.index}
+                data-operacion={entry.operacion}
+                data-tipo={entry.tipo}
+                data-localidad={entry.localidad}
+                data-habitaciones={entry.habitaciones}
+                data-cochera={hasCochera(entry.cochera) ? '1' : '0'}
+                data-moneda={entry.moneda}
+                data-precio={entry.precio}
+              >
+                <PropertyCard propiedad={entry} variant="compact" />
+              </li>
+            ))
+          }
+        </ul>
+
+        {
+          /* R10: rendered only when there are more than 6 results — with the
+             current seeds it is omitted entirely. */
+          hasMore && (
+            <div class="results-more" data-results-more hidden>
+              <Button variant="secondary" class="results-more__button">
+                Ver más propiedades
+              </Button>
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    <!-- 7. Empty state — hidden until the filtered set is empty (§17.1:664-667) -->
+    <div data-band="empty" data-empty-wrap hidden>
+      <EmptyState />
+    </div>
+
+    {/*
+      8. Bottom sheet + scrim (mobile < 768px; the only modal pattern in the
+      system, §17.1:655-662). R14 dialog semantics: role="dialog",
+      aria-modal="true", focus trap, Escape closes, focus returns to the
+      trigger, body scroll locked while open.
+    */}
+    <div class="sheet-scrim" data-sheet-scrim hidden></div>
+    <div
+      class="sheet"
+      id="filter-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-sheet-title"
+      tabindex="-1"
+      data-sheet
+      hidden
+    >
+      <div class="sheet__handle" aria-hidden="true"></div>
+      <div class="sheet__header">
+        <h2 class="sheet__title" id="filter-sheet-title">Filtros</h2>
+        <Button variant="ghost" href="/propiedades" class="sheet__clear">Limpiar</Button>
+      </div>
+      <div class="sheet__body">
+        <form data-filters="sheet">
+          <FilterControls
+            idPrefix="sheet"
+            layout="stack"
+            tipos={tipoOptions}
+            localidades={localidadOptions}
+            habitaciones={habitacionesOptions}
+            monedas={monedaOptions}
+            priceDomains={priceDomains}
+            defaultCurrency={DEFAULT_CURRENCY}
+          />
+        </form>
+      </div>
+      <div class="sheet__footer">
+        {/*
+          The sheet's only primary action (§17.1:660). N is derived from the
+          current filtered set.
+        */}
+        <Button variant="primary" class="sheet__apply">
+          <span data-sheet-count-label>Ver {entries.length} propiedades</span>
+        </Button>
+      </div>
+    </div>
+
+    {/*
+      Chip factory: one real FilterChip instance lives in this template so
+      client-rendered chips are clones of the component's own markup (scope
+      attribute included), never a hand-drawn lookalike.
+    */}
+    <template data-chip-template>
+      <FilterChip label="Filtro" />
+    </template>
+  </div>
+</BaseLayout>
+
+<script>
+  /**
+   * Client-side search state (R1/R2). Plain script, no framework: it reads
+   * the URL, hides non-matching cards, and keeps `RESULTADOS · n`, the chips,
+   * the count badge, the share strip and the URL in sync. Without it, every
+   * listing stays visible — honest degradation.
+   */
+  const pageRoot = document.querySelector<HTMLElement>('[data-search-page]');
+
+  if (pageRoot) {
+    const FOLD_LIMIT = 6;
+    const domains = JSON.parse(pageRoot.dataset.priceDomains ?? '{}') as Record<
+      string,
+      [number, number] | null
+    >;
+    const defaultCurrency = pageRoot.dataset.defaultCurrency ?? 'USD';
+    const numberFormat = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+
+    const forms = Array.from(document.querySelectorAll<HTMLFormElement>('[data-filters]'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]'));
+    const grid = document.querySelector<HTMLElement>('[data-results-grid]');
+    const countEl = document.querySelector<HTMLElement>('[data-results-count]');
+    const statusEl = document.querySelector<HTMLElement>('[data-results-status]');
+    const moreWrap = document.querySelector<HTMLElement>('[data-results-more]');
+    const emptyWrap = document.querySelector<HTMLElement>('[data-empty-wrap]');
+    const shareField = document.querySelector<HTMLElement>('[data-share-field]');
+    const shareQuery = document.querySelector<HTMLElement>('[data-share-query]');
+    const shareStatus = document.querySelector<HTMLElement>('[data-share-status]');
+    const badge = document.querySelector<HTMLElement>('[data-filter-count-badge]');
+    const trigger = document.querySelector<HTMLButtonElement>('[data-sheet-open]');
+    const sheet = document.querySelector<HTMLElement>('[data-sheet]');
+    const scrim = document.querySelector<HTMLElement>('[data-sheet-scrim]');
+    const sheetCountLabel = document.querySelector<HTMLElement>('[data-sheet-count-label]');
+    const chipTemplate = document.querySelector<HTMLTemplateElement>('[data-chip-template]');
+    const chipContainers = [
+      document.querySelector<HTMLElement>('[data-chips-desktop]'),
+      document.querySelector<HTMLElement>('[data-chips-rail]'),
+    ];
+    const sortSelect = document.querySelector<HTMLSelectElement>('#ordenar');
+
+    interface FilterState {
+      operacion: string;
+      tipo: string;
+      localidad: string;
+      /** Minimum room count ('' = any); semantics per the screens' `N+` labels. */
+      habitaciones: string;
+      cochera: boolean;
+      moneda: string;
+      /** Price bounds; both null while the range sits at the full domain. */
+      precioMin: number | null;
+      precioMax: number | null;
+    }
+
+    let expanded = false;
+    /** Guards against re-entrancy when control sync dispatches input events. */
+    let syncing = false;
+
+    const defaultState = (): FilterState => ({
+      operacion: '',
+      tipo: '',
+      localidad: '',
+      habitaciones: '',
+      cochera: false,
+      moneda: defaultCurrency,
+      precioMin: null,
+      precioMax: null,
+    });
+
+    /**
+     * URL → state (R2: the URL is the source of truth). Values the UI cannot
+     * offer (a shared link predating the data) are kept, not dropped: they
+     * match nothing, the empty state — a designed state — renders, and the
+     * chip row shows exactly which filter does it.
+     */
+    const readURL = (): FilterState => {
+      const state = defaultState();
+      const params = new URLSearchParams(window.location.search);
+
+      const operacion = params.get('operacion');
+      if (operacion === 'venta' || operacion === 'alquiler') state.operacion = operacion;
+
+      const tipo = params.get('tipo');
+      if (tipo) state.tipo = tipo;
+
+      const localidad = params.get('localidad');
+      if (localidad) state.localidad = localidad;
+
+      const habitacionesParam = params.get('habitaciones');
+      const habitaciones = habitacionesParam === null ? NaN : Number(habitacionesParam);
+      if (Number.isFinite(habitaciones) && habitaciones > 0) {
+        state.habitaciones = String(Math.floor(habitaciones));
+      }
+
+      if (params.get('cochera') === 'si') state.cochera = true;
+
+      const moneda = params.get('moneda');
+      if (moneda && domains[moneda]) state.moneda = moneda;
+
+      // Price params count only inside the selected currency's domain and
+      // only when they actually narrow it (§17.1:633). Note `Number(null)`
+      // is 0 — the params must be read as strings first, never via
+      // `Number(params.get(...))` directly.
+      const domain = domains[state.moneda];
+      if (domain) {
+        const [lo, hi] = domain;
+        const minParam = params.get('precio_min');
+        const maxParam = params.get('precio_max');
+        const rawMin = minParam === null ? NaN : Number(minParam);
+        const rawMax = maxParam === null ? NaN : Number(maxParam);
+        const clampedMin = Number.isFinite(rawMin) ? Math.min(Math.max(rawMin, lo), hi) : lo;
+        const clampedMax = Number.isFinite(rawMax) ? Math.min(Math.max(rawMax, lo), hi) : hi;
+        if (clampedMin > lo || clampedMax < hi) {
+          state.precioMin = Math.min(clampedMin, clampedMax);
+          state.precioMax = Math.max(clampedMin, clampedMax);
+        }
+      }
+      return state;
+    };
+
+    /** State → URL (R2): exactly the eight params, in canonical order. */
+    const writeURL = (state: FilterState) => {
+      const params = new URLSearchParams();
+      if (state.operacion) params.set('operacion', state.operacion);
+      if (state.habitaciones) params.set('habitaciones', state.habitaciones);
+      if (state.cochera) params.set('cochera', 'si');
+      if (state.tipo) params.set('tipo', state.tipo);
+      if (state.precioMin !== null) params.set('precio_min', String(state.precioMin));
+      if (state.precioMax !== null) params.set('precio_max', String(state.precioMax));
+      if (state.localidad) params.set('localidad', state.localidad);
+      if (state.moneda !== defaultCurrency) params.set('moneda', state.moneda);
+
+      const query = params.toString();
+      const path = window.location.pathname;
+      // replaceState, not pushState: the URL is shareable state (§17.1:644),
+      // not a history trail of every interaction.
+      history.replaceState(null, '', query ? `${path}?${query}` : path);
+      if (shareField) shareField.title = query ? `${path}?${query}` : path;
+      if (shareQuery) shareQuery.textContent = query ? `?${query}` : '';
+    };
+
+    const matches = (card: HTMLElement, state: FilterState): boolean => {
+      const data = card.dataset;
+      if (state.operacion && data.operacion !== state.operacion) return false;
+      if (state.tipo && data.tipo !== state.tipo) return false;
+      if (state.localidad && data.localidad !== state.localidad) return false;
+      if (state.habitaciones && Number(data.habitaciones) < Number(state.habitaciones)) {
+        return false;
+      }
+      if (state.cochera && data.cochera !== '1') return false;
+      if (state.precioMin !== null || state.precioMax !== null) {
+        // The range applies only within the selected currency (§17.1:633).
+        if (data.moneda !== state.moneda) return false;
+        const precio = Number(data.precio);
+        if (state.precioMin !== null && precio < state.precioMin) return false;
+        if (state.precioMax !== null && precio > state.precioMax) return false;
+      }
+      return true;
+    };
+
+    /** State → every control instance (desktop bar and sheet stay in sync). */
+    const applyStateToControls = (state: FilterState) => {
+      for (const form of forms) {
+        form.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((radio) => {
+          const key = radio.closest<HTMLElement>('[data-filter-key]')?.dataset.filterKey;
+          if (key === 'operacion') radio.checked = radio.value === state.operacion;
+          if (key === 'moneda') radio.checked = radio.value === state.moneda;
+        });
+
+        form.querySelectorAll<HTMLSelectElement>('select[data-filter-key]').forEach((select) => {
+          const key = select.dataset.filterKey as 'tipo' | 'localidad' | 'habitaciones';
+          select.value = state[key] ?? '';
+          // A URL value the select cannot offer leaves the neutral option
+          // selected; the state still applies and the chip row shows it.
+        });
+
+        form
+          .querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-filter-key="cochera"]')
+          .forEach((box) => {
+            box.checked = state.cochera;
+          });
+
+        form.querySelectorAll<HTMLElement>('[data-price-pane]').forEach((pane) => {
+          const active = pane.dataset.pricePane === state.moneda;
+          pane.hidden = !active;
+          if (!active) return;
+          const domain = domains[state.moneda];
+          if (!domain) return;
+          const minInput = pane.querySelector<HTMLInputElement>('[data-price-range-min]');
+          const maxInput = pane.querySelector<HTMLInputElement>('[data-price-range-max]');
+          if (!minInput || !maxInput) return;
+          minInput.value = String(state.precioMin ?? domain[0]);
+          maxInput.value = String(state.precioMax ?? domain[1]);
+          // The component's own script repaints fill and readout.
+          minInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      }
+    };
+
+    const chipSpecs = (state: FilterState) => {
+      const specs: Array<{ key: string; value: string; label: string }> = [];
+      if (state.operacion) {
+        specs.push({
+          key: 'operacion',
+          value: state.operacion,
+          label: state.operacion === 'venta' ? 'Venta' : 'Alquiler',
+        });
+      }
+      if (state.tipo) {
+        specs.push({
+          key: 'tipo',
+          value: state.tipo,
+          label: state.tipo.charAt(0).toUpperCase() + state.tipo.slice(1),
+        });
+      }
+      if (state.localidad) {
+        specs.push({ key: 'localidad', value: state.localidad, label: state.localidad });
+      }
+      if (state.habitaciones) {
+        specs.push({
+          key: 'habitaciones',
+          value: state.habitaciones,
+          label: `${state.habitaciones}+ habitaciones`,
+        });
+      }
+      if (state.cochera) {
+        specs.push({ key: 'cochera', value: 'si', label: 'Con cochera' });
+      }
+      if (state.precioMin !== null || state.precioMax !== null) {
+        const domain = domains[state.moneda];
+        const lo = state.precioMin ?? domain?.[0] ?? 0;
+        const hi = state.precioMax ?? domain?.[1] ?? 0;
+        // The range collapses to a single chip carrying the currency (§17.1:641).
+        specs.push({
+          key: 'precio',
+          value: 'rango',
+          label: `${state.moneda} ${numberFormat.format(lo)}–${numberFormat.format(hi)}`,
+        });
+      }
+      return specs;
+    };
+
+    const renderChips = (state: FilterState) => {
+      const specs = chipSpecs(state);
+      for (const container of chipContainers) {
+        if (!container) continue;
+        container.replaceChildren();
+        for (const spec of specs) {
+          const node = chipTemplate?.content.firstElementChild?.cloneNode(true);
+          if (!(node instanceof HTMLElement)) continue;
+          node.dataset.filterKey = spec.key;
+          node.dataset.filterValue = spec.value;
+          node.setAttribute('aria-label', `Quitar filtro ${spec.label}`);
+          const label = node.querySelector('.filter-chip__label');
+          if (label) label.textContent = spec.label;
+          container.appendChild(node);
+        }
+      }
+      // The rail's right-edge fade only makes sense when it actually scrolls.
+      const rail = document.querySelector<HTMLElement>('[data-chips-rail]');
+      if (rail) {
+        rail.classList.toggle('mobile-bar__rail--fade', rail.scrollWidth > rail.clientWidth + 1);
+      }
+    };
+
+    const updateBadge = (state: FilterState) => {
+      // Active FILTERS, never results (§17.1:653). Moneda is not counted: it
+      // scopes the price range (§17.1:633), it does not filter the set.
+      const count =
+        (state.operacion ? 1 : 0) +
+        (state.tipo ? 1 : 0) +
+        (state.localidad ? 1 : 0) +
+        (state.habitaciones ? 1 : 0) +
+        (state.cochera ? 1 : 0) +
+        (state.precioMin !== null || state.precioMax !== null ? 1 : 0);
+      if (badge) {
+        badge.hidden = count === 0;
+        badge.textContent = String(count);
+      }
+      trigger?.setAttribute(
+        'aria-label',
+        count === 0 ? 'Filtros' : `Filtros, ${count} ${count === 1 ? 'filtro activo' : 'filtros activos'}`,
+      );
+    };
+
+    const render = (state: FilterState) => {
+      const matching = cards.filter((card) => matches(card, state));
+
+      // R9: "Más recientes" = collection order (the schema has no date field).
+      // Price sorts are raw numeric orderings — never a currency conversion.
+      const byIndex = (a: HTMLElement, b: HTMLElement) =>
+        Number(a.dataset.index) - Number(b.dataset.index);
+      const sort = sortSelect?.value ?? 'recientes';
+      const sorted = [...matching].sort((a, b) => {
+        if (sort === 'precio-asc') {
+          return Number(a.dataset.precio) - Number(b.dataset.precio) || byIndex(a, b);
+        }
+        if (sort === 'precio-desc') {
+          return Number(b.dataset.precio) - Number(a.dataset.precio) || byIndex(a, b);
+        }
+        return byIndex(a, b);
+      });
+      // DOM order follows visual order (§12).
+      sorted.forEach((card) => grid?.appendChild(card));
+
+      const visible = expanded ? sorted : sorted.slice(0, FOLD_LIMIT);
+      const visibleSet = new Set(visible);
+      cards.forEach((card) => {
+        card.hidden = !visibleSet.has(card);
+      });
+
+      if (countEl) countEl.textContent = `RESULTADOS · ${matching.length}`;
+      if (statusEl) {
+        statusEl.textContent =
+          matching.length === 0
+            ? 'No encontramos propiedades con esos filtros.'
+            : `${matching.length} ${matching.length === 1 ? 'propiedad' : 'propiedades'}`;
+      }
+      if (sheetCountLabel) {
+        sheetCountLabel.textContent = `Ver ${matching.length} ${matching.length === 1 ? 'propiedad' : 'propiedades'}`;
+      }
+
+      // The empty state replaces the grid; the header line stays — it is factual.
+      const isEmpty = matching.length === 0;
+      if (grid) grid.hidden = isEmpty;
+      if (emptyWrap) emptyWrap.hidden = !isEmpty;
+      if (moreWrap) moreWrap.hidden = isEmpty || expanded || matching.length <= FOLD_LIMIT;
+
+      renderChips(state);
+      updateBadge(state);
+      writeURL(state);
+    };
+
+    const sync = (state: FilterState) => {
+      syncing = true;
+      applyStateToControls(state);
+      syncing = false;
+      render(state);
+    };
+
+    let state = readURL();
+
+    // ---- Control events ------------------------------------------------
+    for (const form of forms) {
+      form.addEventListener('submit', (event) => event.preventDefault());
+
+      form.addEventListener('change', (event) => {
+        if (syncing) return;
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+        const key =
+          target.dataset.filterKey ??
+          target.closest<HTMLElement>('[data-filter-key]')?.dataset.filterKey;
+        if (!key) return;
+
+        if (key === 'operacion' && target instanceof HTMLInputElement) {
+          state.operacion = target.value;
+        } else if (key === 'moneda' && target instanceof HTMLInputElement) {
+          state.moneda = target.value;
+          // A currency switch re-derives the range within the new currency and
+          // resets it — a carried-over range would imply a conversion (§17.1:633).
+          state.precioMin = null;
+          state.precioMax = null;
+        } else if (key === 'tipo') {
+          state.tipo = target.value;
+        } else if (key === 'localidad') {
+          state.localidad = target.value;
+        } else if (key === 'habitaciones') {
+          state.habitaciones = target.value;
+        } else if (key === 'cochera' && target instanceof HTMLInputElement) {
+          state.cochera = target.checked;
+        } else {
+          return;
+        }
+        expanded = false;
+        sync(state);
+      });
+
+      form.addEventListener('input', (event) => {
+        if (syncing) return;
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.type !== 'range') return;
+        const pane = target.closest<HTMLElement>('[data-price-pane]');
+        const domain = domains[state.moneda];
+        if (!pane || !domain) return;
+        const minInput = pane.querySelector<HTMLInputElement>('[data-price-range-min]');
+        const maxInput = pane.querySelector<HTMLInputElement>('[data-price-range-max]');
+        if (!minInput || !maxInput) return;
+        // The pair is sorted so the state is sound regardless of listener
+        // ordering against the component's own thumb-clamping script.
+        const lo = Math.min(Number(minInput.value), Number(maxInput.value));
+        const hi = Math.max(Number(minInput.value), Number(maxInput.value));
+        if (lo <= domain[0] && hi >= domain[1]) {
+          state.precioMin = null;
+          state.precioMax = null;
+        } else {
+          state.precioMin = lo;
+          state.precioMax = hi;
+        }
+        expanded = false;
+        sync(state);
+      });
+    }
+
+    // Removing a chip re-runs the filter and rewrites the URL (§17.1:641).
+    for (const container of chipContainers) {
+      container?.addEventListener('click', (event) => {
+        const chip = (event.target as HTMLElement).closest<HTMLElement>('.filter-chip');
+        if (!chip) return;
+        const key = chip.dataset.filterKey;
+        if (key === 'operacion') state.operacion = '';
+        else if (key === 'tipo') state.tipo = '';
+        else if (key === 'localidad') state.localidad = '';
+        else if (key === 'habitaciones') state.habitaciones = '';
+        else if (key === 'cochera') state.cochera = false;
+        else if (key === 'precio') {
+          state.precioMin = null;
+          state.precioMax = null;
+        } else return;
+        expanded = false;
+        sync(state);
+      });
+    }
+
+    // `Limpiar filtros` / `Limpiar` are real links to the clean URL; with JS
+    // they reset in place. Inside the sheet the dialog stays open.
+    document.querySelectorAll('.filter-bar__clear, .sheet__clear').forEach((clear) => {
+      clear.addEventListener('click', (event) => {
+        event.preventDefault();
+        state = defaultState();
+        expanded = false;
+        sync(state);
+      });
+    });
+
+    document.querySelector('.results-more__button')?.addEventListener('click', () => {
+      expanded = true;
+      render(state);
+    });
+
+    // `Ordenar` is UI state, never a URL param (R2 lists exactly eight).
+    sortSelect?.addEventListener('change', () => render(state));
+
+    // Class hooks, not data attributes: Button.astro forwards `class` but not
+    // unknown attributes, so `data-*` passed to it would never reach the DOM.
+    document.querySelector('.search-share__button')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        if (shareStatus) shareStatus.textContent = 'Enlace copiado al portapapeles';
+      } catch {
+        // Clipboard unavailable: select nothing, claim nothing — the field
+        // already shows the URL for manual copying.
+      }
+    });
+
+    // ---- Bottom sheet (R14 dialog semantics) ----------------------------
+    let previousFocus: Element | null = null;
+
+    const openSheet = () => {
+      if (!sheet || !scrim) return;
+      previousFocus = document.activeElement;
+      sheet.hidden = false;
+      scrim.hidden = false;
+      trigger?.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+        sheet.animate(
+          [
+            { transform: 'translateY(24px)', opacity: '0' },
+            { transform: 'translateY(0)', opacity: '1' },
+          ],
+          { duration: 320, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+        );
+        scrim.animate([{ opacity: '0' }, { opacity: '1' }], {
+          duration: 180,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        });
+      }
+      sheet.focus();
+    };
+
+    const closeSheet = () => {
+      if (!sheet || !scrim || sheet.hidden) return;
+      sheet.hidden = true;
+      scrim.hidden = true;
+      trigger?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      // R14: focus returns to the trigger.
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+
+    trigger?.addEventListener('click', () => {
+      if (sheet?.hidden) openSheet();
+      else closeSheet();
+    });
+    scrim?.addEventListener('click', closeSheet);
+    document.querySelector('.sheet__apply')?.addEventListener('click', () => {
+      closeSheet();
+      countEl?.scrollIntoView({ block: 'start' });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (!sheet || sheet.hidden) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSheet();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      // R14: focus trap — Tab and Shift+Tab cycle inside the sheet.
+      const focusables = Array.from(
+        sheet.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.getClientRects().length > 0);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first || document.activeElement === sheet) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last || document.activeElement === sheet) {
+        event.preventDefault();
+        first.focus();
+      } else if (!sheet.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // A viewport grown past the mobile breakpoint never strands an open sheet.
+    window
+      .matchMedia('(min-width: 768px)')
+      .addEventListener('change', (event) => {
+        if (event.matches) closeSheet();
+      });
+
+    sync(state);
+  }
+</script>
+
+<style>
+  /* The `hidden` attribute must win over display classes on this page. */
+  [hidden] {
+    display: none !important;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ---- 1. Page head band ------------------------------------------------ */
+  .search-head {
+    padding-block: var(--section-y-tight) var(--space-8);
+    background-color: var(--color-bg-page);
+  }
+
+  .search-head__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  .search-head__title {
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-lg);
+    font-weight: 400;
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+  }
+
+  .search-head__subhead {
+    max-width: 52ch;
+    margin: var(--space-6) 0 0;
+    font-size: var(--text-body-lg);
+    line-height: var(--leading-body-lg);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- 2. Collapsed mobile bar (§17.1:651-654) -------------------------- */
+  .mobile-bar {
+    display: none;
+  }
+
+  /* ---- 3. Desktop filter bar (§17.1:627-635) ---------------------------- */
+  .search-filters {
+    display: none;
+  }
+
+  /* ---- 4. Chips row ------------------------------------------------------
+     Hidden until it holds at least one chip; mobile never shows it (the
+     chips live in the collapsed bar's rail there). */
+  .search-chips {
+    display: none;
+  }
+
+  /* ---- 5. Shareable search strip (§17.1:644-649) ------------------------ */
+  .search-share {
+    max-width: var(--container-bleed);
+    margin: var(--space-12) auto 0;
+    padding-block: var(--section-y-tight);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .search-share__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-8);
+  }
+
+  .search-share__copy {
+    flex: 1 1 16rem;
+  }
+
+  .search-share__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  .search-share__body {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .search-share__action {
+    display: flex;
+    flex: 1 1 24rem;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .search-share__field {
+    display: flex;
+    flex: 1 1 12rem;
+    align-items: center;
+    min-width: 0;
+    height: 44px;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-primary);
+  }
+
+  .search-share__path {
+    flex: none;
+  }
+
+  /* The query truncates at its own tail so the params stay visible (§17.1:647). */
+  .search-share__query {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-share__action :global(.search-share__button) {
+    flex: none;
+  }
+
+  /* ---- 6. Results -------------------------------------------------------- */
+  .search-results {
+    padding-block: var(--section-y-tight);
+  }
+
+  .results-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .results-header__count {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-md);
+    font-weight: 500;
+    line-height: var(--leading-label-md);
+    letter-spacing: var(--tracking-label-md);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    /* Keep the count clear of the sticky bars when scrolled to from the sheet. */
+    scroll-margin-top: calc(64px + 56px + var(--space-4));
+  }
+
+  /* Compact `Ordenar:` — label inline, not above (§17.1:625). */
+  .results-header :global(.results-sort) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .results-header :global(.results-sort .filter-field__label) {
+    margin-bottom: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    font-weight: 400;
+    line-height: var(--leading-body-sm);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .results-header :global(.results-sort .filter-field__control) {
+    width: auto;
+    min-width: 12ch;
+    padding-inline: var(--space-2) var(--space-8);
+  }
+
+  /* 3 columns ≥ md, 1 below — never a 2-up grid (§17.1:623, §10). */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .results-more {
+    margin-top: var(--space-8);
+  }
+
+  .results-more :global(.results-more__button) {
+    width: 100%;
+  }
+
+  /* ---- 8. Bottom sheet + scrim (§17.1:655-662) --------------------------- */
+  .sheet-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    /* §17.1:661 flat rgba(62,72,55,0.4) — the forest-ink token at 40%, no blur. */
+    background-color: color-mix(in srgb, var(--color-forest-ink) 40%, transparent);
+  }
+
+  .sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 70;
+    display: flex;
+    flex-direction: column;
+    max-height: 85dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+    background-color: var(--color-bg-surface);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* The dialog container takes initial focus; the ring belongs on controls. */
+  .sheet:focus-visible {
+    outline: none;
+  }
+
+  /* 32×4 drag handle (§17.1:657). Sharp — never a pill, never a capsule. */
+  .sheet__handle {
+    flex: none;
+    width: 32px;
+    height: 4px;
+    margin: var(--space-3) auto var(--space-2);
+    background-color: var(--color-border-decorative);
+  }
+
+  .sheet__header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-6) var(--space-4);
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  .sheet__title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-heading-sm);
+    font-weight: 600;
+    line-height: var(--leading-heading-sm);
+    letter-spacing: var(--tracking-heading-sm);
+    color: var(--color-text-primary);
+  }
+
+  .sheet__body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--space-6);
+  }
+
+  .sheet__footer {
+    flex: none;
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--color-border-decorative);
+  }
+
+  .sheet__footer :global(.sheet__apply) {
+    width: 100%;
+  }
+
+  /* ---- Mobile layout (< 768px) ------------------------------------------ */
+  @media (max-width: 767.98px) {
+    .mobile-bar {
+      position: sticky;
+      top: 64px; /* mobile header height (§6) */
+      z-index: 30;
+      display: block;
+      background-color: var(--color-bg-surface);
+      border-bottom: 1px solid var(--color-border-decorative);
+    }
+
+    .mobile-bar__inner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      max-width: var(--container-content);
+      height: 56px;
+      margin-inline: auto;
+      padding-inline: var(--gutter);
+    }
+
+    .mobile-bar__trigger {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: 44px;
+      padding: 0 var(--space-3) 0 0;
+      border: 0;
+      background: none;
+      font-family: var(--font-mono);
+      font-size: var(--text-label-md);
+      font-weight: 500;
+      line-height: var(--leading-label-md);
+      letter-spacing: var(--tracking-label-md);
+      text-transform: uppercase;
+      color: var(--color-text-primary);
+      cursor: pointer;
+    }
+
+    /* Count badge: active filters, never results (§17.1:653). */
+    .mobile-bar__badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      background-color: var(--color-bg-inverse);
+      font-family: var(--font-mono);
+      font-size: var(--text-label-sm);
+      font-weight: 500;
+      line-height: var(--leading-label-sm);
+      letter-spacing: var(--tracking-label-sm);
+      color: var(--color-text-on-inverse);
+    }
+
+    .mobile-bar__rail {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+      height: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .mobile-bar__rail::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Soft right-edge fade signalling more content (§17.1:654). The mask's
+       `black` is an alpha channel only — it renders no colour. */
+    .mobile-bar__rail--fade {
+      -webkit-mask-image: linear-gradient(to right, black 82%, transparent);
+      mask-image: linear-gradient(to right, black 82%, transparent);
+    }
+
+    .mobile-bar__rail :global(.filter-chip) {
+      flex: none;
+    }
+  }
+
+  /* ---- Desktop layout (≥ 768px) ----------------------------------------- */
+  @media (min-width: 768px) {
+    .search-filters {
+      display: block;
+    }
+
+    /* §17.1:628 — a surface panel, hairline border, no shadow. Not a card. */
+    .filter-bar {
+      padding: var(--space-6);
+      border: 1px solid var(--color-border-decorative);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg-surface);
+    }
+
+    .filter-bar :global(.filter-bar__clear) {
+      margin-inline-start: auto;
+    }
+
+    .search-chips {
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .search-chips:has(.filter-chip) {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .results-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .results-more :global(.results-more__button) {
+      width: auto;
+    }
+  }
+
+  /* The sheet never exists at or above the desktop breakpoint (§17.1:635). */
+  @media (min-width: 768px) {
+    .sheet,
+    .sheet-scrim {
+      display: none !important;
+    }
+  }
+</style>
