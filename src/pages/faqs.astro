@@ -1,0 +1,498 @@
+---
+/**
+ * FAQ page `/faqs` — docs/DESIGN.md §17.3, ODD §17 rulings R7/R8/R11.
+ *
+ * R7 — the six questions come from `src/data/faqs.ts` (typed TS, not the
+ * `faqs.json` PRD §8:110 mentions; the deviation is recorded in the plan).
+ * Answers are stakeholder-owned and a launch blocker (PRD §8): every entry
+ * renders the §17.3 pending state (marker + neutral meta line) and never an
+ * invented answer (§17.3:729).
+ *
+ * R8 — the question row uses the serif voice (§17.3:716). §3's semantic rule
+ * ("a question is a sentence → sans") contradicts §17.3 for this component;
+ * the component spec wins, the landing teaser was aligned to match, and the
+ * contradiction is reported in `odd/tasks/damero-propiedades-faqs.md` (R8).
+ *
+ * R11 — the page's single primary CTA is the inert WhatsApp anchor until the
+ * stakeholder supplies the real number; no `wa.me` ships.
+ *
+ * Screens divergences applied (DESIGN.md wins, reported in the plan): the
+ * screens set the question in `card-title-lg` (§17.3:716 fixes
+ * `--text-card-title-sm`); the mobile closing band is centred (§5.6/§11 ban
+ * centred blocks — it renders left-aligned); the desktop rail is a boxed,
+ * shadowed card (§5.3/§4 — the rail stays quiet: hairlines and type, no box);
+ * the screens' lorem-ipsum answer bodies never ship (§17.3:729).
+ *
+ * Progressive enhancement: without JS every panel stays open so the content
+ * is always reachable, and the affordance glyphs hide (they would lie about
+ * state). The inline `is-enhanced` class collapses items 2–6 before first
+ * paint — §17.3:721's initial state — and the hoisted script wires the
+ * toggles. Multiple items may be open; collapsing all is allowed (§17.3:721).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import WhatsAppCta from '../components/WhatsAppCta.astro';
+import { CONTACT_HOURS } from '../data/site';
+import {
+  FAQ_CONTACT,
+  FAQ_ENTRIES,
+  FAQ_MORE_LINK,
+  FAQ_PAGE,
+  FAQ_PENDING_MARKER,
+  FAQ_PENDING_META,
+} from '../data/faqs';
+---
+
+<BaseLayout title="Preguntas frecuentes | Damero Propiedades">
+  <!-- 1. Page head band -->
+  <section class="faqs-head" aria-labelledby="faqs-title">
+    <div class="container">
+      <p class="faqs-head__eyebrow">{FAQ_PAGE.eyebrow}</p>
+      <h1 class="faqs-head__title" id="faqs-title">{FAQ_PAGE.title}</h1>
+      <p class="faqs-head__subhead">{FAQ_PAGE.subhead}</p>
+    </div>
+  </section>
+
+  <!-- 2. Two-zone layout: accordion in columns 1–7, quiet side rail in 9–12 -->
+  <div class="faqs-layout container">
+    <div class="faqs-accordion" data-faq-accordion>
+      {/*
+        Progressive enhancement, same pattern as SiteHeader: the class lands
+        before the items are parsed, so the collapsed state never flashes.
+      */}
+      <script is:inline>
+        document.currentScript.parentElement.classList.add('is-enhanced');
+      </script>
+      {
+        FAQ_ENTRIES.map((entry, index) => {
+          // §17.3:721 — the first item is expanded by default.
+          const open = index === 0;
+          const toggleId = `faq-toggle-${index + 1}`;
+          const panelId = `faq-panel-${index + 1}`;
+          return (
+            <div class="faq-item">
+              <h2 class="faq-item__heading">
+                <button
+                  class="faq-item__toggle"
+                  type="button"
+                  id={toggleId}
+                  aria-expanded={open ? 'true' : 'false'}
+                  aria-controls={panelId}
+                >
+                  <span class="faq-item__question">{entry.question}</span>
+                  {/*
+                    §17.3:717 — a bare `+` / `−` (U+2212) glyph, swapped never
+                    rotated, never inside a circle or a rounded container.
+                  */}
+                  <span class="faq-item__affordance" aria-hidden="true">
+                    {open ? '−' : '+'}
+                  </span>
+                </button>
+              </h2>
+              <div
+                class:list={['faq-item__panel', { 'faq-item__panel--open': open }]}
+                id={panelId}
+              >
+                <div class="faq-item__panel-inner">
+                  <div class="faq-item__answer">
+                    {
+                      entry.answer ? (
+                        <p class="faq-item__body">{entry.answer}</p>
+                      ) : (
+                        <p class="faq-item__meta">
+                          <span class="faq-item__marker">{FAQ_PENDING_MARKER}</span>{' '}
+                          {FAQ_PENDING_META}
+                        </p>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+
+    {/*
+      Quiet side rail (§17.3:722): the page's single primary CTA on desktop.
+      No card, no shadow — hairlines and type carry the structure (§5.3, §4).
+    */}
+    <aside class="faqs-rail" aria-labelledby="faqs-rail-title">
+      <p class="faqs-rail__eyebrow">{FAQ_CONTACT.eyebrow}</p>
+      <h2 class="faqs-rail__title" id="faqs-rail-title">{FAQ_CONTACT.heading}</h2>
+      <p class="faqs-rail__body">{FAQ_CONTACT.body}</p>
+      <div class="faqs-rail__cta">
+        <WhatsAppCta variant="inline" />
+      </div>
+      <p class="faqs-rail__hours">{CONTACT_HOURS}</p>
+    </aside>
+  </div>
+
+  {/*
+    3. The screens' bottom hairline row with the `Ver todas las propiedades →`
+    text link. The mobile screen omits it, so it renders ≥ md only. A text
+    link is never a second primary action (§6).
+  */}
+  <div class="faqs-more container">
+    <Button variant="text-link" href={FAQ_MORE_LINK.href} class="faqs-more__link">
+      {FAQ_MORE_LINK.label}
+    </Button>
+  </div>
+
+  {/*
+    4. Mobile closing band (§17.3:723): below md the rail disappears and the
+    single primary CTA moves here. Full-bleed tint band, left-aligned with a
+    ragged right edge — the screens centre it, which §5.6 and §11 ban.
+  */}
+  <section class="faqs-closing" aria-labelledby="faqs-closing-title">
+    <div class="container faqs-closing__stack">
+      <p class="faqs-closing__eyebrow">{FAQ_CONTACT.eyebrow}</p>
+      <h2 class="faqs-closing__title" id="faqs-closing-title">{FAQ_CONTACT.heading}</h2>
+      <p class="faqs-closing__body">{FAQ_CONTACT.body}</p>
+      <div class="faqs-closing__cta">
+        <WhatsAppCta variant="inline" />
+      </div>
+      <p class="faqs-closing__hours">{CONTACT_HOURS}</p>
+    </div>
+  </section>
+
+  <script>
+    /**
+     * Accordion toggles (§17.3:718-721). Each whole row is a `<button>` with
+     * `aria-expanded`/`aria-controls`; the affordance glyph is SWAPPED (`+`
+     * collapsed / `−` expanded), never rotated. Multiple items may be open
+     * and collapsing all is allowed — no accordion bookkeeping beyond the
+     * per-item toggle.
+     */
+    const accordion = document.querySelector('[data-faq-accordion]');
+
+    if (accordion) {
+      accordion.querySelectorAll('.faq-item__toggle').forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+          const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+          const panelId = toggle.getAttribute('aria-controls');
+          const panel = panelId ? document.getElementById(panelId) : null;
+          const glyph = toggle.querySelector('.faq-item__affordance');
+
+          toggle.setAttribute('aria-expanded', String(!isOpen));
+          panel?.classList.toggle('faq-item__panel--open', !isOpen);
+          if (glyph) glyph.textContent = isOpen ? '+' : '−';
+        });
+      });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  /* ---- 1. Page head band (mirrors the search page's head) --------------- */
+  .faqs-head {
+    padding-block: var(--section-y-tight) var(--space-8);
+    background-color: var(--color-bg-page);
+  }
+
+  .faqs-head__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  .faqs-head__title {
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-lg);
+    font-weight: 400;
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+  }
+
+  .faqs-head__subhead {
+    max-width: 52ch;
+    margin: var(--space-6) 0 0;
+    font-size: var(--text-body-lg);
+    line-height: var(--leading-body-lg);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- 2. Two-zone layout (§17.3:722-723) -------------------------------- */
+  .faqs-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  /* ---- Accordion (§17.3:714-721) -----------------------------------------
+     Items are separated by a 1px hairline ONLY: no cards, no boxes, no
+     background fills, no shadows, no icons. */
+  .faqs-accordion {
+    border-top: 1px solid var(--color-border-decorative);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  .faq-item__heading {
+    margin: 0;
+  }
+
+  /* The whole row is the toggle: 56px minimum on mobile, 64px on desktop. */
+  .faq-item__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    width: 100%;
+    min-height: 56px;
+    padding-block: var(--space-3);
+    padding-inline: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-primary);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* §17.3:716 — the question in the serif voice, max 3 lines on mobile. */
+  .faq-item__question {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    font-family: var(--font-serif);
+    font-size: var(--text-card-title-sm);
+    font-weight: 500;
+    line-height: var(--leading-card-title-sm);
+    letter-spacing: var(--tracking-card-title-sm);
+    color: var(--color-text-primary);
+  }
+
+  /*
+   * §17.3:717 — the affordance is a plain character in the label voice,
+   * never inside a circle or a rounded container. It is swapped by the
+   * toggle script, never rotated. Without JS it hides: the panels all stay
+   * open and a state glyph would lie.
+   */
+  .faq-item__affordance {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-md);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--color-text-primary);
+  }
+
+  .faqs-accordion:not(.is-enhanced) .faq-item__affordance {
+    display: none;
+  }
+
+  /*
+   * §17.3:720 + §9 — the height animation uses `grid-template-rows`, never
+   * `height`. Default (no JS): every panel stays open so the content is
+   * always reachable. Enhanced: collapsed unless marked open. `visibility`
+   * keeps collapsed content out of the accessibility tree; transitioning it
+   * with the same duration keeps the content visible while the row closes.
+   */
+  .faq-item__panel {
+    display: grid;
+    grid-template-rows: 1fr;
+    visibility: visible;
+  }
+
+  .faqs-accordion.is-enhanced .faq-item__panel {
+    grid-template-rows: 0fr;
+    visibility: hidden;
+  }
+
+  .faqs-accordion.is-enhanced .faq-item__panel--open {
+    grid-template-rows: 1fr;
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .faqs-accordion.is-enhanced .faq-item__panel {
+      transition:
+        grid-template-rows var(--duration-state) var(--ease-out-expo),
+        visibility var(--duration-state);
+    }
+  }
+
+  .faq-item__panel-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* §17.3:719 — answer body metrics; the pending meta line restyles below. */
+  .faq-item__answer {
+    max-width: 65ch;
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-6);
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-secondary);
+  }
+
+  .faq-item__body {
+    margin: 0;
+  }
+
+  /* §17.3:728 — the neutral meta line. */
+  .faq-item__meta {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* §17.3:727 — the pending marker, inline at the start of the answer. */
+  .faq-item__marker {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+  }
+
+  /* ---- Quiet side rail (desktop ≥ md, §17.3:722) ------------------------- */
+  .faqs-rail {
+    display: none;
+  }
+
+  .faqs-rail__eyebrow,
+  .faqs-closing__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  .faqs-rail__title,
+  .faqs-closing__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-card-title-lg);
+    font-weight: 500;
+    line-height: var(--leading-card-title-lg);
+    letter-spacing: var(--tracking-card-title-lg);
+    color: var(--color-text-primary);
+  }
+
+  .faqs-rail__body,
+  .faqs-closing__body {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .faqs-rail__hours,
+  .faqs-closing__hours {
+    align-self: stretch;
+    margin: 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-decorative);
+    font-size: var(--text-legal);
+    line-height: var(--leading-legal);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- Desktop closing row (screens' bottom hairline row) ---------------- */
+  .faqs-more {
+    display: none;
+  }
+
+  /* ---- Mobile closing band (§17.3:723) ------------------------------------
+     Full-bleed tint band, left-aligned — the screens centre it, which §5.6
+     and §11 ban. */
+  .faqs-closing {
+    max-width: var(--container-bleed);
+    margin-inline: auto;
+    padding-block: var(--section-y-tight);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .faqs-closing__stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .faqs-closing__cta {
+    margin-top: var(--space-2);
+  }
+
+  /* ---- Desktop layout (≥ 768px) ------------------------------------------ */
+  @media (min-width: 768px) {
+    .faqs-layout {
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: 24px;
+      padding-block: var(--space-12) var(--space-16);
+    }
+
+    .faqs-accordion {
+      grid-column: 1 / span 7;
+    }
+
+    .faq-item__toggle {
+      min-height: 64px;
+    }
+
+    /* §17.3:716 — max 2 lines on desktop. */
+    .faq-item__question {
+      -webkit-line-clamp: 2;
+    }
+
+    .faqs-rail {
+      display: flex;
+      grid-column: 9 / span 4;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-4);
+    }
+
+    .faqs-rail__cta {
+      align-self: stretch;
+      margin-top: var(--space-2);
+    }
+
+    .faqs-rail__cta :global(.whatsapp-cta) {
+      width: 100%;
+    }
+
+    .faqs-more {
+      display: block;
+      border-top: 1px solid var(--color-border-decorative);
+      padding-block: var(--space-8) var(--section-y);
+    }
+
+    .faqs-closing {
+      display: none;
+    }
+  }
+
+  /* §5: gutters widen to 32px at ≥1280px. */
+  @media (min-width: 1280px) {
+    .faqs-layout {
+      column-gap: 32px;
+    }
+  }
+</style>

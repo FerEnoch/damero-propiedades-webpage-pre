@@ -11,6 +11,7 @@
  * placeholder text, the landing renders an explicit `PENDIENTE` marker and no
  * answer body.
  */
+import { FAQ_ENTRIES, FAQ_PENDING_MARKER } from './faqs';
 
 /**
  * The eight duotone glyph filenames from `src/icons/services/`
@@ -131,6 +132,9 @@ export const SERVICES: {
  * (§11). Only the seed questions render, each with an explicit pending marker
  * and *no* answer body — inventing one would be worse than an obvious gap
  * (§17.3).
+ *
+ * The questions and the marker derive from `src/data/faqs.ts` (ODD §17 ruling
+ * R7) so the teaser and the `/faqs` page can never drift apart.
  */
 export const FAQ_TEASER = {
   eyebrow: 'CONSULTAS HABITUALES',
@@ -140,10 +144,7 @@ export const FAQ_TEASER = {
     href: '/faqs',
   } satisfies LandingLink,
   /** §17.3 pending-content marker: explicit, never an invented answer. */
-  pendingMarker: 'PENDIENTE',
+  pendingMarker: FAQ_PENDING_MARKER,
   /** At most two or three questions on the landing; the screens carry two. */
-  questions: [
-    '¿Qué necesito para publicar mi propiedad en venta?',
-    '¿Qué necesito para publicar mi propiedad en alquiler?',
-  ],
+  questions: FAQ_ENTRIES.slice(0, 2).map((entry) => entry.question),
 } as const;

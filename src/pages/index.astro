@@ -353,14 +353,17 @@ const compacts = [...featured.slice(1), ...others]
   .faq-teaser__question {
     margin: 0;
     /*
-     * §3: a question is a sentence, so it takes the sans voice, not the serif
-     * reserved for names and titles. Matches the validated screens.
+     * R8 (odd/tasks/damero-propiedades-faqs.md): §17.3:716 puts the FAQ
+     * question in the serif voice (`--text-card-title-sm`, Newsreader 500),
+     * and the teaser matches the `/faqs` surface. §3's semantic rule ("a
+     * question is a sentence → sans") contradicts §17.3 for this component;
+     * the component spec wins and the contradiction is reported in the plan.
      */
-    font-family: var(--font-sans);
-    font-size: var(--text-heading-sm);
-    font-weight: 600;
-    line-height: var(--leading-heading-sm);
-    letter-spacing: var(--tracking-heading-sm);
+    font-family: var(--font-serif);
+    font-size: var(--text-card-title-sm);
+    font-weight: 500;
+    line-height: var(--leading-card-title-sm);
+    letter-spacing: var(--tracking-card-title-sm);
     color: var(--color-text-primary);
   }
 
