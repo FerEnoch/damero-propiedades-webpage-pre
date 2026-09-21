@@ -1,0 +1,158 @@
+# ODD — Damero: track §17 (búsqueda, detalle y FAQs)
+
+**Estado:** plan cerrado 2026-09-21. Slices S1–S4 pendientes, S5 es el cierre documental.
+
+**Objetivo:** construir las 3 páginas de fase 2 de `docs/DESIGN.md` §17 — `/propiedades`, `/propiedades/<slug>` y `/faqs` — más los 3 componentes que T4 difirió (Filter input, WhatsApp CTA, Empty state) y el glifo `icon-house.svg`, cada ruta con sus specs e2e.
+
+**Problema:** el sitio tiene la landing pero ninguna página de catálogo. El footer y el header ya linkean a `/propiedades` y `/faqs`, que hoy dan **404**. El header las marca como activas y no existen.
+
+**Por qué:** es el núcleo del PRD (PRD §3): sin buscador y sin ficha, el sitio no es un catálogo. Es el último track del MVP antes del deploy.
+
+**Alcance:** los 3 componentes diferidos, `icon-house.svg`, las 3 rutas, la integración de MapLibre, los filtros client-side y las specs e2e de cada ruta.
+**Fuera de alcance:** CMS/admin, backend, formularios de contacto, filtros avanzados (m², antigüedad), i18n (PRD §12); el deploy y los 5 checks de CI del PRD §9 (no hay remote).
+
+---
+
+## Restricciones cerradas (no se re-debaten)
+
+- **Ruta ODD**, no SDD. Directo a `main`, work-unit commit por slice, sin PRs (PRD §9).
+- **`docs/DESIGN.md` es el contrato de ESTILO; los screens son referencia de ESTRUCTURA y COPY.** Donde chocan, gana `DESIGN.md` (regla de `AGENTS.md`), y la contradicción se reporta — nunca se resuelve en silencio.
+- **Sólo tokens.** Ningún hex crudo fuera de `tokens.css` salvo la excepción documentada: la masa de acento sage dentro de los SVG de iconos.
+- **`--color-sage` nunca en texto renderizado.** Sage como borde sólo es válido sobre `surface` (3.42:1) y `canvas` (3.13:1); sobre `surface-tint` da 2.84:1 y **está prohibido** (§2:87).
+- **Sin datos inventados.** Lo pendiente del stakeholder se renderiza como marcador explícito `PENDIENTE` (§11, §17.4).
+- **Nunca píldoras, nunca círculos, nunca `border-radius: 999px`.** Ojo: los screens usan Tailwind con `rounded-full` remapeado a **12px**, así que sus "círculos" no son círculos reales.
+- **Sin overflow horizontal** a 390 ni 320.
+- **Cada ruta nueva suma sus specs e2e al gate de T7** (`pnpm test:e2e`). Una ruta sin specs deja el gate ciego para ella.
+- **E2E sólo con Playwright**, sin unit testing.
+
+---
+
+## Rulings (decisiones tomadas por el orquestador, con evidencia)
+
+Estas resuelven ambigüedades reales de las referencias. Están cerradas: el implementador las aplica o las impugna con evidencia, pero no las re-decide.
+
+**R1 — Los filtros son client-side sobre el DOM.** PRD §10: *"No server-side compute: static output only, client-side filtering."* Todas las propiedades se renderizan en build; un script plano filtra ocultando tarjetas y actualiza `RESULTADOS · n`, los chips y la URL. Sin JS se ven todas las propiedades (degradación honesta, no un error).
+
+**R2 — Una sola forma de URL.** Los screens muestran **dos formas incompatibles** (desktop `/propiedades?operacion=venta&moneda=USD&localidad=lujan&hab=3` vs mobile `/buscar?op=venta&loc=lujan&min=30000`) y §17.1 no la especifica. Se adopta una sola, compartida por el strip y los chips: path `/propiedades`, parámetros del PRD §5 (`operacion`, `habitaciones`, `cochera`, `tipo`, `precio_min`, `precio_max`) más los que §17.1 agrega (`localidad`, `moneda`). Ambas formas de los screens se descartan.
+
+**R3 — Mapa: MapLibre GL JS, y `pnpm-workspace.yaml` NO se toca.** Pin exacto `maplibre-gl@6.10.0` (publicado 2026-09-15 → 5 días, pasa la cuarentena de 3 días). **Verificado empíricamente** en un repo aislado con la política exacta del proyecto: el install pasa con `strictDepBuilds: true` y sin entrada en `allowBuilds` — pnpm **no** ejecuta `prepare` para dependencias del registry, así que el `"prepare": "npm run codegen"` que declara el paquete no se dispara. Si el install real lo contradice, STOP y reportar; `allowBuilds` es decisión del stakeholder.
+**Peso medido:** 1.09 MB raw / **294 KB gzip** de JS + 10.4 KB gzip de CSS. Se carga **sólo** en el detalle, por `import()` dinámico dentro de un `<script>` plano — `client:visible` es una directiva de islas y este proyecto no tiene framework de UI, así que no aplica literalmente. El bundle inicial de la landing y del buscador no cambia.
+
+**R4 — Galería sin fotos: el contador se omite.** Las 3 semillas tienen `fotos: []`. Se renderiza el placeholder de marca y **no** se inventa un `1 / 5` (§11). El contador aparece cuando existan fotos reales.
+
+**R5 — `Button` necesita una variante tint-safe.** Hoy `variant="secondary"` usa `border-color: var(--color-border-interactive)` = sage (`tokens.css:46`), inválido sobre `surface-tint`. §17.1 pone botones `secondary` en **dos** bandas `bg-subtle`: el strip de búsqueda compartible y el empty state. Se agrega la variante con borde `--color-forest-ink` y se usa en esos dos lugares. Es un defecto latente del componente, no del track.
+
+**R6 — Token del heading del empty state: gana §17.1.** §6:323 dice `heading-sm`; §17.1:666 dice `--text-card-title-lg`. Se aplica §17.1 por ser la spec específica y posterior.
+
+**R7 — FAQ: preguntas del PRD, respuestas `PENDIENTE`.** Las 6 preguntas de los screens son la traducción **exacta y en el mismo orden** de las 6 semilla del PRD §8 — verificado 1:1, no son invento de Stitch. Las respuestas son del stakeholder y son bloqueante de lanzamiento: se renderiza el marcador `PENDIENTE` + la línea meta neutral de §17.3:727-728. **Nunca lorem ipsum** (lo que traen los screens) y **nunca asesoramiento inventado** (§17.3:729). Fuente en `src/data/faqs.ts` (no `faqs.json` como dice el PRD §8: el resto de la capa de datos es TS tipado; queda registrado como desviación).
+
+**R8 — Voz de la pregunta de FAQ: gana §17.3 (serif) — y se reporta la contradicción interna de DESIGN.md.** §17.3:716 pide la pregunta en serif (`--text-card-title-sm`, Newsreader 500); §3 define la regla semántica "serif = sustantivos de contenido, sans = oraciones" y una pregunta es una oración. `DESIGN.md` se contradice a sí mismo. Se aplica §17.3 por ser la spec específica del componente y se **alinea el teaser de la landing a serif** para que las dos superficies coincidan.
+
+**R9 — `Ordenar` sin campo de fecha.** El schema no tiene `fecha`, así que "Más recientes" no es computable. Se ofrecen las 3 opciones de los screens y "Más recientes" resuelve a **orden de colección**, documentado en el código (mismo criterio ya usado en `index.astro:24-28`).
+
+**R10 — `Ver más propiedades`.** Se renderiza sólo si hay más de 6 resultados. Con 3 semillas se omite: una promesa de paginación sin página detrás es dato inventado.
+
+**R11 — CTA de WhatsApp inerte.** Se implementa el formato exacto del PRD §6 (`https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20<titulo>%20(<slug>)`) en un helper, pero el `href` queda inerte hasta que el stakeholder dé el número real — consistente con la landing (`WHATSAPP_URL_PENDING`) y con §17.4:736. Activar el CTA es cambiar una constante. **No se shippea un `wa.me` apuntando a un placeholder**: podría resolver a un número ajeno.
+
+**R12 — Ficha técnica degradada.** `expensas` ausente o `null` ⇒ fila `EXPENSAS — No aplica` (§17.2:693), nunca se omite la fila. `cochera` numérico ⇒ `Sí`. `caracteristicas` ⇒ slug con `-`→espacio y uppercase, **sin diccionario**: un slug desconocido se renderiza igual (§17.2:686).
+
+**R13 — `descripcion` es requerido en el schema.** El caso "cuando `descripcion` está ausente" de §17.2:693 **no puede ocurrir hoy**. Se implementa el colapso por robustez, pero no es testeable y queda anotado.
+
+**R14 — Semántica del bottom sheet.** §17.1:662 lo declara el único modal permitido pero no define su a11y. Se implementa con semántica de diálogo estándar: `role="dialog"`, `aria-modal="true"`, focus trap, cierre con `Escape`, restauración del foco al trigger y bloqueo del scroll del body.
+
+---
+
+## Contradicciones screens ↔ DESIGN.md
+
+Los mappers cruzaron los 6 screens contra el design system y encontraron **33 divergencias**. Gana `DESIGN.md`. Las que más plata cuesta equivocarse:
+
+| # | El screen hace | `DESIGN.md` manda |
+|---|---|---|
+| 1 | `rounded-full` = 12px remapeado en su Tailwind | Radios reales de §4; **nunca** círculo ni 999px |
+| 2 | Pin/dot en el centro del mapa | **Sin pin, sin marker, sin dot, sin coordenada numérica** (§17.2:705) |
+| 3 | Botón primario dentro de la barra de filtros | **Ninguna** primaria en la barra (§17.1:634) |
+| 4 | `OPERACIÓN` y `MONEDA` como `<select>` | Segmentados (§17.1:630) |
+| 5 | Range de precio de un solo pulgar | Doble pulgar con readout `USD 30.000 — USD 150.000` (§17.1:633) |
+| 6 | Empty state como tarjeta en flujo | Banda full-bleed `bg-subtle` con `--section-y` (§17.1:665) |
+| 7 | Grilla 2-up en `md` | 3 columnas ≥ `md` (§17.1:623) |
+| 8 | Barra de filtros mobile estática | Barra sticky de 56px con fade derecho (§17.1:652) |
+| 9 | Badge del contador a 10px | **Ningún texto < 12px** (§3, §10) |
+| 10 | Botón WhatsApp sólido en el header | Text link en `sage-ink` (§6:331) |
+| 11 | Footer con línea de copyright y sin phone en algunas páginas | Bloque legal **exactamente 2 líneas** (§17.4:733) |
+| 12 | Preguntas de FAQ con cuerpo lorem ipsum | Marcador + meta neutral; nunca contenido inventado (§17.3) |
+| 13 | Acordeón que anima con `hidden` | `grid-template-rows`, nunca `height` (§17.3:720) |
+| 14 | Contador de galería superpuesto a la foto con blur | Al final del riel, `--text-label-sm` mono (§17.2:678); §5 prohíbe texto sobre imagen |
+| 15 | Página de FAQ mobile con banda de cierre centrada | §5.6 y §11 prohíben bloques centrados |
+| 16 | Thumbnails inactivos atenuados con opacidad | Inactivos **sin atenuar**; el activo usa borde (§17.2:677) |
+| 17 | `CONFidencial` en el fallback del mapa mobile | No existe en `DESIGN.md` ni en los datos — no se renderiza |
+| 18 | `Página 1 de 1` en mobile | No está en §17.1 |
+
+**Además, systemic:** todos los screens usan Tailwind + paleta Material-3 + Public Sans + Material Symbols. §3/§14/§8 exigen Hanken Grotesk, JetBrains Mono para precios/contadores y el set duotono SVG inlineado.
+
+---
+
+## Abiertos que el implementador NO debe resolver solo (STOP y reportar)
+
+1. **`icon-search-house.svg` no tiene consumidor identificado.** §8:406 lo llama "search page affordance", pero §17.1:666 dice que el empty state usa el tile 3:2 de marca (no un glifo) y §17.2:709 sólo pide un glifo de casa en el fallback del mapa. **Se construye `icon-house.svg` (consumidor explícito: §17.2:709) y `icon-search-house.svg` se mantiene diferido** hasta identificar su consumidor real — es exactamente el criterio con el que se difirió T6.
+2. **Dominio y opciones del rango de precio.** §17.1 no da min/max. Se derivan del conjunto renderizado, consistente con la regla de `<n>` derivado (§17.1:625). Si no alcanza, STOP.
+3. **Opciones de `TIPO` / `LOCALIDAD` / `HABITACIONES`.** Se derivan del conjunto renderizado y se ordenan; documentar el criterio.
+4. **Tensión interna de §17.2.** §17.2:671 fija el orden de secciones, pero §17.2:697 manda el CTA del detalle a las columnas 9–12. Se sigue §17.2:697 (aside) y se documenta que el orden literal del DOM ya no coincide con la lista de §17.2:671.
+5. **`role="status"` del fallback del mapa** (§17.2:709) conviviendo con el `role="dialog"` del sheet: verificar que no se pisen anuncios.
+
+---
+
+## Tareas (work units)
+
+| # | Slice | Commit | Contenido |
+|---|---|---|---|
+| S1 | Primitivas de fase 2 | `feat(ui)` | Variante tint-safe de `Button` (R5); `icon-house.svg`; `WhatsAppCta` inline + barra sticky (§6:310-316); `EmptyState` (§6:318-325 + §17.1:664-667); chips (§17.1:637-642); controles de filtro (§6:298-308) |
+| S2 | Buscador `/propiedades` | `feat(propiedades)` | Página, filtros client-side (R1), URL única (R2), strip compartible, contador derivado, `Ordenar` (R9), `Ver más` (R10) y **sus specs e2e** |
+| S3 | Detalle `/propiedades/<slug>` | `feat(propiedades)` | Página, breadcrumb, galería (R4), ficha técnica (R12/R13), panel del mapa con MapLibre (R3) y su fallback, CTA (R11) y **sus specs e2e** |
+| S4 | FAQs `/faqs` | `feat(faqs)` | Página, acordeón (§17.3), `src/data/faqs.ts` (R7), alineación del teaser a serif (R8) y **sus specs e2e** |
+| S5 | Cierre documental | `docs(odd)` | Evidencia cruda, veredicto del verificador independiente y el estado del track |
+
+**Regla de cierre de cada slice:** `pnpm build` verde **+ el gate completo** (`pnpm test:e2e`) verde, no sólo las specs nuevas. Un slice que rompe una ruta vieja no está terminado.
+
+---
+
+## Criterios de aceptación
+
+| Criterio | Cómo se verifica |
+|---|---|
+| `pnpm build` exit 0 con las 4 rutas | comando |
+| Las 3 rutas responden 200 y ninguna da 404 | specs e2e |
+| Gate e2e completo verde (rutas viejas incluidas) | `pnpm test:e2e` |
+| 0 texto renderizado en `#7C916F` en las 3 páginas nuevas | `runColorAudits` del gate |
+| Contraste AA en todo par de texto nuevo | matriz §2 + scan genérico |
+| Sage nunca como borde sobre `surface-tint` | spec sobre el strip y el empty state |
+| 0 overflow horizontal a 390 y 320 | specs de layout |
+| Touch targets ≥44px | audit del gate |
+| Datos inventados: 0 (sin conteos, sin lorem, sin asesoramiento) | grep + specs de contenido |
+| Respuestas de FAQ = `PENDIENTE` + meta neutral | spec de contenido |
+| `fotos: []` ⇒ sin contador de galería | spec de contenido |
+| Ninguna coordenada numérica en el HTML renderizado | grep sobre `dist/` (check 4 del PRD §9) |
+| MapLibre fuera del bundle inicial | inspección de `dist/` |
+| Sólo tokens de marca en el CSS | grep de hex crudos fuera de `tokens.css` |
+
+---
+
+## Forecast de entrega
+
+Presupuesto de revisión: ~400 líneas por slice. Este es el track más grande del MVP (3 páginas + 5 componentes + integración de un mapa). Estimación por slice: **S1 ~350**, **S2 ~450**, **S3 ~600** (el mapa y la galería pesan), **S4 ~300**. O sea: se entrega en 4 work-unit commits sobre `main` (PRD §9, sin PRs, así que no hay cadena de PRs que estrategizar).
+
+Estrategia: `ask-on-risk`. **Cada slice que supere ~400 líneas autoradas se para y se reporta antes de commitear**, con el número real medido. El precedente de T7 (646 líneas, `size:exception` aprobado) muestra que la estimación a priori subestima; se reporta con el número medido, no con la estimación.
+
+---
+
+## Bloqueantes de lanzamiento (no de build)
+
+- **Las 6 respuestas de FAQ** (PRD §8). Hoy `PENDIENTE`.
+- **WhatsApp y CCI reales**; nombre del corredor (¿"Alejandro" o "Alejando"?).
+- Confirmar el tinte `#C3CDB8` del logo knockout.
+- Confirmar el prefijo `icon-` en los nombres de archivo.
+
+---
+
+## Progreso
+
+- **2026-09-21 (a):** plan del track cerrado. Exploración con 2 subagentes mapeadores sobre `DESIGN.md` §17 + los 6 screens + la capa de datos. 2 bloqueantes que parecían reales se disolvieron al leer el PRD: las 6 preguntas de FAQ **son** las semilla del PRD §8 (verificado 1:1) y la arquitectura de filtros **ya estaba decidida** en el PRD §10 (client-side, static output). Se detectó un defecto latente en `Button` (borde sage sobre `surface-tint`, prohibido por §2:87) y 33 divergencias screens↔DESIGN. Decisión del stakeholder: **MapLibre como manda el spec**. Verificado empíricamente que `maplibre-gl@6.10.0` instala sin tocar `pnpm-workspace.yaml`.

@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** T0–T5 y **T7** ✅ commiteados (T7: 2026-09-21, `45c8364` + `b9865ee`). **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). **Siguiente: track §17** (`/propiedades`, `/propiedades/<slug>`, `/faqs` + los 3 componentes diferidos + los 2 glifos de T6). Ver "Próxima sesión — arrancar acá" más abajo.
+**Estado:** T0–T5 y **T7** ✅ commiteados (T7: 2026-09-21, `45c8364` + `b9865ee`). **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). **Siguiente: track §17** — su plan vive en `odd/tasks/damero-propiedades-faqs.md` (`/propiedades`, `/propiedades/<slug>`, `/faqs` + los 3 componentes diferidos + el glifo `icon-house`). Ver "Próxima sesión — arrancar acá" más abajo.
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
