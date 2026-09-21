@@ -1,0 +1,162 @@
+---
+/**
+ * FilterCheckbox — docs/DESIGN.md §6 (Cochera) + §17.1:630.
+ *
+ * A 20px square checkbox, `--radius-xs`, `1px solid
+ * --color-border-interactive`, checked = forest-ink fill (action-primary
+ * alias) with a white check. **Not a switch** — switches read as application
+ * settings, not as filters. The label sits inline and the whole row is the
+ * click target, meeting the 44px minimum.
+ *
+ * The real input is visually hidden but keyboard-focusable; its focus ring
+ * is restyled onto the box (moved, never removed — §12). The check is an
+ * inline SVG stroked with `currentColor`, so no raw hex ships here.
+ */
+interface Props {
+  id: string;
+  label: string;
+  name?: string;
+  checked?: boolean;
+  value?: string;
+  /** Validation message; renders the §6:308 invalid state when present. */
+  error?: string;
+  /** Filter identity for the client-side wiring. */
+  filterKey?: string;
+  class?: string;
+}
+
+const {
+  id,
+  label,
+  name = id,
+  checked = false,
+  value,
+  error,
+  filterKey,
+  class: className,
+} = Astro.props;
+
+const errorId = `${id}-error`;
+---
+
+<div class:list={['filter-checkbox', className]}>
+  <label class="filter-checkbox__row" for={id}>
+    <input
+      class="filter-checkbox__input"
+      id={id}
+      name={name}
+      type="checkbox"
+      checked={checked}
+      value={value}
+      data-filter-key={filterKey}
+      aria-invalid={error ? 'true' : undefined}
+      aria-describedby={error ? errorId : undefined}
+    />
+    <span class="filter-checkbox__box" aria-hidden="true">
+      <svg viewBox="0 0 12 12" width="12" height="12" focusable="false">
+        <path
+          d="M2.5 6.5L5 9L9.5 3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </span>
+    <span class="filter-checkbox__text">{label}</span>
+  </label>
+  {
+    error && (
+      <p class="filter-checkbox__error" id={errorId}>
+        <span class="filter-checkbox__error-prefix">REVISAR</span> {error}
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .filter-checkbox__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  /* Visually hidden but keyboard-focusable; the ring moves to the box. */
+  .filter-checkbox__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .filter-checkbox__input:focus-visible {
+    outline: none;
+  }
+
+  .filter-checkbox__input:focus-visible + .filter-checkbox__box {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .filter-checkbox__box {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--color-border-interactive);
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-on-inverse);
+  }
+
+  .filter-checkbox__box svg {
+    opacity: 0;
+  }
+
+  /* Checked: forest-ink fill with a white check (§6). */
+  .filter-checkbox__input:checked + .filter-checkbox__box {
+    background-color: var(--color-action-primary);
+    border-color: var(--color-action-primary);
+  }
+
+  .filter-checkbox__input:checked + .filter-checkbox__box svg {
+    opacity: 1;
+  }
+
+  /* §6:308 — invalid: forest-ink border, never red. */
+  .filter-checkbox__input[aria-invalid='true'] + .filter-checkbox__box {
+    border-color: var(--color-text-primary);
+  }
+
+  .filter-checkbox__text {
+    font-family: var(--font-sans);
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-primary);
+  }
+
+  .filter-checkbox__error {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-primary);
+  }
+
+  .filter-checkbox__error-prefix {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+</style>

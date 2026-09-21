@@ -1,0 +1,282 @@
+---
+/**
+ * PriceRange — docs/DESIGN.md §6 (Price range) + §17.1:633.
+ *
+ * Dual-thumb range. Track `--color-bg-subtle` at 4px, filled segment
+ * `--color-graphic-accent`, 20px thumbs in forest-ink (action-primary alias)
+ * with a 2px `--color-surface` ring — square-ish, never circles (§4). The
+ * mono readout sits above the track: `USD 30.000 — USD 150.000`. The range
+ * applies only within the selected currency; the readout never implies a
+ * conversion (§17.1:633).
+ *
+ * The initial fill position and readout are computed at build time so the
+ * control renders complete without JS; a small plain script then keeps the
+ * fill, the readout and the thumb clamping in sync (progressive
+ * enhancement — the inputs stay native and keyboard-operable either way).
+ */
+import { formatAmount } from '../lib/format';
+
+interface Props {
+  id: string;
+  /** Group label rendered above the readout. */
+  label?: string;
+  /** Currency the range applies within — never converted (§17.1:633). */
+  currency?: 'USD' | 'ARS';
+  min: number;
+  max: number;
+  step?: number;
+  valueMin?: number;
+  valueMax?: number;
+  nameMin?: string;
+  nameMax?: string;
+  /** Validation message; renders the §6:308 invalid state when present. */
+  error?: string;
+  /** Filter identity for the client-side wiring. */
+  filterKey?: string;
+  class?: string;
+}
+
+const {
+  id,
+  label = 'Precio',
+  currency = 'USD',
+  min,
+  max,
+  step = 1000,
+  valueMin,
+  valueMax,
+  nameMin = `${id}-min`,
+  nameMax = `${id}-max`,
+  error,
+  filterKey,
+  class: className,
+} = Astro.props;
+
+const lo = valueMin ?? min;
+const hi = valueMax ?? max;
+const span = max - min > 0 ? max - min : 1;
+const leftPct = ((lo - min) / span) * 100;
+const rightPct = 100 - ((hi - min) / span) * 100;
+const readout = `${currency} ${formatAmount(lo)} — ${currency} ${formatAmount(hi)}`;
+
+const labelId = `${id}-label`;
+const errorId = `${id}-error`;
+---
+
+<div
+  class:list={['price-range', className]}
+  role="group"
+  aria-labelledby={labelId}
+  data-price-range
+  data-currency={currency}
+  data-filter-key={filterKey}
+  data-invalid={error ? '' : undefined}
+>
+  <span class="price-range__label" id={labelId}>{label}</span>
+  <p class="price-range__readout" data-price-range-readout>{readout}</p>
+  <div class="price-range__track">
+    <div
+      class="price-range__fill"
+      data-price-range-fill
+      style={`left:${leftPct}%;right:${rightPct}%;`}
+    ></div>
+    <input
+      class="price-range__input"
+      type="range"
+      name={nameMin}
+      min={min}
+      max={max}
+      step={step}
+      value={lo}
+      aria-label="Precio mínimo"
+      aria-invalid={error ? 'true' : undefined}
+      aria-describedby={error ? errorId : undefined}
+      data-price-range-min
+    />
+    <input
+      class="price-range__input"
+      type="range"
+      name={nameMax}
+      min={min}
+      max={max}
+      step={step}
+      value={hi}
+      aria-label="Precio máximo"
+      aria-invalid={error ? 'true' : undefined}
+      aria-describedby={error ? errorId : undefined}
+      data-price-range-max
+    />
+  </div>
+  {
+    error && (
+      <p class="price-range__error" id={errorId}>
+        <span class="price-range__error-prefix">REVISAR</span> {error}
+      </p>
+    )
+  }
+</div>
+
+<script>
+  document.querySelectorAll('[data-price-range]').forEach((root) => {
+    if (!(root instanceof HTMLElement) || root.dataset.enhanced) return;
+    root.dataset.enhanced = 'true';
+
+    const minInput = root.querySelector<HTMLInputElement>('[data-price-range-min]');
+    const maxInput = root.querySelector<HTMLInputElement>('[data-price-range-max]');
+    const fill = root.querySelector<HTMLElement>('[data-price-range-fill]');
+    const readout = root.querySelector<HTMLElement>('[data-price-range-readout]');
+    if (!minInput || !maxInput || !fill || !readout) return;
+
+    const currency = root.dataset.currency ?? '';
+    const formatter = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+
+    const update = () => {
+      let lo = Number(minInput.value);
+      let hi = Number(maxInput.value);
+      // Thumbs never cross: the thumb being dragged clamps against the other.
+      if (lo > hi) {
+        if (document.activeElement === minInput) {
+          lo = hi;
+          minInput.value = String(lo);
+        } else {
+          hi = lo;
+          maxInput.value = String(hi);
+        }
+      }
+      const min = Number(minInput.min);
+      const max = Number(minInput.max);
+      const span = max - min > 0 ? max - min : 1;
+      fill.style.left = `${((lo - min) / span) * 100}%`;
+      fill.style.right = `${100 - ((hi - min) / span) * 100}%`;
+      readout.textContent = `${currency} ${formatter.format(lo)} — ${currency} ${formatter.format(hi)}`;
+    };
+
+    minInput.addEventListener('input', update);
+    maxInput.addEventListener('input', update);
+    update();
+  });
+</script>
+
+<style>
+  .price-range__label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  /* Mono readout above the track (§17.1:633). */
+  .price-range__readout {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+  }
+
+  /* 44px touch height; the 4px track is centred inside it. */
+  .price-range__track {
+    position: relative;
+    height: 44px;
+  }
+
+  .price-range__track::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 4px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .price-range__fill {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-xs);
+    background-color: var(--color-graphic-accent);
+  }
+
+  /* §6:308 — invalid: forest-ink outline on the control, never red. */
+  .price-range[data-invalid] .price-range__track {
+    outline: 1px solid var(--color-text-primary);
+    outline-offset: 4px;
+  }
+
+  /*
+   * The two native inputs overlay the track; their thumbs are the only
+   * pointer-reactive part so both stay grabbable.
+   */
+  .price-range__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+  }
+
+  .price-range__input::-webkit-slider-runnable-track {
+    height: 44px;
+    background: transparent;
+  }
+
+  .price-range__input::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: 12px;
+    border: 2px solid var(--color-bg-surface);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-action-primary);
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: auto;
+    cursor: grab;
+  }
+
+  .price-range__input::-moz-range-track {
+    height: 44px;
+    background: transparent;
+  }
+
+  .price-range__input::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-bg-surface);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-action-primary);
+    pointer-events: auto;
+    cursor: grab;
+  }
+
+  .price-range__error {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-primary);
+  }
+
+  .price-range__error-prefix {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+</style>

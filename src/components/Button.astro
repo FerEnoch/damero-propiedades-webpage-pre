@@ -5,7 +5,7 @@
  * The component never decides "primary-ness": the consumer passes the variant.
  * It renders an `<a>` when given an `href`, otherwise `<button type="button">`.
  */
-type Variant = 'primary' | 'secondary' | 'ghost' | 'text-link';
+type Variant = 'primary' | 'secondary' | 'secondary-tint' | 'ghost' | 'text-link';
 
 interface Props {
   variant?: Variant;
@@ -96,6 +96,23 @@ const classes = ['button', `button--${variant}`, { 'is-disabled': disabled }, cl
 
   .button--secondary:hover {
     background-color: var(--color-bg-subtle);
+  }
+
+  /*
+   * Tint-safe secondary (ODD §17 ruling R5): §2 measures sage on surface-tint
+   * at 2.84:1 and bans it even as a border, so `secondary` is invalid on
+   * `bg-subtle` bands (shareable search strip, empty state). This variant
+   * carries a forest-ink border via the text-primary alias and lifts to a
+   * surface fill on hover so the state change reads on a tint band.
+   */
+  .button--secondary-tint {
+    background-color: transparent;
+    border-color: var(--color-text-primary);
+    color: var(--color-text-primary);
+  }
+
+  .button--secondary-tint:hover {
+    background-color: var(--color-bg-surface);
   }
 
   .button--ghost {

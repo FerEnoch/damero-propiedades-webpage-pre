@@ -130,6 +130,8 @@
   --shadow-sm: 0 2px 10px rgba(62, 72, 55, 0.06);
   --shadow-md: 0 10px 30px rgba(62, 72, 55, 0.08);
   --shadow-lg: 0 24px 56px rgba(62, 72, 55, 0.1);
+  /* §6 (WhatsApp CTA): the mobile sticky bar casts --shadow-lg upward. */
+  --shadow-lg-up: 0 -24px 56px rgba(62, 72, 55, 0.1);
 
   /* ---- Graphic assets (DESIGN.md §7) ----
      The damero tile is a single SVG data-URI: a checkerboard of 45°-rotated

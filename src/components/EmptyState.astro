@@ -1,0 +1,126 @@
+---
+/**
+ * EmptyState — docs/DESIGN.md §6 (Empty state) extended by §17.1:664-667.
+ *
+ * A full-bleed `--color-bg-subtle` band with `--section-y` padding, composed
+ * and left-aligned with a ragged right edge — never centred, never an
+ * apology (it never says "lo sentimos").
+ *
+ * Composition (§17.1:666, top to bottom): eyebrow `SIN COINCIDENCIAS`; the
+ * reduced 3:2 brand placeholder tile from §7 (never an illustration, never a
+ * magnifying glass, never an emoji); the heading in `--text-card-title-lg`
+ * (ruling R6: §17.1 supersedes §6's `heading-sm`); the body in
+ * `--text-body-md` / `--color-text-secondary` capped at 48ch; then the two
+ * actions — `Limpiar filtros` (secondary-tint, ruling R5: sage borders are
+ * banned on this tint band) FIRST in the DOM, `Consultar por WhatsApp`
+ * (primary) second.
+ */
+import Button from './Button.astro';
+import DameroPlaceholder from './DameroPlaceholder.astro';
+import WhatsAppCta from './WhatsAppCta.astro';
+
+interface Props {
+  /** Where `Limpiar filtros` points — the unfiltered search URL. */
+  clearHref?: string;
+  /** Per-listing agent number, forwarded to the CTA (pending ⇒ inert). */
+  whatsapp?: string;
+  titulo?: string;
+  slug?: string;
+  class?: string;
+}
+
+const {
+  clearHref = '/propiedades',
+  whatsapp,
+  titulo = '',
+  slug = '',
+  class: className,
+} = Astro.props;
+---
+
+<section class:list={['empty-state', className]}>
+  <div class="container">
+    <p class="empty-state__eyebrow">SIN COINCIDENCIAS</p>
+
+    <DameroPlaceholder class="empty-state__tile" />
+
+    <h2 class="empty-state__title">No encontramos propiedades con esos filtros.</h2>
+
+    <p class="empty-state__body">
+      Probá ajustar los filtros o consultanos: podemos buscar por vos.
+    </p>
+
+    <div class="empty-state__actions">
+      <Button variant="secondary-tint" href={clearHref}>Limpiar filtros</Button>
+      <WhatsAppCta variant="inline" whatsapp={whatsapp} titulo={titulo} slug={slug} />
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Full-bleed tint band, same treatment as the landing's services band. */
+  .empty-state {
+    max-width: var(--container-bleed);
+    margin-inline: auto;
+    padding-block: var(--section-y);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .empty-state__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+  }
+
+  /*
+   * The §7 tile at reduced scale — one asset, two jobs. The class lands on
+   * DameroPlaceholder's root, which carries the child's scope id, not this
+   * component's — so the rule goes through `:global` (same pattern as
+   * PropertyCard's `.card__media :global(.damero-placeholder)`).
+   */
+  .empty-state :global(.empty-state__tile) {
+    width: min(100%, 15rem);
+    margin-top: var(--space-6);
+  }
+
+  /* Ruling R6: §17.1 fixes the heading token at --text-card-title-lg. */
+  .empty-state__title {
+    margin: var(--space-6) 0 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-card-title-lg);
+    font-weight: 500;
+    line-height: var(--leading-card-title-lg);
+    letter-spacing: var(--tracking-card-title-lg);
+    color: var(--color-text-primary);
+  }
+
+  .empty-state__body {
+    max-width: 48ch;
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-body-md);
+    line-height: var(--leading-body-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* Stacked on mobile, inline on desktop (§6). */
+  .empty-state__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .empty-state__actions {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+    }
+  }
+</style>

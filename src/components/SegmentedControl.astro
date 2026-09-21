@@ -1,0 +1,172 @@
+---
+/**
+ * SegmentedControl — docs/DESIGN.md §17.1:630-631.
+ *
+ * Used for `OPERACIÓN` (Todas / Venta / Alquiler) and `MONEDA` (USD / ARS).
+ * The selected option is marked by a forest-ink fill (action-primary alias)
+ * + `--color-on-forest` text + a weight step — weight and fill, never hue
+ * alone (§12, colour independence). Unselected options are plain text on
+ * `surface`.
+ *
+ * Built on real radio inputs inside a fieldset: arrow-key navigation and
+ * form semantics come from the platform. The input is visually hidden but
+ * stays keyboard-focusable; its focus ring is restyled onto the segment
+ * (the ring is moved, never removed — §12).
+ */
+interface SegmentOption {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  /** Radio group name, e.g. `operacion`. */
+  name: string;
+  /** Group label rendered above the control, e.g. `Operación`. */
+  label: string;
+  options: SegmentOption[];
+  value?: string;
+  /** Validation message; renders the §6:308 invalid state when present. */
+  error?: string;
+  /** Filter identity for the client-side wiring. */
+  filterKey?: string;
+  class?: string;
+}
+
+const { name, label, options, value, error, filterKey, class: className } = Astro.props;
+
+const errorId = `${name}-error`;
+---
+
+<fieldset
+  class:list={['segmented', className]}
+  data-filter-key={filterKey}
+  data-invalid={error ? '' : undefined}
+>
+  <legend class="segmented__label">{label}</legend>
+  <div class="segmented__track">
+    {
+      options.map((option) => (
+        <label class="segmented__option">
+          <input
+            class="segmented__input"
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={option.value === value}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={error ? errorId : undefined}
+          />
+          <span class="segmented__segment">{option.label}</span>
+        </label>
+      ))
+    }
+  </div>
+  {
+    error && (
+      <p class="segmented__error" id={errorId}>
+        <span class="segmented__error-prefix">REVISAR</span> {error}
+      </p>
+    )
+  }
+</fieldset>
+
+<style>
+  .segmented {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .segmented__label {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .segmented__track {
+    display: inline-flex;
+    max-width: 100%;
+    border: 1px solid var(--color-border-interactive);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-surface);
+  }
+
+  /* §6:308 — invalid: forest-ink border, never red. */
+  .segmented[data-invalid] .segmented__track {
+    border-color: var(--color-text-primary);
+  }
+
+  .segmented__option {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  /* Visually hidden but keyboard-focusable; the ring moves to the segment. */
+  .segmented__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .segmented__input:focus-visible {
+    outline: none;
+  }
+
+  .segmented__input:focus-visible + .segmented__segment {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .segmented__segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-xs);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--color-text-primary);
+    background-color: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Selected: fill + weight, never hue alone (§12). */
+  .segmented__input:checked + .segmented__segment {
+    background-color: var(--color-action-primary);
+    color: var(--color-text-on-inverse);
+    font-weight: 600;
+  }
+
+  .segmented__error {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-primary);
+  }
+
+  .segmented__error-prefix {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+</style>

@@ -1,0 +1,92 @@
+---
+/**
+ * FilterChip — docs/DESIGN.md §17.1:637-642.
+ *
+ * One chip per active filter value. `--radius-xs`, `--color-bg-subtle` fill,
+ * `--color-text-primary` label in `--text-label-sm` mono uppercase, with a
+ * 16px `×` affordance. Never a pill, never saturated, never colour-coded.
+ *
+ * The whole chip is the removable control: the 44px touch target is met by
+ * padding the chip, not by growing the `×` (§17.1:640). The `×` is
+ * `aria-hidden`; the button's accessible name is `Quitar filtro <valor>`.
+ *
+ * `filterKey`/`filterValue` render as data attributes so the S2 wiring can
+ * re-run the filter and rewrite the URL when a chip is removed (§17.1:641).
+ */
+interface Props {
+  /** Rendered value, e.g. `Venta` or `USD 30.000–150.000`. */
+  label: string;
+  /** Filter identity for the client-side wiring, e.g. `operacion` / `venta`. */
+  filterKey?: string;
+  filterValue?: string;
+  /** Accessible name override; defaults to `Quitar filtro <label>`. */
+  ariaLabel?: string;
+  class?: string;
+}
+
+const {
+  label,
+  filterKey,
+  filterValue,
+  ariaLabel = `Quitar filtro ${label}`,
+  class: className,
+} = Astro.props;
+---
+
+<button
+  class:list={['filter-chip', className]}
+  type="button"
+  aria-label={ariaLabel}
+  data-filter-key={filterKey}
+  data-filter-value={filterValue}
+>
+  <span class="filter-chip__label">{label}</span>
+  <span class="filter-chip__remove" aria-hidden="true">×</span>
+</button>
+
+<style>
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding-inline: var(--space-3);
+    border: 0;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-primary);
+    cursor: pointer;
+  }
+
+  .filter-chip__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+  }
+
+  /* 16px affordance; the chip's padding owns the 44px target, not this. */
+  .filter-chip__remove {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .filter-chip {
+      transition: background-color var(--duration-micro) var(--ease-out-expo);
+    }
+
+    .filter-chip:hover {
+      background-color: color-mix(in srgb, var(--color-bg-subtle) 92%, var(--color-text-primary));
+    }
+  }
+</style>

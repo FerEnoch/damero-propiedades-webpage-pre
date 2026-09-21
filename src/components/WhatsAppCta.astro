@@ -1,0 +1,146 @@
+---
+/**
+ * WhatsAppCta — docs/DESIGN.md §6 (WhatsApp CTA), ODD §17 ruling R11.
+ *
+ * Two render modes in one component:
+ *
+ * - `inline` — primary button styling (detail page, empty state). The 20px
+ *   glyph is `aria-hidden`; the label `Consultar por WhatsApp` carries the
+ *   meaning (§6). Composes `Button` so the primary metrics live in one place.
+ * - `sticky` — the mobile bottom bar: fixed, full-width, 56px, action-primary
+ *   fill, `--shadow-lg` cast upward, 1px `--color-border-on-forest` top
+ *   hairline, `env(safe-area-inset-bottom)` padding, `z-index: 40`, visible
+ *   only below `md` (§6, §10).
+ *
+ * The WhatsApp brand green `#25D366` is banned as a fill (§6): identity is
+ * carried by the glyph alone, in `--color-on-forest` over the forest fill.
+ * The glyph path is the CC0 simple-icons WhatsApp mark, rendered with
+ * `fill="currentColor"` so no raw hex ships in the component.
+ *
+ * R11: the href comes from `resolveWhatsAppHref` and stays inert while the
+ * stakeholder number is pending. `target`/`rel` only apply to a real
+ * external deep-link, never to the in-page pending anchor.
+ */
+import Button from './Button.astro';
+import { resolveWhatsAppHref } from '../lib/whatsapp';
+
+interface Props {
+  variant?: 'inline' | 'sticky';
+  /** Per-listing agent number (frontmatter `whatsapp`); pending ⇒ inert href. */
+  whatsapp?: string;
+  /** Listing context for the prefilled message (wired by the detail page). */
+  titulo?: string;
+  slug?: string;
+  class?: string;
+}
+
+const { variant = 'inline', whatsapp, titulo = '', slug = '', class: className } = Astro.props;
+
+const href = resolveWhatsAppHref(whatsapp, titulo, slug);
+const isExternal = !href.startsWith('#');
+const LABEL = 'Consultar por WhatsApp';
+---
+
+{
+  variant === 'inline' ? (
+    <Button
+      variant="primary"
+      href={href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      class={['whatsapp-cta', className].filter(Boolean).join(' ')}
+    >
+      <svg
+        class="whatsapp-cta__glyph"
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="currentColor"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+      </svg>
+      <span>{LABEL}</span>
+    </Button>
+  ) : (
+    <div class:list={['whatsapp-sticky', className]}>
+      <a
+        class="whatsapp-sticky__link"
+        href={href}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
+      >
+        <svg
+          class="whatsapp-sticky__glyph"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="currentColor"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+        </svg>
+        <span>{LABEL}</span>
+      </a>
+    </div>
+  )
+}
+
+<style>
+  /*
+   * The class lands on Button's root, which carries the child's scope id, not
+   * this component's — so the rule goes through `:global` (same pattern as
+   * EmptyState's `:global(.empty-state__tile)`).
+   */
+  :global(.whatsapp-cta) {
+    gap: var(--space-2);
+  }
+
+  .whatsapp-cta__glyph {
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ---- Mobile sticky bar (§6): visible only below `md` ---- */
+  .whatsapp-sticky {
+    position: fixed;
+    z-index: 40;
+    inset-inline: 0;
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    background-color: var(--color-action-primary);
+    border-top: 1px solid var(--color-border-on-forest);
+    box-shadow: var(--shadow-lg-up);
+  }
+
+  .whatsapp-sticky__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    height: 56px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.004em;
+    color: var(--color-text-on-inverse);
+    text-decoration: none;
+  }
+
+  .whatsapp-sticky__glyph {
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .whatsapp-sticky {
+      display: none;
+    }
+  }
+</style>
