@@ -13,6 +13,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "test:e2e": "playwright test",
     "astro": "astro",
     "audit": "pnpm audit",
     "audit:high": "pnpm audit --audit-level high",
@@ -22,5 +23,8 @@
   },
   "dependencies": {
     "astro": "7.3.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
   }
 }

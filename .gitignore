@@ -6,6 +6,11 @@ node_modules/
 dist/
 .astro/
 
+# ─── PLAYWRIGHT (suite e2e, T7) ────────────────────────────────────
+playwright-report/
+test-results/
+blob-report/
+
 # ─── ENVIRONMENT — nunca commitear secretos ────────────────────────
 .env
 .env.local
