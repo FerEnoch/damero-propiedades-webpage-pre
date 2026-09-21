@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** T0–T5 ✅ commiteados (2026-09-18). **T7 en curso** (2026-09-21): suite e2e con Playwright + verificación consolidada. **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). Ver "Próxima sesión — arrancar acá" más abajo.
+**Estado:** T0–T5 y **T7** ✅ commiteados (T7: 2026-09-21, `45c8364` + `b9865ee`). **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). **Siguiente: track §17** (`/propiedades`, `/propiedades/<slug>`, `/faqs` + los 3 componentes diferidos + los 2 glifos de T6). Ver "Próxima sesión — arrancar acá" más abajo.
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
@@ -13,7 +13,9 @@
 
 ## Próxima sesión — arrancar acá (2026-09-21)
 
-**Estado:** T0–T5 ✅ commiteados en `main`, árbol limpio. Esta sesión: **T7** (suite e2e con Playwright + verificación consolidada). **T6 quedó diferido al track §17** por decisión del stakeholder (2026-09-21).
+**Estado:** T7 ✅ cerrado el 2026-09-21 (`45c8364` plan + `b9865ee` suite). El track de fundación + landing queda **completo salvo T6**, que se difirió a §17. **Arrancar por el track §17.**
+
+**Qué dejó T7 listo para §17:** un gate ejecutable (`pnpm test:e2e`, 38 asserts en 1280/390/320) que corre contra `dist/` y falla de verdad ante regresiones de estructura, contraste, sage en texto, datos inventados, overflow, touch targets y teclado. **Nuevas páginas se agregan al gate, no al margen**: cada ruta nueva necesita sus propias specs. Y ojo con el límite declarado (WARNING-1 de la evidencia de T7): la suite **no** detecta drift de paleta ni el rule de hex crudos — eso sigue siendo grep.
 
 **Por qué T6 se difiere:** `icon-house.svg` es el glifo del empty state y `icon-search-house.svg` el del buscador (`DESIGN.md` §8, línea 406). **Ninguno de los dos consumidores existe todavía** — ambos viven en el track §17. Construirlos ahora dejaría la única verificación honesta en "cumple la spec de construcción a ojo". Se construyen junto a su primer consumidor, con el mismo criterio con el que T4 difirió Filter input, WhatsApp CTA y Empty state.
 
@@ -104,7 +106,7 @@
 - [x] T4 — Componentes base que **consume la landing**: Button, Property card, Operation badge (+ `DameroPlaceholder` §7, `ServiceIcon` §8, `formatAmount`). **Diferidos al track §17** (no los consume ninguna página de T1–T5, y `/propiedades` está fuera de alcance): Filter input, WhatsApp CTA y Empty state.
 - [x] T5 — Landing `/` según `DESIGN.md` §5: hero (damero + titular + 1 CTA de búsqueda), bloque de destacadas, los 8 servicios con los SVG duotono, teaser de FAQ
 - [—] T6 — **DIFERIDO al track §17** (stakeholder, 2026-09-21). Glifos de UI `icon-house.svg` (empty state) y `icon-search-house.svg` (buscador, `DESIGN.md` §8). Se construyen con su primer consumidor, igual que Filter input / WhatsApp CTA / Empty state en T4. Sigue abierto como T8 del track de diseño.
-- [ ] T7 — Verificación consolidada: build verde, contraste AA, mobile-first 390/1280/320, 0 sage en texto renderizado, datos inventados 0, **+ suite e2e ejecutable con `@playwright/test`** (spec completa arriba)
+- [x] T7 — Verificación consolidada: build verde, contraste AA, mobile-first 390/1280/320, 0 sage en texto renderizado, datos inventados 0, **+ suite e2e ejecutable con `@playwright/test`** (spec completa arriba)
 
 ## Criterios de aceptación
 
@@ -254,6 +256,35 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 
 **Arrastres para T6/T7:** (a) `/propiedades` y `/faqs` dan 404 hasta que existan, esperado; (b) `priority` es no-op mientras `fotos: []` — el wiring queda activo cuando lleguen fotos reales; (c) el teaser usa voz sans para la pregunta y §17.3 pide serif para el acordeón de `/faqs`, hay que alinear cuando se haga ese track; (d) `ServiceIcon` y el union `ServiceIconName` de `landing.ts` están duplicados: al agregar `icon-house`/`icon-search-house` en T6 conviene exportar un tipo compartido.
 
+### T7 — suite e2e + verificación consolidada (2026-09-21)
+
+**Commits:** `45c8364` (docs, plan) + `b9865ee` (test, harness y suite).
+
+| Check | Resultado |
+|---|---|
+| `pnpm build` | ✅ exit 0 — 1 página |
+| `pnpm exec playwright test` | ✅ exit 0 — **38 passed, 1 skipped** (39 total) |
+| Re-corrida del padre con `CI=1` (build limpio, sin reusar server) | ✅ exit 0 — 38 passed, 1 skipped |
+| Control negativo (defecto deliberado: sage en `.hero__subhead`) | ✅ rojo real: **9 failed / 29 passed**, exit 1, nombrando los tests correctos; revertido → verde |
+| Control negativo independiente (verificador, fixtures propios) | ✅ **5/5**: los 3 audits van rojos con violación real y quedan verdes con caso válido → discriminan, no son tautológicos |
+| `pnpm-workspace.yaml` | ✅ **sin tocar** — `@playwright/test` no declara `scripts`, no hizo falta `allowBuilds` |
+| `src/` | ✅ intacto (0 archivos modificados por el harness) |
+| Artefactos filtrados | ✅ `git status --short` post-corrida limpio; `dist/`, `test-results/`, `playwright-report/` ignorados |
+| Fuga de secretos / paths absolutos / red en runtime | ✅ ninguna |
+| Verificación independiente (contexto fresco, deepseek-v4-pro high) | ✅ `success`, 0 CRITICAL, **2 WARNING**, 3 SUGGESTION |
+
+**Cobertura de los 6 criterios de aceptación del track:** 5 automatizados en la suite (build, 0 sage en texto, contraste AA, mobile-first, datos inventados 0). El sexto — "solo tokens de marca en el CSS" — lo cubre un grep, **no la suite**: 0 hex crudos fuera de `tokens.css` en `src/`; las 8 apariciones de sage en `dist/index.html` son exactamente las 8 masas de acento de los íconos duotono inlineados; **0 reglas `color:` con sage** en el CSS emitido.
+
+**WARNING-1 (límite declarado, no defecto).** La suite es un gate de **piso AA + estructura + contenido**, no de **identidad de marca**: la matriz asserta `ratio >= umbral`, nunca `foreground/background === token de §2`. Un drift de paleta hacia un valor de contraste igual o mayor (ej. forest-ink → `#000000`, que §11 prohíbe) pasaría; también pasaría un fallo total de `tokens.css` que degradara todo a negro-sobre-blanco. Es consistente con lo que la spec de T7 pedía ("≥4.5:1"), pero **el track §17 no debe asumir que la suite detecta drift de paleta** — eso sigue dependiendo del grep de tokens.
+
+**WARNING-2 (menor).** Dos probes renderizan ≥24px, así que su umbral baja a 3:1 en vez de los valores AAA registrados en §2 (9.60:1 y 8.78:1). Es exactamente lo que la spec pide.
+
+**Gotcha de entorno nuevo (guardado en Engram #1044).** Astro ≥7.2 **daemoniza `astro preview` cuando detecta un shell de agente de IA** (`agentDetected = !process.env.ASTRO_PREVIEW_BACKGROUND && isRunByAgent()`). El comando del `webServer` salía en foreground, Playwright abortaba con "webServer exited early" y quedaba un server huérfano en 4321 que `reuseExistingServer` después reusaba **sin rebuild** → tests contra `dist/` viejo. Se neutraliza con `ASTRO_PREVIEW_BACKGROUND: '0'`.
+
+**Desviaciones de la spec de T7:** ninguna. El implementador agregó casos permitidos (assert de `lang="es"`, overflow también a 1280, touch targets también a 320, scan genérico de contraste además de los 11 pares de §2). El único skip (`row 10` en desktop-1280) es scoping honesto por viewport, pero como §12 enuncia el mínimo de 44px **sin condicionar**, los touch targets de desktop quedan sin gatear — riesgo bajo (miden 44–52px), registrado como SUGGESTION.
+
+**Overage de presupuesto, aceptado por el maintainer.** El forecast del plan decía "por debajo de 400 líneas"; fueron **646 autoradas** (+38 de lockfile/config). El assessment nativo lo marcó `risk: medium` / `review_due: slice_budget_reached`. Decisión del stakeholder: **`size:exception`** — el harness y sus specs son una sola unidad de trabajo (la config sin specs corre 0 tests; las specs sin config no corren) y no hay remote ni PRs que encadenar (PRD §9, directo a `main`).
+
 ## Pendientes del stakeholder (bloquean el lanzamiento, no el build)
 
 - Las 6 respuestas de FAQ (PRD §8) — hoy `[PENDIENTE]`.
@@ -271,3 +302,6 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 - **2026-09-18 (e):** T3 completado. Content collection `propiedades` con schema estricto del PRD §4 y 3 semillas tomadas de los screens; schema probado con test negativo y spot check del padre. Commit: `3080dde`.
 - **2026-09-18 (f):** T4 completado. Primitivas que consume la landing (`DameroPlaceholder` §7, `Button`, `OperationBadge`, `PropertyCard`, `ServiceIcon`, `formatAmount`) y los 8 SVG duotono movidos a `src/icons/services/` para poder inlinearlos con `currentColor`. Filter input, WhatsApp CTA y Empty state diferidos al track §17 por no tener consumidor en T1–T5.
 - **2026-09-18 (g):** T5 completado. Landing `/` compuesta según §5 con las primitivas de T4 y las 3 semillas. Verificación independiente con Chrome real (orden de secciones, un solo CTA primario por viewport, los 11 pares de contraste medidos sobre computed styles, semántica, teclado, 0 overflow a 390/320) y corrección del único gap de fidelidad visual: la densidad del damero en la banda del hero.
+- **2026-09-21 (a):** decisión del stakeholder — **T6 se difiere a §17** (los 2 glifos de UI no tienen consumidor todavía) y **T7 pasa a ser el próximo entregable**. Se corrigieron en el doc 2 supuestos que resultaron falsos: Playwright **no** necesita `allowBuilds`, y el MCP de Engram sí funciona. Commits: `45c8364` (plan).
+- **2026-09-21 (b):** T7 completado. Suite e2e con `@playwright/test@1.63.0` pineado exacto: 38 asserts sobre 1280/390/320, `webServer` contra `dist/`, audits browser-side compartidos. Control negativo real (9 rojos con el defecto, verde al revertir) y **control negativo independiente del verificador sobre fixtures propios (5/5)**: los audits discriminan. Evidencia completa arriba. Commit: `b9865ee` (con `size:exception` autorizado por el maintainer: 646 líneas autoradas sobre el presupuesto de ~400).
+- **Pendiente:** track §17 — `/propiedades`, `/propiedades/<slug>`, `/faqs`, los 3 componentes diferidos (Filter input, WhatsApp CTA, Empty state), los 2 glifos de T6 y las specs e2e de cada ruta nueva. Más los datos reales del stakeholder.
