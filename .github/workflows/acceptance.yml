@@ -46,7 +46,7 @@ jobs:
     timeout-minutes: 20
     steps:
       # PENDING IMPROVEMENT: pin these actions by commit SHA instead of mutable tags
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No `version:` input: the `packageManager` field in package.json provides
       # it. Must run before actions/setup-node, otherwise `cache: pnpm` fails.
