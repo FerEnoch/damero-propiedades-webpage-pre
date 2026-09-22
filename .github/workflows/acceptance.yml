@@ -5,11 +5,32 @@ name: acceptance
 # runs against the production build: `playwright.config.ts` builds the site and
 # serves it as its `webServer`, so this workflow intentionally has no separate
 # build step.
+# Documentation-only pushes do not run the suite: none of `docs/`, `design/`,
+# `odd/`, `README.md` or `AGENTS.md` is read by the build or by these specs —
+# they are cited from comments only. Keep this list NARROW.
+#
+# NEVER add `src/**`, `public/**`, `e2e/**` or any config file here. In
+# production an instructed employee publishes a listing by committing a
+# markdown file under `src/content/propiedades/` plus its photos under
+# `public/`, and that is exactly the push that MUST run the gate: it is the one
+# that can break the build (schema), the routes (dead slugs) and the payload.
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'odd/**'
+      - 'docs/**'
+      - 'design/**'
+      - 'README.md'
+      - 'AGENTS.md'
   push:
     branches: [main]
+    paths-ignore:
+      - 'odd/**'
+      - 'docs/**'
+      - 'design/**'
+      - 'README.md'
+      - 'AGENTS.md'
 
 permissions:
   contents: read

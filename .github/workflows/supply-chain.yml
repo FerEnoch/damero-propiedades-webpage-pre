@@ -1,11 +1,29 @@
 name: supply-chain
 
-# Gate mínimo de supply chain: instalación reproducible + auditoría + build.
+# Minimal supply-chain gate: reproducible install + audit + build.
+#
+# Documentation-only pushes do not run it (same narrow ignore list as
+# `acceptance.yml`, which carries the reasoning). Keep this list NARROW: never
+# add `src/**`, `public/**`, `e2e/**` or a config file, because an instructed
+# employee publishes listings as content markdown plus photos and that push
+# must run.
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'odd/**'
+      - 'docs/**'
+      - 'design/**'
+      - 'README.md'
+      - 'AGENTS.md'
   push:
     branches: [main]
+    paths-ignore:
+      - 'odd/**'
+      - 'docs/**'
+      - 'design/**'
+      - 'README.md'
+      - 'AGENTS.md'
 
 permissions:
   contents: read
@@ -19,7 +37,7 @@ jobs:
     name: Install (frozen) + Audit + Build
     runs-on: ubuntu-latest
     steps:
-      # MEJORA PENDIENTE: pinear estas actions por SHA de commit en vez de tags mutables
+      # PENDING IMPROVEMENT: pin these actions by commit SHA instead of mutable tags
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -28,7 +46,7 @@ jobs:
           cache: pnpm
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
-      - name: Audit (HIGH/CRITICAL bloquea)
+      - name: Audit (HIGH/CRITICAL blocks)
         run: pnpm audit --audit-level high
       - name: Build
         run: pnpm build
