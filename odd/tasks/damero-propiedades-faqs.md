@@ -149,9 +149,11 @@ Estrategia: `ask-on-risk`. **Cada slice que supere ~400 líneas autoradas se par
 ## Bloqueantes de lanzamiento (no de build)
 
 - **Las 6 respuestas de FAQ** (PRD §8). Hoy `PENDIENTE`.
-- **WhatsApp y CCI reales**; nombre del corredor (¿"Alejandro" o "Alejando"?).
+- **WhatsApp y CCI reales** (CCI = Colegio de Corredores Inmobiliarios; el número es la matrícula del corredor).
+- Confirmar el nombre legal del corredor: el brief dice "Alejandro", el sitio de fase 1 dice "Alejando".
 - Confirmar el tinte `#C3CDB8` del logo knockout.
-- Confirmar el prefijo `icon-` en los nombres de archivo.
+- ~~Confirmar el prefijo `icon-` en los nombres de archivo~~ — **CERRADO (2026-09-22):** en uso consistente.
+- **Lista vigente y centralizada en `odd/tasks/damero-release-prep.md`.**
 
 ---
 

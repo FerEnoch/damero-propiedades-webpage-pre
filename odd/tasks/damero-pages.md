@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** T0–T5 y **T7** ✅ commiteados (T7: 2026-09-21, `45c8364` + `b9865ee`). **T6 diferido al track §17** (decisión del stakeholder, 2026-09-21). **Siguiente: track §17** — su plan vive en `odd/tasks/damero-propiedades-faqs.md` (`/propiedades`, `/propiedades/<slug>`, `/faqs` + los 3 componentes diferidos + el glifo `icon-house`). Ver "Próxima sesión — arrancar acá" más abajo.
+**Estado:** T0–T5 y **T7** ✅ commiteados. **T6 y el track §17 cerrados** (2026-09-22): `/propiedades`, `/propiedades/<slug>`, `/faqs`, los 3 componentes diferidos y `icon-house` existen, y el gate está verde (**280 passed / 11 skipped**). **Siguiente: release prep** — `odd/tasks/damero-release-prep.md` (README, CI con el gate real, repo remoto).
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
@@ -11,9 +11,9 @@
 **Alcance:** tokens CSS, estilos globales y fuentes, layout base (header/footer), content collection de propiedades con datos semilla, componentes base de `DESIGN.md` §6, y la landing `/` (§5).
 **Fuera de alcance:** `/propiedades`, `/propiedades/<slug>` y `/faqs` (§17); los 5 checks de CI del PRD §9; el deploy.
 
-## Próxima sesión — arrancar acá (2026-09-21)
+## Próxima sesión — arrancar acá (2026-09-22)
 
-**Estado:** T7 ✅ cerrado el 2026-09-21 (`45c8364` plan + `b9865ee` suite). El track de fundación + landing queda **completo salvo T6**, que se difirió a §17. **Arrancar por el track §17.**
+**Estado:** T7 ✅ y **track §17 ✅** cerrados. El track de fundación + landing queda **completo, T6 incluido**. **Arrancar por el release prep** (`odd/tasks/damero-release-prep.md`): README, CI con el gate real y repo remoto. El historial de §17 vive en `damero-propiedades-faqs.md`.
 
 **Qué dejó T7 listo para §17:** un gate ejecutable (`pnpm test:e2e`, 38 asserts en 1280/390/320) que corre contra `dist/` y falla de verdad ante regresiones de estructura, contraste, sage en texto, datos inventados, overflow, touch targets y teclado. **Nuevas páginas se agregan al gate, no al margen**: cada ruta nueva necesita sus propias specs. Y ojo con el límite declarado (WARNING-1 de la evidencia de T7): la suite **no** detecta drift de paleta ni el rule de hex crudos — eso sigue siendo grep.
 
@@ -73,11 +73,11 @@
 5. El **CTA del hero mobile** no es full-width ni uppercase como en el screen mobile; §6 no opina.
 6. `destacada: true` solo en la casa; los screens muestran las 3 bajo "Propiedades destacadas" (igual la landing compone 1 lead + 2 compactas por el fallback de §5).
 
-**Bloqueantes de lanzamiento (no de build):** las 6 respuestas de FAQ (PRD §8), WhatsApp y CCI reales, nombre del corredor (¿"Alejandro" o "Alejando"?), y confirmar el tinte `#C3CDB8` del logo knockout.
+**Bloqueantes de lanzamiento (no de build):** las 6 respuestas de FAQ (PRD §8), WhatsApp y CCI reales, confirmar el nombre legal del corredor ("Alejandro" en el brief, "Alejando" en el sitio de fase 1) y confirmar el tinte `#C3CDB8` del logo knockout. **Lista vigente y centralizada en `damero-release-prep.md`.**
 
 **Gotchas de infraestructura:**
 - **No hay remote de git configurado** ni upstream en `main`: el CI del PRD §9 no puede correr. Todo es local.
-- **`.opencode/agent/engineering-astro-{implementer,mapper,verifier}.md` está untracked.** Son los 3 agentes de proyecto pinneados (implementer `kimi-k3` max, verifier `deepseek-v4-pro` high, mapper `deepseek-v4.1-flash` high), nombrados bajo el glob `engineering-*` de la allowlist del orquestador. **Actualización 2026-09-21:** ya cargan (opencode se reinició) y están en uso. `.opencode/` ahora también tiene `package.json` + `package-lock.json` + `node_modules` del plugin de opencode, pero su `.gitignore` propio ya los cubre, así que commitear solo `agent/*` es limpio. **Falta decidir si se commitean.**
+- **`.opencode/agent/engineering-astro-{implementer,mapper,verifier}.md` está untracked.** Son los 3 agentes de proyecto pinneados (implementer `kimi-k3` max, verifier `deepseek-v4-pro` high, mapper `deepseek-v4.1-flash` high), nombrados bajo el glob `engineering-*` de la allowlist del orquestador. **Actualización 2026-09-21:** ya cargan (opencode se reinició) y están en uso. `.opencode/` ahora también tiene `package.json` + `package-lock.json` + `node_modules` del plugin de opencode, pero su `.gitignore` propio ya los cubre. **DECIDIDO (2026-09-22): no se commitean.** `.opencode/` se agregó al `.gitignore` del repo: cada persona que trabaje acá trae su propio harness. Consecuencia registrada: estas rutas no existen en un clone nuevo, y `AGENTS.md` ahora lo declara.
 - **El MCP de Engram fallaba en este proyecto** con "multiple active runtime sessions" (2026-09-18). **Actualización 2026-09-21:** funciona — `mem_current_project`, `mem_context`, `mem_search` y `mem_get_observation` responden bien. Si vuelve a fallar, el fallback es el CLI `engram save <title> <content> --project realtor_pre_webpage --type ... --topic ...`.
 - **Componentes diferidos al track §17:** Filter input, WhatsApp CTA y Empty state. No los consume ninguna página de T1–T5 y `/propiedades` está fuera de alcance; se construyen con su primer consumidor.
 - **Coherencia a resolver en §17:** el teaser de FAQ usa voz sans para la pregunta; §17.3 pide serif para el acordeón de `/faqs`. Hay que alinearlos.
@@ -288,10 +288,12 @@ Presupuesto de revisión: ~400 líneas por slice. Fundación + landing se estima
 ## Pendientes del stakeholder (bloquean el lanzamiento, no el build)
 
 - Las 6 respuestas de FAQ (PRD §8) — hoy `[PENDIENTE]`.
-- WhatsApp y CCI reales; nombre del corredor (¿"Alejandro" o "Alejando"?).
+- WhatsApp y CCI reales.
+- Confirmar el nombre legal del corredor: el brief dice "Luis Alej**andro**", el sitio de fase 1 dice "Luis Alej**ando**".
 - Confirmar el tinte `#C3CDB8` del logo knockout.
-- Confirmar el prefijo `icon-` en los nombres de archivo.
+- ~~Confirmar el prefijo `icon-` en los nombres de archivo~~ — **CERRADO (2026-09-22):** ya está en uso consistente (`src/icons/icon-house.svg`).
 - Revisar `icon-handshake.svg` a 44 px (punto débil del set).
+- **Lista vigente y centralizada en `odd/tasks/damero-release-prep.md`.**
 
 ## Progreso
 

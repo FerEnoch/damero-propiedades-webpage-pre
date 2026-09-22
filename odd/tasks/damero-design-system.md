@@ -105,13 +105,13 @@
 ## Pendientes del stakeholder
 
 - **Las 6 respuestas de FAQ** — bloqueante de lanzamiento (PRD §8). Hoy son `[PENDIENTE]`.
-- **Número real de WhatsApp** y **CCI real** (hoy placeholder / valor de fase 1).
-- **Corregir el nombre del corredor:** el sitio actual dice "Luis Alej**ando** Da Silva" (typo probable); se usó "Luis Alej**andro**" del brief.
+- **Número real de WhatsApp** y **CCI real** (hoy `+54 9 2304 000000` y `CCI 000`, ambos placeholders del contrato). CCI = **Colegio de Corredores Inmobiliarios**; el número es la matrícula del corredor.
+- **Nombre del corredor — SIGUE ABIERTO (2026-09-22):** el sitio de fase 1 dice "Luis Alej**ando** Da Silva" y el brief dice "Luis Alej**andro**". El build usa "Alejandro" (§6), pero el sitio viejo es copy del cliente: **no se resuelve por contrato**, lo confirma una persona.
 - **Revisar la sección de FAQ de la landing de fase 1:** Stitch redactó 2 respuestas inventadas, con preguntas que no son las 6 semilla del PRD §8. Contradice el bloqueante de lanzamiento.
 - **Métricas / prueba social reales** si las quiere en la landing (no se inventó ninguna).
 - **Revisar `icon-handshake.svg` a 44 px** — es el punto débil del set (a 24 px con stroke 1,5 entran pocos trazos paralelos; son los dedos los que hacen reconocible un apretón de manos).
 - **Confirmar el tinte `#C3CDB8`** del rombo sage en el logo knockout: ¿punto justo de claridad, o más claro / más verde?
-- **Confirmar el prefijo `icon-`** en los nombres de archivo (si se prefiere sin prefijo, es un rename).
+- ~~**Confirmar el prefijo `icon-`** en los nombres de archivo~~ — **CERRADO (2026-09-22):** en uso consistente en todo `src/icons/` (`icon-house.svg`). Si se prefiere sin prefijo, es un rename mecánico.
 
 ## Progreso
 
