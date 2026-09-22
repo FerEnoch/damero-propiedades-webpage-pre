@@ -108,9 +108,11 @@ contradicción**, nunca resolverla en silencio.
 | Revisión adversarial de código | `engineering-code-reviewer` |
 | Arquitectura CSS / sistema de diseño | `engineering-frontend-developer` |
 
-Los tres `engineering-astro-*` viven en `.opencode/agent/` y conocen las reglas de este repo.
-Los agentes genéricos **no tienen Astro en su stack**: para trabajo de este sitio, preferí
-los específicos.
+Los tres `engineering-astro-*` viven en `.opencode/agent/`, que **está gitignoreado**: el harness
+es local de cada persona y no viaja con el repo (decisión del stakeholder, 2026-09-22). Si tu
+harness los define, son los que conocen las reglas de este sitio; los agentes genéricos **no tienen
+Astro en su stack**, así que para trabajo acá preferí los específicos. Si no los tenés, este archivo
+es el contrato que hay que respetar: traé tu propio equivalente.
 
 ## Commits
 
