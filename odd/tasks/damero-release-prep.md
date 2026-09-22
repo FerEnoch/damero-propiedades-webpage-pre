@@ -1,6 +1,6 @@
 # ODD — Damero: release prep (README, CI y repo remoto)
 
-**Estado:** **plan cerrado 2026-09-22.** T1–T7 ✅ — higiene de docs, README, gate de CI, verificación independiente, repo público `FerEnoch/damero-propiedades-webpage-pre` y **CI verde end-to-end**. El primer push del track destapó un defecto real del lockfile que nunca se había visto porque no existía remote; se diagnosticó, se arregló y el gate e2e corrió por primera vez en el servidor: **280 passed / 11 skipped**, job de 1m34s. Detalle en Progreso (c)/(d) y en el Veredicto.
+**Estado:** **plan cerrado 2026-09-22.** T1–T7 ✅ — higiene de docs, README, gate de CI, verificación independiente, repo público `FerEnoch/damero-propiedades-webpage-pre` y **CI verde end-to-end**. El primer push del track destapó un defecto real del lockfile que nunca se había visto porque no existía remote; se diagnosticó, se arregló y el gate e2e corrió por primera vez en el servidor: **280 passed / 11 skipped**, job de 1m34s. Detalle en Progreso (c)/(d)/(e) y en el Veredicto. **Queda una decisión abierta, deliberadamente no resuelta: el check 3 (límites de imagen). Ver "Deuda de CI — decisión abierta" en el Veredicto.**
 
 **Objetivo:** dejar el MVP publicable: higiene de los documentos de harness, un `README.md` público, un CI que cubra el gate de aceptación real, y el repo remoto público creado con `main` pusheada.
 
@@ -102,7 +102,17 @@ O sea: sumar el gate e2e a CI cubre 4 y 5 de una; el check 3 queda como deuda ex
 2. **No es el deploy.** No hay `vercel.json` ni paso de deploy: Vercel corre su propio install + build desde su integración con GitHub. **Ese install también usa el lockfile**, así que el defecto de arriba no era sólo del CI — era también un riesgo de build en el deploy. (No verificado contra Vercel desde acá.)
 3. **No está endurecido del todo.** Las actions van por tags mutables (`@v4`) y no por SHA de commit: riesgo de supply chain real, ya anotado como deuda dentro de ambos archivos y mitigado por el updater de `github-actions` de `dependabot.yml`. `pnpm audit --audit-level high` puede bloquear un push por un advisory sin fix disponible — elección deliberada del repo, con ese costo explícito.
 
-**Recomendaciones, en orden de valor:** (1) ✅ **hecho** — fix pusheado y verde real confirmado; (2) implementar el check 3 antes de cargar fotos reales; (3) pinear las actions por SHA; (4) ✅ **`paths-ignore` hecho** (`245c5f9`) — queda pendiente cachear el browser de Playwright (~30 s por run).
+**Recomendaciones, en orden de valor:** (1) ✅ **hecho** — fix pusheado y verde real confirmado; (2) ✅ **`paths-ignore` hecho** (`245c5f9`), con el ignore angosto a propósito por el flujo del empleado; (3) el **check 3** — ver la decisión abierta de abajo; (4) pinear las actions por SHA: los 4 PRs de Dependabot ya abiertos van en esa dirección y además eliminan los warnings de Node 20 de los tags `@v4`.
+
+### Deuda de CI — decisión abierta del stakeholder (2026-09-22)
+
+**El check 3 del PRD §9 no está implementado en ningún lado:** límites de imagen (≤10 fotos por propiedad, WebP, ancho ≤1600px, cada una <300 KB). El PRD lo enuncia como "fail the build" y hoy es papel.
+
+El stakeholder reconoce que **es el gap más importante** ahora que el empleado instruido va a cargar fotos reales — es lo único que nadie atrapa: un JPEG de 6 MB pasa el schema, pasa las specs, y lo deploya Vercel igual. Pero **no decidió implementarlo** ("no estoy seguro de implementarlo, aunque sé que es importante; después lo veo").
+
+Queda registrado como **identificado y no decidido**. No es un plan, no es una tarea asignada y no debe asumirse al retomar: si se decide hacerlo, es un validador sobre `src/content/propiedades/` + `public/` más un paso de CI que falla el build.
+
+Nada de esto bloquea el build ni el deploy.
 
 ---
 
