@@ -1,0 +1,56 @@
+name: acceptance
+
+# Acceptance gate: runs the full Playwright e2e suite — the acceptance gate
+# declared in AGENTS.md — on every pull request and push to `main`. The suite
+# runs against the production build: `playwright.config.ts` builds the site and
+# serves it as its `webServer`, so this workflow intentionally has no separate
+# build step.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright e2e (1280 / 390 / 320)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # PENDING IMPROVEMENT: pin these actions by commit SHA instead of mutable tags
+      - uses: actions/checkout@v4
+
+      # No `version:` input: the `packageManager` field in package.json provides
+      # it. Must run before actions/setup-node, otherwise `cache: pnpm` fails.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Install chromium (Playwright bundled build)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run the e2e gate
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
