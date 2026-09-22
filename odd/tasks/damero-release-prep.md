@@ -1,6 +1,6 @@
 # ODD — Damero: release prep (README, CI y repo remoto)
 
-**Estado:** plan abierto 2026-09-22. T1–T4 pendientes, T5 pendiente de confirmar el slug del repo.
+**Estado:** **plan cerrado 2026-09-22**, con una decisión abierta: el fix del lockfile está commiteado local (`d480bab`) pero **sin pushear**. T1–T5 ✅ — higiene de docs, README, gate de CI, verificación independiente y repo público `FerEnoch/damero-propiedades-webpage-pre` con `main` pusheada en `2f70e5f`. **El CI corrió por primera vez y quedó rojo:** halló un defecto real del lockfile que nunca se había visto porque no había remote. Diagnóstico, fix y verificación en Progreso (c) y en el Veredicto.
 
 **Objetivo:** dejar el MVP publicable: higiene de los documentos de harness, un `README.md` público, un CI que cubra el gate de aceptación real, y el repo remoto público creado con `main` pusheada.
 
@@ -82,9 +82,27 @@ O sea: sumar el gate e2e a CI cubre 4 y 5 de una; el check 3 queda como deuda ex
 
 ---
 
-## Veredicto de CI/CD (se completa en T3)
+## Veredicto de CI/CD (2026-09-22)
 
-Pendiente.
+**Cobertura real, contra los 5 checks del PRD §9:**
+
+| PRD §9 | Hoy |
+|---|---|
+| 1. Astro build | ✅ en `supply-chain.yml` |
+| 2. Content Collections schema | ✅ implícito en el build (la Content Layer valida al construir); sin paso explícito |
+| 3. Límites de imagen (≤10 fotos, WebP, ancho ≤1600px, cada una <300 KB) | ❌ **deuda: no existe en ningún lado.** Hoy es vacuo (las 3 semillas tienen `fotos: []`), pero es justo el check que el PRD §11 señala como riesgo cuando lleguen las fotos reales |
+| 4. Sin coordenadas numéricas | ✅ specs e2e — que recién ahora pueden correr en CI |
+| 5. Links y slugs válidos | ✅ specs e2e — ídem |
+
+**Hallazgo que sólo apareció al pushear: el CI nunca había corrido y no funcionaba.** Los 280 specs estaban verdes en local, pero los dos workflows morían en el primer paso (`pnpm install --frozen-lockfile`, 9 s y 11 s). Lección de proceso: **"verde en local" no es "verde en CI"**. El lockfile y el entorno son parte de la verificación, y ese hueco existía porque no había remote. Fix en `d480bab`, pendiente de push.
+
+**Tres cosas que el CI NO es:**
+
+1. **No es una barrera.** Con commits directos a `main` (PRD §9) nada bloquea un push: los workflows corren *después*. Son una señal para no deployar, no un candado. Convertirlo en barrera exige PRs + branch protection, o un "Ignored Build Step" del lado de Vercel.
+2. **No es el deploy.** No hay `vercel.json` ni paso de deploy: Vercel corre su propio install + build desde su integración con GitHub. **Ese install también usa el lockfile**, así que el defecto de arriba no era sólo del CI — era también un riesgo de build en el deploy. (No verificado contra Vercel desde acá.)
+3. **No está endurecido del todo.** Las actions van por tags mutables (`@v4`) y no por SHA de commit: riesgo de supply chain real, ya anotado como deuda dentro de ambos archivos y mitigado por el updater de `github-actions` de `dependabot.yml`. `pnpm audit --audit-level high` puede bloquear un push por un advisory sin fix disponible — elección deliberada del repo, con ese costo explícito.
+
+**Recomendaciones, en orden de valor:** (1) pushear el fix y confirmar el verde real; (2) implementar el check 3 antes de cargar fotos reales; (3) pinear las actions por SHA; (4) opcional: cachear el browser de Playwright para acortar el job.
 
 ---
 
@@ -109,3 +127,14 @@ Ninguno bloquea el build ni el deploy: bloquean el **lanzamiento**.
 
 - **2026-09-22 (a):** plan abierto. Verificados H1–H5 con evidencia: `supply-chain.yml` leído completo (3 steps, sin e2e); PRD §9 leído (5 checks); `CCI` resuelto por búsqueda externa (Colegio de Corredores Inmobiliarios — el número es la matrícula del corredor); `#C3CDB8` localizado en `damero-design-system.md:93` y en los 2 SVG de logo. `gh` autenticado como `FerEnoch` con scope `repo`. Sin remote configurado.
 - **2026-09-22 (b):** **corregida H3.** El nombre del corredor no se cierra: `damero-design-system.md:109` documenta que el sitio de fase 1 dice "Alejando" y el brief "Alejandro". El primer paseo de esta sesión había concluido lo contrario por un grep incompleto (buscó dentro del repo, y la referencia está en el sitio en producción). Sólo B6 queda cerrado.
+- **2026-09-22 (c): T2–T5 cerrados, y el CI encontró su primer defecto real.**
+  - **T2/T3 (`bf76ce0`, `2f70e5f`)** — README público + `.github/workflows/acceptance.yml`. El writer delegado corrió el gate completo; el diff se clasificó **`high`** (señal `shell_process` por el workflow), así que el tier exigió **verificador independiente** además del self-check. Veredicto del verificador: `success`, 0 CRITICAL, **280/11 reproducidos por su cuenta**. Apliqué 3 correcciones suyas: el comando de install de Chromium del README no servía en Linux limpio (faltaba `--with-deps` — el WARNING real), `(licence)` → `matrícula` (CCI es el colegio; el número es la matrícula) y `.github/workflows/` agregado al árbol de estructura.
+  - **Error mío, corregido y reportado:** el writer dejó el workflow **en el índice de git**, así que mi `git add README.md && git commit` commiteó **los dos archivos** bajo un mensaje que sólo hablaba del README. Lo deshice con `git reset --soft` (commit local de segundos, sin pushear) y rehice la separación: un archivo por commit. **Lección: antes de commitear, verificar el índice, no sólo el working tree.**
+  - **T5 — repo público creado.** `FerEnoch/damero-propiedades-webpage-pre`, público, descripción "Damero Propiedades Webpage (pre)". `main` pusheada en `2f70e5f`. Escaneo de secretos previo: limpio (0 patrones de credencial, 0 `.env*`, 0 `.opencode/`, 0 `.atl/`, 96 archivos).
+    - **Fricción real con el transporte:** `gh repo create --source=. --push` **colgó 180 s sin output**, con el remote agregado en **SSH**. Diagnóstico: `ssh -T git@github.com` → `Permission denied (publickey)`; `ssh-add -l` → "The agent has no identities". El `gh` del stakeholder está configurado con `git_protocol: https`. Corregí el remote a HTTPS y pusheé con el helper de `gh` de forma puntual (`git -c credential.helper='...'`), sin persistir config. **`gh repo create` agrega un remote SSH que no funciona en este entorno.** El push disparó los dos workflows y Dependabot (npm + github-actions).
+  - **EL HALLAZGO: los dos workflows fallaron en el primer paso.** `supply-chain` y `acceptance` murieron en `pnpm install --frozen-lockfile` (9 s y 11 s) con `ERR_PNPM_FROZEN_LOCKFILE_WITH_OUTDATED_LOCKFILE`. Todo lo anterior (checkout, action-setup con pnpm 12.4.2, setup-node) pasó. **Diagnóstico con fuente primaria** (docs de pnpm + issue #14124 + PRs #14013/#14132): desde pnpm 12 el proyecto debe registrar la versión de pnpm resuelta en el **env lockfile** (el primer documento YAML de `pnpm-lock.yaml`), bajo `packageManagerDependencies`; desde pnpm 11.23 un frozen install **ya no reescribe** ese bloque. Nuestro lockfile tenía **un solo documento** y ningún `packageManagerDependencies`.
+    - **Por qué en local no se notaba:** el pnpm local **es** el pin (12.4.2), así que no hay nada que resolver, no escribe el bloque y el frozen pasa (verificado: exit 0 en un clone limpio). En CI, `pnpm/action-setup` instala pnpm de modo que el proceso tiene que resolver el pin del proyecto: ahí quiere escribir el bloque y `--frozen-lockfile` se lo prohíbe.
+    - **El fix obvio no funciona:** `pnpm install --lockfile-only` con el pnpm local **no escribe nada** (mismo lockfile, "Done in 22ms"). El bloque se escribe sólo cuando el pnpm que arranca **difiere** del pin. Receta reproducible: `pnpm dlx pnpm@12.5.1 install --lockfile-only` (arranca 12.5.1, resuelve el pin 12.4.2, escribe el bloque).
+    - **Verificado en las dos direcciones, en sandbox antes de tocar el repo:** sin el bloque → falla; con el bloque y en la condición de CI (entry ≠ pin) → `pnpm dlx pnpm@12.5.1 install --frozen-lockfile` da **exit 0** ("Lockfile is up to date, resolution step is skipped") y deja el lockfile **byte-idéntico**.
+    - **Fix en `d480bab` (local, sin pushear por decisión del stakeholder):** +158 líneas, **0 borrados**. El env document pinea `12.4.2` y sólo agrega sus propias entradas de plataforma; el grafo del proyecto, `settings` (`autoInstallPeers: false`) y las otras 2797 líneas quedan idénticas. Después del cambio: `pnpm install --frozen-lockfile` local verde y `pnpm build` verde (6 páginas).
+    - **Aprendizaje de proceso:** el gate verde local **no** cubría el flujo real de instalación. Nadie había corrido el CI hasta hoy porque no existía remote. Ese es exactamente el hueco que el push destapó — y valió la pena encontrarlo antes del deploy.
