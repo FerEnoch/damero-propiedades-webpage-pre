@@ -1,6 +1,6 @@
 # ODD — Damero: release prep (README, CI y repo remoto)
 
-**Estado:** **plan cerrado 2026-09-22**, con una decisión abierta: el fix del lockfile está commiteado local (`d480bab`) pero **sin pushear**. T1–T5 ✅ — higiene de docs, README, gate de CI, verificación independiente y repo público `FerEnoch/damero-propiedades-webpage-pre` con `main` pusheada en `2f70e5f`. **El CI corrió por primera vez y quedó rojo:** halló un defecto real del lockfile que nunca se había visto porque no había remote. Diagnóstico, fix y verificación en Progreso (c) y en el Veredicto.
+**Estado:** **plan cerrado 2026-09-22.** T1–T7 ✅ — higiene de docs, README, gate de CI, verificación independiente, repo público `FerEnoch/damero-propiedades-webpage-pre` y **CI verde end-to-end**. El primer push del track destapó un defecto real del lockfile que nunca se había visto porque no existía remote; se diagnosticó, se arregló y el gate e2e corrió por primera vez en el servidor: **280 passed / 11 skipped**, job de 1m34s. Detalle en Progreso (c)/(d) y en el Veredicto.
 
 **Objetivo:** dejar el MVP publicable: higiene de los documentos de harness, un `README.md` público, un CI que cubra el gate de aceptación real, y el repo remoto público creado con `main` pusheada.
 
@@ -102,7 +102,7 @@ O sea: sumar el gate e2e a CI cubre 4 y 5 de una; el check 3 queda como deuda ex
 2. **No es el deploy.** No hay `vercel.json` ni paso de deploy: Vercel corre su propio install + build desde su integración con GitHub. **Ese install también usa el lockfile**, así que el defecto de arriba no era sólo del CI — era también un riesgo de build en el deploy. (No verificado contra Vercel desde acá.)
 3. **No está endurecido del todo.** Las actions van por tags mutables (`@v4`) y no por SHA de commit: riesgo de supply chain real, ya anotado como deuda dentro de ambos archivos y mitigado por el updater de `github-actions` de `dependabot.yml`. `pnpm audit --audit-level high` puede bloquear un push por un advisory sin fix disponible — elección deliberada del repo, con ese costo explícito.
 
-**Recomendaciones, en orden de valor:** (1) pushear el fix y confirmar el verde real; (2) implementar el check 3 antes de cargar fotos reales; (3) pinear las actions por SHA; (4) opcional: cachear el browser de Playwright para acortar el job.
+**Recomendaciones, en orden de valor:** (1) ✅ **hecho** — fix pusheado y verde real confirmado; (2) implementar el check 3 antes de cargar fotos reales; (3) pinear las actions por SHA; (4) opcional: `paths-ignore` para documentación, y cachear el browser de Playwright — hoy **cada push, incluido uno de docs, corre los 291 tests** (1m34s de job).
 
 ---
 
@@ -138,3 +138,8 @@ Ninguno bloquea el build ni el deploy: bloquean el **lanzamiento**.
     - **Verificado en las dos direcciones, en sandbox antes de tocar el repo:** sin el bloque → falla; con el bloque y en la condición de CI (entry ≠ pin) → `pnpm dlx pnpm@12.5.1 install --frozen-lockfile` da **exit 0** ("Lockfile is up to date, resolution step is skipped") y deja el lockfile **byte-idéntico**.
     - **Fix en `d480bab` (local, sin pushear por decisión del stakeholder):** +158 líneas, **0 borrados**. El env document pinea `12.4.2` y sólo agrega sus propias entradas de plataforma; el grafo del proyecto, `settings` (`autoInstallPeers: false`) y las otras 2797 líneas quedan idénticas. Después del cambio: `pnpm install --frozen-lockfile` local verde y `pnpm build` verde (6 páginas).
     - **Aprendizaje de proceso:** el gate verde local **no** cubría el flujo real de instalación. Nadie había corrido el CI hasta hoy porque no existía remote. Ese es exactamente el hueco que el push destapó — y valió la pena encontrarlo antes del deploy.
+- **2026-09-22 (d): CI VERDE end-to-end, confirmado en el runner.** El stakeholder aprobó el push del fix. Pusheado `2f70e5f..a7fa894`; local y remoto coinciden.
+  - **`supply-chain`: `success`.**
+  - **`acceptance`: `success`, job de 1m34s.** El log del runner prueba que el gate corrió de verdad, no que se salteó pasos: `Lockfile is up to date, resolution step is skipped` (el fix funcionó — ya no aparece `ERR_PNPM_FROZEN_LOCKFILE_WITH_OUTDATED_LOCKFILE`), `Running 291 tests using 2 workers`, `11 skipped`, **`280 passed (54.4s)`** — idéntico a local. El artefacto `playwright-report` (380 KB) se subió, así que la ruta del reporte también es correcta.
+  - **Anotaciones, todas benignas:** Node 20 deprecado en las actions (el runner las fuerza en Node 24) y el aviso de que `ubuntu-latest` migra a Ubuntu 26 en octubre de 2026. Hubo un warning de reserva de caché de setup-node, sin efecto.
+  - **Cierre del plan:** el MVP tiene repo público, README, gate de aceptación real corriendo en el servidor y un CI honesto. Para lanzar sólo quedan los bloqueantes B1–B5 y B7–B8, y el deploy de Vercel, que hace el stakeholder.
