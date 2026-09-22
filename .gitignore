@@ -25,6 +25,7 @@ yarn-error.log*
 
 # ─── ESTADO LOCAL DEL RUNTIME DE IA ────────────────────────────────
 .atl/
+.opencode/
 
 # ─── SISTEMA OPERATIVO / EDITORES ──────────────────────────────────
 .DS_Store
