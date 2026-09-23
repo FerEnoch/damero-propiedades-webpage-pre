@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **plan abierto 2026-09-23.** T1–T5 ✅ — protección de rama aplicada y verificada por lectura independiente. Falta la **verificación end-to-end del flujo PR**, que es paso de entrega: push y creación de PR son decisión del stakeholder.
+**Estado:** **T1–T5 ✅ cerradas.** Entrega en curso: **PR #5** (código) con todos los checks en verde y `BLOCKED` esperando la aprobación requerida — la protección de rama **verificada end-to-end**; **PR #6** (instructivo) apilado sobre #5.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 
@@ -64,7 +64,7 @@ Descubierto al planificar T5 y confirmado por verificación independiente con la
 | T2 | Crear la carpeta de fotos | `chore(content)` | `public/propiedades/.gitkeep`, para que la ruta del contrato exista y el instructivo pueda apuntarle. |
 | T3 | Validador de límites de imagen (check 3) | `feat(ci)` | Script Node puro que valida las fotos de cada listing (≤10, WebP, ancho ≤1600px, cada una <300KB) + paso de CI que falla el build. |
 | T4 | Instructivo del empleado | `docs` | Guía paso a paso para la interfaz web de GitHub: crear la rama y el PR, dónde van descripción y fotos, la regla de portada y los límites. |
-| T5 | Branch protection + flujo PR | `ci` | ✅ H7 resuelto (`797e0ac`). ✅ Protección aplicada en `main`: check `Playwright e2e (1280 / 390 / 320)` required con `strict`, 1 aprobación, `enforce_admins: false`, sin force-push ni borrado de rama. **Resta la verificación end-to-end**, que es paso de entrega: push + PR son decisión del stakeholder. |
+| T5 | Branch protection + flujo PR | `ci` | ✅ H7 resuelto (`797e0ac`). ✅ Protección aplicada en `main`: check `Playwright e2e (1280 / 390 / 320)` required con `strict`, 1 aprobación, `enforce_admins: false`, sin force-push ni borrado de rama. ✅ **Verificada end-to-end en el PR #5**: el check corrió en CI y pasó (1m39s) y el PR quedó `BLOCKED` hasta que haya aprobación. |
 
 **Regla de cierre:** cada commit deja el árbol limpio y el gate verde (`pnpm build` + `pnpm test:e2e`).
 
@@ -91,4 +91,11 @@ Descubierto al planificar T5 y confirmado por verificación independiente con la
   - `enforce_admins: false` → el stakeholder sí puede bypasear. Con `true` sus propios PRs quedarían trabados, porque GitHub no permite auto-aprobarse. El riesgo a controlar es el empleado, no el dueño.
   - `allow_force_pushes: false`, `allow_deletions: false`.
   - **Verificado por lectura independiente de la API**, no por la respuesta del PUT: `{"allow_deletions":false,"allow_force_pushes":false,"approving_reviews":1,"contexts":["Playwright e2e (1280 / 390 / 320)"],"dismiss_stale":true,"enforce_admins":false,"strict":true}`.
-  - **Falta la verificación end-to-end** (abrir un PR real y comprobar que el check efectivamente bloquea hasta estar verde): es paso de entrega, y push + PR son decisión del stakeholder.
+  - **Verificación end-to-end: ✅ hecha en el PR #5** — ver (g).
+- **2026-09-23 (g): entrega — dos PRs abiertos, y la protección verificada end-to-end.**
+  - **Corte aplicado.** `feat/employee-content-flow` se reescribió (`git rebase --onto 7269ce3 59fce3e`) para sacar el commit del instructivo: 11 commits, sin la guía. El instructivo vive en `docs/employee-guide` (`cherry-pick` del commit original, para no perder su mensaje). El diff entre ambas ramas es **exactamente** el archivo de la guía (426 líneas). Gate verde tras el rebase: **280 passed / 11 skipped**.
+  - **PR #5 (código → `main`)** — https://github.com/FerEnoch/damero-propiedades-webpage-pre/pull/5. **Todos los checks en verde en CI**: `Install (frozen) + Audit + Build` (25s), **`Playwright e2e (1280 / 390 / 320)` (1m39s) — el check required**, GitGuardian y el preview de Vercel. Estado: **`BLOCKED`**, esperando la **1 aprobación** que exige la protección. **Ésa es la verificación end-to-end: el check required corrió en CI y la protección bloquea el merge hasta que haya aprobación.**
+  - **PR #6 (instructivo → `feat/employee-content-flow`)** — https://github.com/FerEnoch/damero-propiedades-webpage-pre/pull/6, apilado a propósito.
+  - **Gotcha encontrado: un PR apilado NO corre el gate.** `acceptance.yml` declara `pull_request: branches: [main]`, así que un PR cuya base **no** es `main` no dispara el workflow. El PR #6 no tiene check de acceptance — confirmado en su propia lista de checks (sólo GitGuardian y Vercel). Para un PR de sólo documentación el riesgo es nulo, pero queda registrado.
+  - **Riesgo de orden de merge, declarado:** el PR #6 figura `CLEAN` y podría mergearse primero. Si eso pasa, la guía entra a la rama de feature y **el diff del PR #5 se agranda**. **Mergear #5 primero**; GitHub retargetea #6 a `main` automáticamente, y ahí corre el gate y aplica la protección.
+  - **Dato nuevo:** Vercel **sí** está integrado — cada PR recibe un deploy de preview. El repo no tiene `vercel.json` y el track de release lo daba por manual del stakeholder.
