@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **plan abierto 2026-09-23.** T1–T2 ✅, T3–T5 pendientes.
+**Estado:** **plan abierto 2026-09-23.** T1–T3 ✅, T4–T5 pendientes.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 
@@ -70,3 +70,8 @@ No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo 
 
 - **2026-09-23 (a):** plan abierto. Mapeo completo del pipeline de contenido (schema, render, imágenes, CI) y verificación del estado de RDD (`clone_local: off`, sin candidato). Decisión de `portada` fundada en la contradicción interna PRD §7 vs §4. Flujo PR + branch protection elegido por el stakeholder. Rama `feat/employee-content-flow` creada.
 - **2026-09-23 (b): T1 y T2 cerradas.** `2b5d22f` (plan) → `6ccc93f` (T1, `fix(content)`: `portada` fuera del schema y de las dos menciones del PRD §4 — tabla de campos y ejemplo; 1 inserción / 4 borrados; cero referencias residuales en `src/`, `docs/` y `e2e/`) → T2 (`chore(content)`: `public/propiedades/.gitkeep`). **Gate verde en los dos commits: `280 passed / 11 skipped`, idéntico al baseline.** El código de render no se tocó: ya implementaba §7. Siguiente: T3 (validador de límites de imagen).
+- **2026-09-23 (c): T3 cerrada (`a46ed25`, `feat(ci)`).** `scripts/check-image-limits.mjs` (Node puro, **cero dependencias**) valida dos superficies: las fotos *referenciadas* por cada listing y *todo* archivo bajo `public/propiedades/`, incluso huérfano. Cubre los cuatro límites del PRD §9: conteo ≤10 por listing, `.webp`, ancho ≤1600px (leído del header del contenedor WebP —VP8/VP8L/VP8X— sin decodificar la imagen) y <300KB. Falla ruidosamente cuando no puede leer el bloque `fotos:`; nunca pasa en silencio. Suma `pnpm check:images` y un paso en `acceptance.yml` **antes** del install de chromium (no necesita build ni browser: es el lugar más barato para atrapar el problema).
+  - **Evidencia — pase real (VACUO, y se reporta como tal):** `Image limits OK — 3 listing(s), 0 referenced photo(s), 0 file(s) under public/propiedades/`. Las 3 semillas tienen `fotos: []`, así que esto **no prueba** que el validador funcione.
+  - **Evidencia — prueba real con fixtures temporales** (generados, corridos y borrados; `git status` limpio después): **10 violaciones detectadas, `EXIT=1`**, cubriendo cada límite por separado — conteo (11 > 10), ancho (2000px > 1600px), peso (400 KB > 300 KB), formato (`.jpg`), header WebP inválido, y archivo referenciado inexistente. La segunda superficie también disparó sobre los mismos archivos huérfanos.
+  - **Gate:** `pnpm test:e2e` → **280 passed / 11 skipped**, idéntico al baseline.
+  - **Riesgo residual declarado:** en CI el paso es **vacuo** hasta que exista el primer listing con fotos reales. La prueba con fixtures es la evidencia de que dispara; la primera propiedad real será su primera prueba en vivo.
