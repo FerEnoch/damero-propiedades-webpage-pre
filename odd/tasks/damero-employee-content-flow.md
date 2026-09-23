@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **plan abierto 2026-09-23.** T1–T3 ✅, T4–T5 pendientes.
+**Estado:** **plan abierto 2026-09-23.** T1–T4 ✅, T5 pendiente y bloqueada por un hallazgo crítico de plan.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 
@@ -50,6 +50,9 @@ Quitar `portada` hace que cualquier frontmatter que aún lo traiga **falle el bu
 **H6 — El repo está en `main` y el árbol limpio.**
 No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo con rama + PR.
 
+**H7 — `paths-ignore` y required status checks son incompatibles.**
+Descubierto al planificar T5 y confirmado por verificación independiente con la documentación de GitHub: si el workflow no corre por filtro de caminos, **no crea ningún check run**, y branch protection lo trata como "Pending" para siempre. Un PR que sólo toque `docs/**`, `design/**`, `odd/**`, `README.md` o `AGENTS.md` quedaría **inmergeable**. Opciones: (a) sacar el `paths-ignore` de `acceptance.yml` — el repo es **público**, así que los minutos de Actions son gratis y el ahorro que lo justificaba no existe; (b) mover el filtro a nivel de **job** con un `if:`, que sí reporta "skipped" y satisface el check, pero suma maquinaria; (c) no volver ese check *required*, que anula el propósito de branch protection. **Recomendación: (a).**
+
 ---
 
 ## Tareas (work units)
@@ -60,7 +63,7 @@ No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo 
 | T2 | Crear la carpeta de fotos | `chore(content)` | `public/propiedades/.gitkeep`, para que la ruta del contrato exista y el instructivo pueda apuntarle. |
 | T3 | Validador de límites de imagen (check 3) | `feat(ci)` | Script Node puro que valida las fotos de cada listing (≤10, WebP, ancho ≤1600px, cada una <300KB) + paso de CI que falla el build. |
 | T4 | Instructivo del empleado | `docs` | Guía paso a paso para la interfaz web de GitHub: crear la rama y el PR, dónde van descripción y fotos, la regla de portada y los límites. |
-| T5 | Branch protection + flujo PR | — | Configurar required status checks sobre `main` y verificar el flujo PR end-to-end. Requiere autorización explícita para la mutación remota. |
+| T5 | Branch protection + flujo PR | `ci` | **Prerrequisito (H7):** resolver el deadlock `paths-ignore` × required checks. Después: required status checks sobre `main` y verificación end-to-end del flujo PR. Requiere autorización explícita para la mutación remota. |
 
 **Regla de cierre:** cada commit deja el árbol limpio y el gate verde (`pnpm build` + `pnpm test:e2e`).
 
@@ -75,3 +78,8 @@ No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo 
   - **Evidencia — prueba real con fixtures temporales** (generados, corridos y borrados; `git status` limpio después): **10 violaciones detectadas, `EXIT=1`**, cubriendo cada límite por separado — conteo (11 > 10), ancho (2000px > 1600px), peso (400 KB > 300 KB), formato (`.jpg`), header WebP inválido, y archivo referenciado inexistente. La segunda superficie también disparó sobre los mismos archivos huérfanos.
   - **Gate:** `pnpm test:e2e` → **280 passed / 11 skipped**, idéntico al baseline.
   - **Riesgo residual declarado:** en CI el paso es **vacuo** hasta que exista el primer listing con fotos reales. La prueba con fixtures es la evidencia de que dispara; la primera propiedad real será su primera prueba en vivo.
+- **2026-09-23 (d): T4 cerrada (`59fce3e`) y verificación independiente de la rama.**
+  - **T4 — `docs/GUIA_CARGA_PROPIEDADES.md` (426 líneas).** Guía operativa para el empleado, en **español**: dónde va el markdown y dónde van las fotos, los 18 campos del frontmatter, los cuatro límites, la regla de portada, el flujo por rama + PR desde la interfaz web, y los errores comunes con los mensajes reales del validador citados verbatim. **Desviación reportada, no silenciada:** `AGENTS.md` pide documentación en inglés; el lector es un empleado hispanohablante no técnico, así que el idioma del artefacto sigue al lector. Se registra para que el stakeholder lo confirme o lo revierta.
+  - **Tier de riesgo: `high`** (señal `shell_process` por `acceptance.yml`). Con RDD off, el tier alto exige verificación independiente además del self-check → corrió `engineering-astro-verifier`, read-only. **Veredicto: PASS** en las cinco áreas: offsets del header WebP correctos en los tres layouts (probados con headers sintéticos), fail-loud verificado en 4 caminos, los 6 límites disparando con `exit 1`, YAML válido y el paso antes del install de chromium, guía cruzada contra el schema (18/18 campos; mensajes citados verbatim), `portada` sin referencias residuales, y **gate `280 passed / 11 skipped` reproducido por su cuenta**.
+  - **Hallazgo corregido (`a464598`, `fix(ci)`):** un `fotos:` desnudo (YAML null) se leía como 0 fotos y **pasaba**, contra la propia garantía del script de no pasar en silencio. El schema lo rechaza en build, así que no era un agujero del gate — pero la afirmación del script tenía que ser cierta por sí misma. Se agregó el fail-loud y los guardas de longitud del header pasaron a ser por layout en vez de un piso único de 30 bytes. Verificado: baseline `exit 0`, `fotos:` desnudo `exit 1` con mensaje claro, baseline restaurado.
+  - **Hallazgo CRÍTICO de plan (bloquea T5):** el `paths-ignore` de `acceptance.yml` es **incompatible** con volver ese check *required* en branch protection. Un PR que toque sólo `docs/**` no dispara el workflow → no se reporta ningún check → queda "Pending" → **el PR nunca puede mergear**. Cita textual de GitHub, confirmada por el verificador: *"You should not use path or branch filtering to skip workflow runs if the workflow is required to pass before merging."* El flujo de contenido del empleado (`src/content/propiedades/`, `public/propiedades/`) **no** está ignorado, así que esos PRs sí corren el gate; el problema es sólo para los caminos ignorados. Ver T5.
