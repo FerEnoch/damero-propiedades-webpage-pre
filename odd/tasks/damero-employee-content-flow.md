@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **plan abierto 2026-09-23.** T1–T5 planificadas, ninguna cerrada todavía.
+**Estado:** **plan abierto 2026-09-23.** T1–T2 ✅, T3–T5 pendientes.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 
@@ -69,3 +69,4 @@ No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo 
 ## Progreso
 
 - **2026-09-23 (a):** plan abierto. Mapeo completo del pipeline de contenido (schema, render, imágenes, CI) y verificación del estado de RDD (`clone_local: off`, sin candidato). Decisión de `portada` fundada en la contradicción interna PRD §7 vs §4. Flujo PR + branch protection elegido por el stakeholder. Rama `feat/employee-content-flow` creada.
+- **2026-09-23 (b): T1 y T2 cerradas.** `2b5d22f` (plan) → `6ccc93f` (T1, `fix(content)`: `portada` fuera del schema y de las dos menciones del PRD §4 — tabla de campos y ejemplo; 1 inserción / 4 borrados; cero referencias residuales en `src/`, `docs/` y `e2e/`) → T2 (`chore(content)`: `public/propiedades/.gitkeep`). **Gate verde en los dos commits: `280 passed / 11 skipped`, idéntico al baseline.** El código de render no se tocó: ya implementaba §7. Siguiente: T3 (validador de límites de imagen).
