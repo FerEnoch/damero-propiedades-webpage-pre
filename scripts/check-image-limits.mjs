@@ -108,6 +108,15 @@ function extractPhotoSources(frontmatter, file) {
     block.push(line);
   }
 
+  // A bare `fotos:` (YAML null) is not a valid empty list. The schema rejects
+  // it at build time, and this check must not read it as "zero photos, nothing
+  // to see" — that would be exactly the silent pass it promises never to make.
+  if (block.length === 0) {
+    throw new Error(
+      `${file}: "fotos:" has no entries — write "fotos: []" for a listing without photos`,
+    );
+  }
+
   const sources = [];
   let entries = 0;
   for (const line of block) {
@@ -130,7 +139,7 @@ function extractPhotoSources(frontmatter, file) {
  * Returns `null` when the header is not a recognisable WebP.
  */
 function webpWidth(buffer) {
-  if (buffer.length < 30) return null;
+  if (buffer.length < 16) return null;
   if (buffer.toString('ascii', 0, 4) !== 'RIFF') return null;
   if (buffer.toString('ascii', 8, 12) !== 'WEBP') return null;
 
@@ -139,6 +148,7 @@ function webpWidth(buffer) {
   if (chunk === 'VP8 ') {
     // 3-byte frame tag, then the fixed start code 0x9d 0x01 0x2a, then
     // 2 bytes of width (14 bits used) and 2 of height.
+    if (buffer.length < 30) return null;
     if (buffer[23] !== 0x9d || buffer[24] !== 0x01 || buffer[25] !== 0x2a) return null;
     return buffer.readUInt16LE(26) & 0x3fff;
   }
@@ -146,12 +156,14 @@ function webpWidth(buffer) {
   if (chunk === 'VP8L') {
     // 1-byte signature 0x2f, then a little-endian bitstream whose low 14 bits
     // are width - 1.
+    if (buffer.length < 25) return null;
     if (buffer[20] !== 0x2f) return null;
     return (buffer.readUInt32LE(21) & 0x3fff) + 1;
   }
 
   if (chunk === 'VP8X') {
     // 4 bytes of flags and reserved space, then 3 bytes of canvas width - 1.
+    if (buffer.length < 30) return null;
     return (buffer[24] | (buffer[25] << 8) | (buffer[26] << 16)) + 1;
   }
 
