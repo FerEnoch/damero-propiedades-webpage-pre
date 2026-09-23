@@ -48,7 +48,7 @@ Content Collection: `src/content/propiedades/*.md` (one file per listing).
 | `localidad` | string | Yes | — |
 | `map_lat` / `map_lon` | number | Yes | Manual approximate center **with offset**; never rendered as numbers |
 | `whatsapp` | string | Yes | Dynamic per listing (agent number) |
-| `fotos` | object[] | Yes | See §7; each `{ src, titulo?, portada?, descripcion? }` |
+| `fotos` | object[] | Yes | See §7; each `{ src, titulo?, descripcion? }`. The cover is always the first entry |
 | `destacada` | boolean | No | Defaults `false`; feeds landing featured block |
 
 Free body: markdown below frontmatter (optional) — free explanatory text, rendered as main description block on detail after `descripcion`.
@@ -74,7 +74,6 @@ whatsapp: "5492304000000"
 fotos:
   - src: "/propiedades/casa-quinta-3amb/frente.webp"
     titulo: "Frente"
-    portada: true
   - src: "/propiedades/casa-quinta-3amb/fondo.webp"
     titulo: "Fondo"
 ---
