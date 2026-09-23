@@ -60,6 +60,12 @@ jobs:
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
+      # PRD §9 check 3. Runs before the browser install on purpose: it is pure
+      # Node, needs no build and no chromium, and it is the cheapest place to
+      # catch the payload problem an instructed employee can actually ship.
+      - name: Check image limits (PRD §9 check 3)
+        run: pnpm check:images
+
       - name: Install chromium (Playwright bundled build)
         run: pnpm exec playwright install --with-deps chromium
 

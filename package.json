@@ -14,6 +14,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "test:e2e": "playwright test",
+    "check:images": "node scripts/check-image-limits.mjs",
     "astro": "astro",
     "audit": "pnpm audit",
     "audit:high": "pnpm audit --audit-level high",
