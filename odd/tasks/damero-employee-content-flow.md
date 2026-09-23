@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **plan abierto 2026-09-23.** T1–T4 ✅, T5 pendiente y bloqueada por un hallazgo crítico de plan.
+**Estado:** **plan abierto 2026-09-23.** T1–T4 ✅, H7 ✅ resuelto, T5 pendiente de autorización para la mutación remota.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 
@@ -50,8 +50,9 @@ Quitar `portada` hace que cualquier frontmatter que aún lo traiga **falle el bu
 **H6 — El repo está en `main` y el árbol limpio.**
 No hay candidato de review ni cambios en vuelo. Esta feature es el primer flujo con rama + PR.
 
-**H7 — `paths-ignore` y required status checks son incompatibles.**
-Descubierto al planificar T5 y confirmado por verificación independiente con la documentación de GitHub: si el workflow no corre por filtro de caminos, **no crea ningún check run**, y branch protection lo trata como "Pending" para siempre. Un PR que sólo toque `docs/**`, `design/**`, `odd/**`, `README.md` o `AGENTS.md` quedaría **inmergeable**. Opciones: (a) sacar el `paths-ignore` de `acceptance.yml` — el repo es **público**, así que los minutos de Actions son gratis y el ahorro que lo justificaba no existe; (b) mover el filtro a nivel de **job** con un `if:`, que sí reporta "skipped" y satisface el check, pero suma maquinaria; (c) no volver ese check *required*, que anula el propósito de branch protection. **Recomendación: (a).**
+**H7 — `paths-ignore` y required status checks son incompatibles.** *(RESUELTO 2026-09-23)*
+Descubierto al planificar T5 y confirmado por verificación independiente con la documentación de GitHub: si el workflow no corre por filtro de caminos, **no crea ningún check run**, y branch protection lo trata como "Pending" para siempre. Un PR que sólo toque `docs/**`, `design/**`, `odd/**`, `README.md` o `AGENTS.md` quedaría **inmergeable**. Opciones evaluadas: (a) sacar el `paths-ignore` de `acceptance.yml` — el repo es **público**, así que los minutos de Actions son gratis y el ahorro que lo justificaba no existe; (b) mover el filtro a nivel de **job** con un `if:`, que sí reporta "skipped" y satisface el check, pero suma maquinaria; (c) no volver ese check *required*, que anula el propósito de branch protection.
+**Decisión del stakeholder: (a).** Aplicado en `797e0ac` (`ci`). El `paths-ignore` de `supply-chain.yml` se deja como está **a propósito**: ese check no va a ser *required* (una alerta de `pnpm audit` sin fix no debe bloquear el PR de un empleado por un tema ajeno a su cambio), así que no puede producir el deadlock.
 
 ---
 
@@ -63,7 +64,7 @@ Descubierto al planificar T5 y confirmado por verificación independiente con la
 | T2 | Crear la carpeta de fotos | `chore(content)` | `public/propiedades/.gitkeep`, para que la ruta del contrato exista y el instructivo pueda apuntarle. |
 | T3 | Validador de límites de imagen (check 3) | `feat(ci)` | Script Node puro que valida las fotos de cada listing (≤10, WebP, ancho ≤1600px, cada una <300KB) + paso de CI que falla el build. |
 | T4 | Instructivo del empleado | `docs` | Guía paso a paso para la interfaz web de GitHub: crear la rama y el PR, dónde van descripción y fotos, la regla de portada y los límites. |
-| T5 | Branch protection + flujo PR | `ci` | **Prerrequisito (H7):** resolver el deadlock `paths-ignore` × required checks. Después: required status checks sobre `main` y verificación end-to-end del flujo PR. Requiere autorización explícita para la mutación remota. |
+| T5 | Branch protection + flujo PR | `ci` | H7 ✅ resuelto (`797e0ac`). Resta: required status check `acceptance` sobre `main` (el check de `supply-chain` **no** se vuelve *required*, para que una alerta de audit sin fix no bloquee el PR de un empleado) y verificación end-to-end del flujo PR. **Requiere autorización explícita para la mutación remota.** |
 
 **Regla de cierre:** cada commit deja el árbol limpio y el gate verde (`pnpm build` + `pnpm test:e2e`).
 
@@ -83,3 +84,4 @@ Descubierto al planificar T5 y confirmado por verificación independiente con la
   - **Tier de riesgo: `high`** (señal `shell_process` por `acceptance.yml`). Con RDD off, el tier alto exige verificación independiente además del self-check → corrió `engineering-astro-verifier`, read-only. **Veredicto: PASS** en las cinco áreas: offsets del header WebP correctos en los tres layouts (probados con headers sintéticos), fail-loud verificado en 4 caminos, los 6 límites disparando con `exit 1`, YAML válido y el paso antes del install de chromium, guía cruzada contra el schema (18/18 campos; mensajes citados verbatim), `portada` sin referencias residuales, y **gate `280 passed / 11 skipped` reproducido por su cuenta**.
   - **Hallazgo corregido (`a464598`, `fix(ci)`):** un `fotos:` desnudo (YAML null) se leía como 0 fotos y **pasaba**, contra la propia garantía del script de no pasar en silencio. El schema lo rechaza en build, así que no era un agujero del gate — pero la afirmación del script tenía que ser cierta por sí misma. Se agregó el fail-loud y los guardas de longitud del header pasaron a ser por layout en vez de un piso único de 30 bytes. Verificado: baseline `exit 0`, `fotos:` desnudo `exit 1` con mensaje claro, baseline restaurado.
   - **Hallazgo CRÍTICO de plan (bloquea T5):** el `paths-ignore` de `acceptance.yml` es **incompatible** con volver ese check *required* en branch protection. Un PR que toque sólo `docs/**` no dispara el workflow → no se reporta ningún check → queda "Pending" → **el PR nunca puede mergear**. Cita textual de GitHub, confirmada por el verificador: *"You should not use path or branch filtering to skip workflow runs if the workflow is required to pass before merging."* El flujo de contenido del empleado (`src/content/propiedades/`, `public/propiedades/`) **no** está ignorado, así que esos PRs sí corren el gate; el problema es sólo para los caminos ignorados. Ver T5.
+- **2026-09-23 (e): H7 resuelto (`797e0ac`, `ci`).** El stakeholder eligió la opción (a): `acceptance.yml` pierde el `paths-ignore` y ahora corre en **todo** PR y todo push a `main`. El comentario del archivo registra el porqué con la cita textual de GitHub, para que no se reintroduzca. `supply-chain.yml` conserva su filtro **a propósito** — ese check no será *required*, así que no puede producir el deadlock. Verificado: YAML parsea, `on:` sin filtros, gate **280 passed / 11 skipped**. Siguiente: T5 (branch protection), pendiente de autorización explícita para la mutación remota.
