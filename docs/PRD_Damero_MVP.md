@@ -48,7 +48,7 @@ Content Collection: `src/content/propiedades/*.md` (one file per listing).
 | `localidad` | string | Yes | — |
 | `map_lat` / `map_lon` | number | Yes | Manual approximate center **with offset**; never rendered as numbers |
 | `whatsapp` | string | Yes | Dynamic per listing (agent number) |
-| `fotos` | object[] | Yes | See §7; each `{ src, titulo?, portada?, descripcion? }` |
+| `fotos` | object[] | Yes | See §7; each `{ src, titulo?, descripcion? }`. The cover is always the first entry |
 | `destacada` | boolean | No | Defaults `false`; feeds landing featured block |
 
 Free body: markdown below frontmatter (optional) — free explanatory text, rendered as main description block on detail after `descripcion`.
@@ -74,7 +74,6 @@ whatsapp: "5492304000000"
 fotos:
   - src: "/propiedades/casa-quinta-3amb/frente.webp"
     titulo: "Frente"
-    portada: true
   - src: "/propiedades/casa-quinta-3amb/fondo.webp"
     titulo: "Fondo"
 ---
@@ -101,7 +100,7 @@ https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20%3Ctitulo%3E%20
 ## 7. Images pipeline + limits
 
 - Location: `public/propiedades/<slug>/`; per-photo `titulo`/`descripcion` optional.
-- Limits: max **10 photos** per listing, max width **1600px**, format **WebP**, each file **< 300 KB**.
+- Limits: max **10 photos** per listing, max width **1600px**, format **WebP**, each file **<= 300 KB**.
 - Process is manual (photographer + designer own quality); build rejects oversize/count violations per §9.
 - Cover = first entry in `fotos`.
 
@@ -122,7 +121,7 @@ https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20%3Ctitulo%3E%20
 - CI checks (5):
   1. Astro build passes.
   2. Content Collections schema validation passes.
-  3. Image limits enforced (count ≤ 10, WebP, width ≤ 1600px, each < 300 KB).
+  3. Image limits enforced (count ≤ 10, WebP, width ≤ 1600px, each ≤ 300 KB).
   4. No numeric coordinates leaked in rendered output (map circle only).
   5. Internal links + slugs valid (no dead `/propiedades/<slug>` routes).
 

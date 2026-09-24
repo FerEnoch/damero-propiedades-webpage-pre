@@ -5,32 +5,25 @@ name: acceptance
 # runs against the production build: `playwright.config.ts` builds the site and
 # serves it as its `webServer`, so this workflow intentionally has no separate
 # build step.
-# Documentation-only pushes do not run the suite: none of `docs/`, `design/`,
-# `odd/`, `README.md` or `AGENTS.md` is read by the build or by these specs —
-# they are cited from comments only. Keep this list NARROW.
 #
-# NEVER add `src/**`, `public/**`, `e2e/**` or any config file here. In
-# production an instructed employee publishes a listing by committing a
-# markdown file under `src/content/propiedades/` plus its photos under
-# `public/`, and that is exactly the push that MUST run the gate: it is the one
-# that can break the build (schema), the routes (dead slugs) and the payload.
+# This workflow deliberately carries NO `paths`/`paths-ignore` filter. It used
+# to skip documentation-only pushes, but that is incompatible with the branch
+# protection this repository relies on: a workflow skipped by a path filter
+# creates no check run at all, so a required check is never reported and the
+# pull request stays unmergeable forever. GitHub states it verbatim: "You
+# should not use path or branch filtering to skip workflow runs if the workflow
+# is required to pass before merging." Actions minutes are free on a public
+# repository, so the saving the filter bought was nil. Do NOT reintroduce it.
+#
+# The gate must always run on the push an instructed employee makes in
+# production — a markdown file under `src/content/propiedades/` plus its photos
+# under `public/`. That is the push that can break the build (schema), the
+# routes (dead slugs) and the payload (image limits).
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'odd/**'
-      - 'docs/**'
-      - 'design/**'
-      - 'README.md'
-      - 'AGENTS.md'
   push:
     branches: [main]
-    paths-ignore:
-      - 'odd/**'
-      - 'docs/**'
-      - 'design/**'
-      - 'README.md'
-      - 'AGENTS.md'
 
 permissions:
   contents: read
@@ -59,6 +52,12 @@ jobs:
 
       - name: Install (frozen lockfile)
         run: pnpm install --frozen-lockfile
+
+      # PRD §9 check 3. Runs before the browser install on purpose: it is pure
+      # Node, needs no build and no chromium, and it is the cheapest place to
+      # catch the payload problem an instructed employee can actually ship.
+      - name: Check image limits (PRD §9 check 3)
+        run: pnpm check:images
 
       - name: Install chromium (Playwright bundled build)
         run: pnpm exec playwright install --with-deps chromium

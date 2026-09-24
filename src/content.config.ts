@@ -54,8 +54,6 @@ const propiedades = defineCollection({
             src: z.string(),
             /** Optional caption shown under the image (PRD §4, §7). */
             titulo: z.string().optional(),
-            /** Marks the cover when it is not the first entry (PRD §7). */
-            portada: z.boolean().optional(),
             /** Optional longer caption (PRD §4). */
             descripcion: z.string().optional(),
           })
