@@ -2,11 +2,19 @@ name: supply-chain
 
 # Minimal supply-chain gate: reproducible install + audit + build.
 #
-# Documentation-only pushes do not run it (same narrow ignore list as
-# `acceptance.yml`, which carries the reasoning). Keep this list NARROW: never
-# add `src/**`, `public/**`, `e2e/**` or a config file, because an instructed
-# employee publishes listings as content markdown plus photos and that push
-# must run.
+# Documentation-only pushes do not run it. The ignore list stays here ON
+# PURPOSE, unlike `acceptance.yml`, which had to drop its own: that workflow
+# carries a REQUIRED status check, and a workflow skipped by a path filter
+# creates no check run at all, so a required check is never reported and the
+# pull request stays unmergeable forever. This check is deliberately NOT
+# required — a `pnpm audit` advisory with no available fix must not block an
+# employee's listing PR over something unrelated to their change — so the same
+# filter here cannot produce that deadlock. If this check is ever made required,
+# drop the filter first.
+#
+# Keep this list NARROW: never add `src/**`, `public/**`, `e2e/**` or a config
+# file, because an instructed employee publishes listings as content markdown
+# plus photos and that push must run.
 on:
   pull_request:
     branches: [main]
