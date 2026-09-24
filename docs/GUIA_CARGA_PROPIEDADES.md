@@ -76,7 +76,7 @@ diseñador, pedile explícitamente que cumplan **todas** estas condiciones
 | Cantidad máxima por propiedad | **10 fotos** |
 | Formato | **WebP** (extensión `.webp`) |
 | Ancho máximo | **1600 px** |
-| Peso máximo por archivo | **menos de 300 KB** (300 KB exactos ya no pasan) |
+| Peso máximo por archivo | **hasta 300 KB** |
 
 Si una foto no cumple, el sitio no la va a aceptar y la publicación va a
 quedar detenida (ver *Errores comunes*). La revisión la hace el sitio
@@ -347,7 +347,7 @@ Image limit violations (PRD §9 check 3):
 
   - <mensaje de cada problema>
 
-N violation(s). Limits: <= 10 photos per listing, .webp, width <= 1600px, each file < 300 KB.
+N violation(s). Limits: <= 10 photos per listing, .webp, width <= 1600px, each file <= 300 KB.
 ```
 
 Ejemplos reales de cada mensaje:
@@ -420,7 +420,7 @@ Antes de dar por publicada la propiedad, confirmá:
 - [ ] Las fotos están en `public/propiedades/<slug>/` y coinciden exactamente
       con las rutas `src`.
 - [ ] Hay **10 fotos o menos**; todas son `.webp`, de **1600 px de ancho o
-      menos** y pesan **menos de 300 KB**.
+      menos** y pesan **hasta 300 KB**.
 - [ ] El cambio se subió en una **rama nueva** con un pull request, no directo
       a `main`.
 - [ ] Los controles automáticos del pull request están en **verde**.

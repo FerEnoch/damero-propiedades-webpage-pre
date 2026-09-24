@@ -6,7 +6,7 @@
  * and by the Playwright suite; this is the third one, which had no
  * implementation anywhere:
  *
- *   count <= 10 photos per listing, WebP, width <= 1600px, each file < 300 KB
+ *   count <= 10 photos per listing, WebP, width <= 1600px, each file <= 300 KB
  *
  * Why it matters: in production an instructed employee publishes a listing by
  * committing a markdown file under `src/content/propiedades/` plus its photos
@@ -50,8 +50,14 @@ function violation(message) {
   violations.push(message);
 }
 
+/**
+ * Rounds up, so a file just over the cap can never be reported as exactly the
+ * cap: rounding to nearest turns 300.001 KB into "300 KB exceeds the 300 KB
+ * limit", which reads as a contradiction to the non-technical author this
+ * message is written for.
+ */
 function formatKb(bytes) {
-  return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${Math.ceil(bytes / 1024)} KB`;
 }
 
 function stripQuotes(value) {
@@ -246,7 +252,7 @@ async function walkFiles(dir) {
 async function inspectPhoto(absPath, context, displayPath) {
   const info = await stat(absPath);
 
-  if (info.size >= MAX_BYTES) {
+  if (info.size > MAX_BYTES) {
     violation(`${displayPath} (${context}): ${formatKb(info.size)} exceeds the ${MAX_BYTES / 1024} KB limit`);
   }
 
@@ -330,7 +336,7 @@ async function main() {
     }
     console.error(
       `\n${violations.length} violation(s). Limits: <= ${MAX_PHOTOS_PER_LISTING} photos per listing, ` +
-        `${REQUIRED_EXT}, width <= ${MAX_WIDTH}px, each file < ${MAX_BYTES / 1024} KB.\n`,
+        `${REQUIRED_EXT}, width <= ${MAX_WIDTH}px, each file <= ${MAX_BYTES / 1024} KB.\n`,
     );
     process.exitCode = 1;
     return;

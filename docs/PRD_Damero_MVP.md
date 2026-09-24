@@ -100,7 +100,7 @@ https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20%3Ctitulo%3E%20
 ## 7. Images pipeline + limits
 
 - Location: `public/propiedades/<slug>/`; per-photo `titulo`/`descripcion` optional.
-- Limits: max **10 photos** per listing, max width **1600px**, format **WebP**, each file **< 300 KB**.
+- Limits: max **10 photos** per listing, max width **1600px**, format **WebP**, each file **<= 300 KB**.
 - Process is manual (photographer + designer own quality); build rejects oversize/count violations per §9.
 - Cover = first entry in `fotos`.
 
@@ -121,7 +121,7 @@ https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20%3Ctitulo%3E%20
 - CI checks (5):
   1. Astro build passes.
   2. Content Collections schema validation passes.
-  3. Image limits enforced (count ≤ 10, WebP, width ≤ 1600px, each < 300 KB).
+  3. Image limits enforced (count ≤ 10, WebP, width ≤ 1600px, each ≤ 300 KB).
   4. No numeric coordinates leaked in rendered output (map circle only).
   5. Internal links + slugs valid (no dead `/propiedades/<slug>` routes).
 
