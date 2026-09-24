@@ -382,6 +382,15 @@ Ejemplos reales de cada mensaje:
   /propiedades/casa-quinta-3amb/frente.webp (referenced by casa-quinta-3amb.md): file does not exist under public/
   ```
 
+- **La foto está en la carpeta de otra propiedad, o fuera de `propiedades/`:**
+  La ruta `src` tiene que empezar con `/propiedades/<slug>/`, con el `slug` de
+  *esa* propiedad. Es el error típico de copiar el `src` de otra propiedad y
+  olvidarse de cambiar la carpeta:
+
+  ```
+  /propiedades/otra-propiedad/frente.webp (referenced by casa-quinta-3amb.md): must live under /propiedades/casa-quinta-3amb/ — the guide requires the listing's own slug folder
+  ```
+
 - **El archivo dice ser WebP pero no es válido:**
 
   ```
@@ -394,6 +403,13 @@ Ejemplos reales de cada mensaje:
 
   ```
   /propiedades/casa-quinta-3amb/otra.webp (in public/propiedades/): 512 KB exceeds the 300 KB limit
+  ```
+
+- **La ruta `src` intenta salir de `public/`.** Caso raro: solo pasa si la ruta
+  lleva `..`. Se rechaza por seguridad:
+
+  ```
+  /propiedades/casa-quinta-3amb/../../../../etc/hosts (referenced by casa-quinta-3amb.md): resolves outside public/
   ```
 
 Cuando los límites están bien, el control muestra una línea como:
