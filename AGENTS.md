@@ -21,7 +21,7 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
 | Desarrollo | `pnpm dev` |
 | Build | `pnpm build` |
 | Previsualizar el build | `pnpm preview` |
-| **Suite e2e (gate de aceptación)** | `pnpm test:e2e` |
+| **Gate de aceptación (imágenes + e2e)** | `pnpm test:e2e` |
 | Instalar reproducible | `pnpm install --frozen-lockfile` |
 | Auditar dependencias | `pnpm check-deps` |
 
@@ -72,8 +72,11 @@ contradicción**, nunca resolverla en silencio.
 
 **Solo e2e con Playwright. No hay unit testing** (decisión del stakeholder, 2026-09-18).
 
-- `pnpm test:e2e` ejecuta `playwright test` con 3 proyectos de viewport: `desktop-1280`,
-  `mobile-390`, `mobile-320`.
+- `pnpm test:e2e` es el **gate de aceptación completo**: corre primero `pnpm check:images`
+  (límites de imagen, PRD §9 control 3) y después `playwright test` con 3 proyectos de
+  viewport: `desktop-1280`, `mobile-390`, `mobile-320`. Si el chequeo de imágenes falla,
+  Playwright no arranca. Son los mismos dos controles que corre el CI, para que pasar en
+  local signifique pasar en el pipeline.
 - La suite corre **contra el build de producción**, no contra el dev server: `playwright.config.ts`
   levanta `pnpm build && pnpm preview --port 4321` como `webServer`.
 - Specs en `e2e/`: `landing-structure`, `landing-content`, `landing-cta-layout`,
