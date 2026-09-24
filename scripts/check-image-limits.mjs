@@ -35,7 +35,8 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LISTINGS_DIR = path.join(REPO_ROOT, 'src', 'content', 'propiedades');
-const PHOTOS_DIR = path.join(REPO_ROOT, 'public', 'propiedades');
+const PUBLIC_DIR = path.join(REPO_ROOT, 'public');
+const PHOTOS_DIR = path.join(PUBLIC_DIR, 'propiedades');
 
 /** PRD §9 check 3 (docs/PRD_Damero_MVP.md §7 for the same numbers). */
 const MAX_PHOTOS_PER_LISTING = 10;
@@ -92,8 +93,13 @@ function extractPhotoSources(frontmatter, file) {
   if (inline === '[]') return [];
 
   if (inline !== '') {
-    // Inline flow style, e.g. `fotos: [{ src: "/propiedades/x/a.webp" }]`.
-    const inlineSources = [...inline.matchAll(/\/propiedades\/[^"'\s,\]}]+/g)].map((m) => m[0]);
+    // Inline flow style, e.g. `fotos: [{ src: "/propiedades/x/a.webp" }]`. The
+    // raw `src:` value is returned unvalidated: the path contract is enforced
+    // in one place, for both styles, so a wrong path is reported as a violation
+    // instead of as an unreadable document.
+    const inlineSources = [...inline.matchAll(/src:\s*(?:"([^"]*)"|'([^']*)'|([^,}\]]+))/g)].map(
+      (match) => (match[1] ?? match[2] ?? match[3]).trim(),
+    );
     if (inlineSources.length === 0) {
       throw new Error(`${file}: "fotos:" has inline content this check cannot read: ${inline}`);
     }
@@ -130,6 +136,40 @@ function extractPhotoSources(frontmatter, file) {
   }
 
   return sources;
+}
+
+/**
+ * The listing's own `slug:` value. PRD §7, the schema comment and the employee
+ * guide all place photos at `public/propiedades/<slug>/`, so this is the folder
+ * every `src` of this listing has to be in.
+ */
+function extractSlug(frontmatter, file) {
+  const line = frontmatter.find((entry) => /^slug:\s*(.*)$/.test(entry));
+  if (line === undefined) {
+    throw new Error(`${file}: no top-level "slug:" key found`);
+  }
+  const slug = stripQuotes(line.replace(/^slug:\s*/, '')).trim();
+  if (slug === '') {
+    throw new Error(`${file}: "slug:" is empty`);
+  }
+  return slug;
+}
+
+/**
+ * Enforces the documented path contract: a photo must live under
+ * `/propiedades/<slug>/`, where `<slug>` is the listing's own slug. Returns
+ * `false` when it does not, so the caller can skip the limits that would
+ * otherwise report a second, misleading failure for the same mistake.
+ */
+function hasValidPhotoPath(src, slug, file) {
+  const expected = `/propiedades/${slug}/`;
+  if (!src.startsWith(expected)) {
+    violation(
+      `${src} (referenced by ${file}): must live under ${expected} — the guide requires the listing's own slug folder`,
+    );
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -170,10 +210,20 @@ function webpWidth(buffer) {
   return null;
 }
 
-/** Resolves a public-root-absolute `src` (e.g. `/propiedades/x/a.webp`). */
-function resolvePublicPath(src) {
+/**
+ * Resolves a public-root-absolute `src` (e.g. `/propiedades/x/a.webp`) and
+ * reports it when the result escapes `public/`. `path.join` collapses `..`
+ * segments, so a crafted `src` could otherwise aim the size and width checks at
+ * a file outside the public root. Returns `null` when it escapes.
+ */
+function resolvePublicPath(src, file) {
   const normalized = src.startsWith('/') ? src.slice(1) : src;
-  return path.join(REPO_ROOT, 'public', normalized);
+  const resolved = path.join(PUBLIC_DIR, normalized);
+  if (resolved !== PUBLIC_DIR && !resolved.startsWith(PUBLIC_DIR + path.sep)) {
+    violation(`${src} (referenced by ${file}): resolves outside public/`);
+    return null;
+  }
+  return resolved;
 }
 
 /** Recursively lists files, skipping dotfiles such as `.gitkeep`. */
@@ -231,6 +281,7 @@ async function checkReferencedPhotos() {
   for (const listingFile of listingFiles) {
     const markdown = await readFile(path.join(LISTINGS_DIR, listingFile), 'utf8');
     const frontmatter = extractFrontmatter(markdown, listingFile);
+    const slug = extractSlug(frontmatter, listingFile);
     const sources = extractPhotoSources(frontmatter, listingFile);
 
     if (sources.length > MAX_PHOTOS_PER_LISTING) {
@@ -241,7 +292,11 @@ async function checkReferencedPhotos() {
 
     for (const src of sources) {
       referenced += 1;
-      const absPath = resolvePublicPath(src);
+      if (!hasValidPhotoPath(src, slug, listingFile)) continue;
+
+      const absPath = resolvePublicPath(src, listingFile);
+      if (absPath === null) continue;
+
       if (!existsSync(absPath)) {
         violation(`${src} (referenced by ${listingFile}): file does not exist under public/`);
         continue;
@@ -258,7 +313,7 @@ async function checkPhotoDirectory() {
 
   const files = await walkFiles(PHOTOS_DIR);
   for (const absPath of files) {
-    const displayPath = `/${path.relative(path.join(REPO_ROOT, 'public'), absPath)}`;
+    const displayPath = `/${path.relative(PUBLIC_DIR, absPath)}`;
     await inspectPhoto(absPath, 'in public/propiedades/', displayPath);
   }
   return files.length;
