@@ -13,9 +13,16 @@ updates:
         dependency-type: development
     # Los PRs de dependencias pasan por el CI del repo (frozen + audit + build)
     # y por revisión manual del changelog antes de mergear.
-  # Actions de GitHub también son supply chain — mantenerlas actualizadas
+  # GitHub Actions are supply chain too — keep them current. Without `groups`
+  # every action opens its own PR, and all of them touch the same `uses:` lines
+  # of the same two workflows: with `strict` required checks on `main`, each
+  # merge leaves the remaining PRs behind and forces a rebase. One group = one PR.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - '*'
