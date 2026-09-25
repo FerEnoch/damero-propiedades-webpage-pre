@@ -80,7 +80,10 @@ de data obliga a actualizar esas specs en el mismo commit.
   `setWorkerUrl()` antes de construir el `Map`.
 - **Criterio:** build emite el worker bundleado; el diagnóstico contra `dist/` muestra
   `canvasVisibility: visible`, `canvas.is-ready`, fallback `hidden`, sin request fallido.
-- [ ] hecho
+- [x] hecho. Commit `e73cf8c`. Build emite `_astro/maplibre-gl-worker-CD0Mhlp9.js` (507 KB) y el
+  script de página lo referencia. Diagnóstico contra `dist/` en Chromium: `canvasClasses:
+  "map-canvas maplibregl-map is-ready"`, `canvasVisibility: visible`, `fallbackHidden: true`,
+  `FAILED REQUESTS:` vacío.
 
 ### T2 — Data de prueba: cuatro propiedades de Santa Fe
 - **Entregable:** se borran `casa-quinta-3amb.md`, `departamento-2-amb-balcon.md`,
