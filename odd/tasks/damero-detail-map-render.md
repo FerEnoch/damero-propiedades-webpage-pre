@@ -111,7 +111,7 @@ de data obliga a actualizar esas specs en el mismo commit.
   sirve con un estilo mínimo local (sin red) y asserta canvas visible + overlay + fallback
   oculto; (b) smoke test contra OpenFreeMap real que no rompe el gate si no hay red.
 - **Criterio:** el test determinista pasa sin red externa; el live pasa con red.
-- [x] hecho. Commit _(hash no conocible antes del commit; se informa en el retorno de la tarea)_.
+- [x] hecho. Commit `5a68ef6`.
   Spec nueva `e2e/propiedades-detalle-map.spec.ts` + helper `e2e/helpers/png-decode.ts`
   (decodificador PNG mínimo con `node:zlib`, sin dependencias). (a) Test determinista: intercepta
   `https://tiles.openfreemap.org/styles/positron` y la sirve con un estilo stub local (fondo negro
@@ -131,7 +131,9 @@ de data obliga a actualizar esas specs en el mismo commit.
   `pnpm test:e2e` → `check:images` OK y Playwright 286 passed / 11 skipped en los 3 viewports.
 
 ### T4 — Gate completo y verificación
-- [ ] `pnpm test:e2e` verde en los 3 viewports.
+- [x] `pnpm test:e2e` verde en los 3 viewports (verificación del orquestador sobre el árbol
+  final: `check:images` OK y Playwright 286 passed / 11 skipped / 0 failed en 28.6 s —
+  desktop-1280, mobile-390, mobile-320).
 - [ ] verificación independiente read-only de la slice.
 
 ---
