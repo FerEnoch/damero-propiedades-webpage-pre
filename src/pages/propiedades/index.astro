@@ -29,7 +29,7 @@
  * numeric orderings of the rendered set — never a currency conversion.
  *
  * R10 — `Ver más propiedades` renders only when the collection has more than
- * 6 entries; with the current 3 seeds it is omitted (a pagination promise
+ * 6 entries; with the current 4 listings it is omitted (a pagination promise
  * with no page behind it is fabricated data).
  */
 import { getCollection } from 'astro:content';
@@ -263,7 +263,7 @@ const hasCochera = (cochera: boolean | number) =>
 
         {
           /* R10: rendered only when there are more than 6 results — with the
-             current seeds it is omitted entirely. */
+             current 4 listings it is omitted entirely. */
           hasMore && (
             <div class="results-more" data-results-more hidden>
               <Button variant="secondary" class="results-more__button">

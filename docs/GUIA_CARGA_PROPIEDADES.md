@@ -170,7 +170,7 @@ Son dos textos distintos y **no hay que repetir el mismo contenido en los dos**:
 ### Ejemplo real
 
 Este es el archivo real de una propiedad que ya está en el sitio
-(`src/content/propiedades/casa-quinta-3amb.md`). Copialo como modelo y
+(`src/content/propiedades/casa-3-amb-guadalupe-santa-fe.md`). Copialo como modelo y
 reemplazá los valores por los de tu propiedad:
 
 ```markdown

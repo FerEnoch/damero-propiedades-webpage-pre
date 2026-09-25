@@ -91,7 +91,20 @@ de data obliga a actualizar esas specs en el mismo commit.
   Candioti. Toda la suite que referencia los slugs viejos se actualiza en el mismo commit.
 - **Criterio:** build verde; las 4 rutas nuevas responden 200; los conteos y filtros e2e
   actualizados quedan consistentes con la nueva data.
-- [ ] hecho
+- [x] hecho. Commit: el hash se completa en esta línea una vez creado el commit (la evidencia
+  viaja en la misma unidad de trabajo). Las 3 semillas Luján / Mercedes se reemplazan por 4
+  propiedades de la ciudad de Santa Fe (`casa-3-amb-guadalupe-santa-fe`,
+  `departamento-2-amb-centro-santa-fe`, `departamento-3-amb-barrio-norte-santa-fe`,
+  `lote-600-m2-candioti-santa-fe`), todas `localidad: Santa Fe`, `fotos: []` y `whatsapp` con el
+  placeholder pendiente. Specs actualizadas en el mismo commit: `propiedades-detalle-structure`
+  (slugs, títulos, marcadores de coordenadas y payloads JSON desde el frontmatter nuevo),
+  `propiedades-filtering` (conteos recomputados: total 4; alquiler 1; habitaciones 3+ → 2, ambas
+  venta; cochera → 1; rango USD 50.000–118.000 → 2; orden precio asc → lote Candioti, desc →
+  depto Centro; estado vacío con `operacion=alquiler&cochera=si`, combinación imposible en la
+  data nueva), el comentario R10 de `src/pages/propiedades/index.astro` ("the current 4
+  listings") y el puntero del modelo en `docs/GUIA_CARGA_PROPIEDADES.md`. Gate `pnpm test:e2e`
+  verde: `check:images` OK (4 listings) y Playwright 280 passed / 11 skipped en los 3 viewports
+  (desktop-1280, mobile-390, mobile-320).
 
 ### T3 — Cobertura e2e del render real del mapa
 - **Entregable:** spec nueva con (a) test determinista que intercepta la URL del estilo y la

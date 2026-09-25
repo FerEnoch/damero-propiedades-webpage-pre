@@ -10,9 +10,10 @@ import { expect, test } from '@playwright/test';
  */
 
 const SLUGS = [
-  'casa-quinta-3amb',
-  'departamento-2-amb-balcon',
-  'lote-600-m2-apto-credito',
+  'casa-3-amb-guadalupe-santa-fe',
+  'departamento-2-amb-centro-santa-fe',
+  'departamento-3-amb-barrio-norte-santa-fe',
+  'lote-600-m2-candioti-santa-fe',
 ] as const;
 
 test.beforeEach(async ({ page }) => {
@@ -38,9 +39,10 @@ test('R4: with fotos: [] the gallery shows the brand tile and omits rail and cou
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {
   const prices: Record<string, { currency: string; amount: string }> = {
-    'casa-quinta-3amb': { currency: 'USD', amount: '95.000' },
-    'departamento-2-amb-balcon': { currency: 'ARS', amount: '480.000' },
-    'lote-600-m2-apto-credito': { currency: 'USD', amount: '32.000' },
+    'casa-3-amb-guadalupe-santa-fe': { currency: 'USD', amount: '118.000' },
+    'departamento-2-amb-centro-santa-fe': { currency: 'ARS', amount: '480.000' },
+    'departamento-3-amb-barrio-norte-santa-fe': { currency: 'USD', amount: '92.000' },
+    'lote-600-m2-candioti-santa-fe': { currency: 'USD', amount: '30.000' },
   };
 
   for (const [slug, expected] of Object.entries(prices)) {
@@ -52,21 +54,28 @@ test('the price renders with the currency code always present (§17.2:690)', asy
 
 test('R12: the ficha técnica rows degrade gracefully and never drop a row', async ({ page }) => {
   const expectations: Record<string, Record<string, string>> = {
-    'casa-quinta-3amb': {
+    'casa-3-amb-guadalupe-santa-fe': {
       OPERACIÓN: 'Venta',
       HABITACIONES: '3',
       COCHERA: 'Sí',
       MONEDA: 'USD',
       EXPENSAS: 'No aplica',
     },
-    'departamento-2-amb-balcon': {
+    'departamento-2-amb-centro-santa-fe': {
       OPERACIÓN: 'Alquiler',
       HABITACIONES: '2',
       COCHERA: 'No',
       MONEDA: 'ARS',
-      EXPENSAS: 'No aplica',
+      EXPENSAS: '52.000',
     },
-    'lote-600-m2-apto-credito': {
+    'departamento-3-amb-barrio-norte-santa-fe': {
+      OPERACIÓN: 'Venta',
+      HABITACIONES: '3',
+      COCHERA: 'No',
+      MONEDA: 'USD',
+      EXPENSAS: '38.000',
+    },
+    'lote-600-m2-candioti-santa-fe': {
       OPERACIÓN: 'Venta',
       HABITACIONES: '0',
       COCHERA: 'No',
@@ -95,10 +104,11 @@ test('characteristics render the slugs as uppercase words, no dictionary (§17.2
   page,
 }) => {
   const expectations: Record<string, string[]> = {
-    'casa-quinta-3amb': ['PATIO'],
-    'departamento-2-amb-balcon': ['BALCON'],
+    'casa-3-amb-guadalupe-santa-fe': ['PATIO', 'PARRILLA'],
+    'departamento-2-amb-centro-santa-fe': ['BALCON'],
+    'departamento-3-amb-barrio-norte-santa-fe': ['BALCON', 'LUMINOSO'],
     // The unknown `apto-credito` slug still renders — never dropped.
-    'lote-600-m2-apto-credito': ['APTO CREDITO'],
+    'lote-600-m2-candioti-santa-fe': ['APTO CREDITO'],
   };
 
   for (const [slug, labels] of Object.entries(expectations)) {
@@ -117,7 +127,7 @@ test('characteristics render the slugs as uppercase words, no dictionary (§17.2
 });
 
 test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, viewport }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const inlineCta = page.locator('.price-panel__cta .whatsapp-cta');
   const stickyBar = page.locator('.whatsapp-sticky__link');
@@ -138,7 +148,7 @@ test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, 
 test('the map fallback keeps the frame, caption and role=status with the style aborted', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const frame = page.locator('.map-frame');
   const fallback = page.locator('[data-map-fallback]');
@@ -165,7 +175,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
    * fallback must persist. It is not an error dialog and never names the
    * tile provider (§17.2:709-710).
    */
-  const payloadResponse = page.waitForResponse(/\/propiedades\/casa-quinta-3amb\.json/);
+  const payloadResponse = page.waitForResponse(/\/propiedades\/casa-3-amb-guadalupe-santa-fe\.json/);
   await frame.scrollIntoViewIfNeeded();
   await payloadResponse;
   await page.waitForRequest(/openfreemap/).catch(() => null);
@@ -190,7 +200,7 @@ test('the approximate-zone note is added on mobile only (§17.2:708)', async ({
   page,
   viewport,
 }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const note = page.getByText('La zona se muestra como referencia aproximada.');
   if (viewport && viewport.width >= 768) {
@@ -203,7 +213,7 @@ test('the approximate-zone note is added on mobile only (§17.2:708)', async ({
 test('the map container carries a meaningful accessible name (§12, §17.2:710)', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute('role', 'region');
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute(

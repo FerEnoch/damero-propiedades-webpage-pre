@@ -43,7 +43,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('no rendered text uses sage #7C916F', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const audit = await page.evaluate(runColorAudits, []);
   expect(audit.textElementsChecked).toBeGreaterThan(20);
@@ -51,7 +51,7 @@ test('no rendered text uses sage #7C916F', async ({ page }) => {
 });
 
 test('every rendered text element meets its contrast threshold', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const audit = await page.evaluate(runColorAudits, []);
   expect(audit.textElementsChecked).toBeGreaterThan(20);
@@ -59,7 +59,7 @@ test('every rendered text element meets its contrast threshold', async ({ page }
 });
 
 test('the DESIGN.md §2 contrast matrix holds on computed styles', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const audit = await page.evaluate(runColorAudits, MATRIX_PROBES);
   expect(audit.matrix).toHaveLength(MATRIX_PROBES.length);
@@ -73,7 +73,7 @@ test('the DESIGN.md §2 contrast matrix holds on computed styles', async ({ page
 });
 
 test('no rendered text is smaller than 12px (§10)', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const violations = await page.evaluate(() => {
     const found: Array<{ element: string; size: number; text: string }> = [];
@@ -103,7 +103,7 @@ test('no rendered text is smaller than 12px (§10)', async ({ page }) => {
 test('every interactive element is keyboard-reachable in DOM order with a visible focus ring', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   /*
    * The detail page renders no radio groups, so — unlike the S2 spec — the
@@ -139,7 +139,7 @@ test('every interactive element meets the 44px touch target', async ({
     'Touch targets are an inventory requirement at mobile widths (390/320).',
   );
 
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const violations = await page.evaluate(auditTouchTargets, 44);
   expect(violations).toEqual([]);
