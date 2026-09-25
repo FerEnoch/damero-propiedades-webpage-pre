@@ -22,7 +22,7 @@
  *    hiding it is a defect, not a styling choice.
  */
 // v6 is ESM-only with named exports — there is no default export.
-import { Map as MapLibreMap } from 'maplibre-gl';
+import { Map as MapLibreMap, setWorkerUrl } from 'maplibre-gl';
 /*
  * The stylesheet arrives as an emitted-asset URL and is injected at map
  * init. A plain side-effect `import 'maplibre-gl/dist/maplibre-gl.css'`
@@ -30,8 +30,19 @@ import { Map as MapLibreMap } from 'maplibre-gl';
  * chrome CSS in the initial bundle, which R3 forbids.
  */
 import maplibreCssUrl from 'maplibre-gl/dist/maplibre-gl.css?url';
+/*
+ * MapLibre derives its worker URL at runtime from its own chunk's location
+ * (`new URL('./maplibre-gl-worker.mjs', <chunk url>)`). A bundler that emits
+ * only the library chunk leaves that sibling missing — the request 404s, the
+ * style never loads, and the §17.2:709 fallback stays forever. `?worker&url`
+ * makes Vite bundle the worker (and its `maplibre-gl-shared.mjs` dependency)
+ * into one emitted asset and hand back its URL, which `setWorkerUrl()` pins
+ * before the map is constructed.
+ */
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
 let stylesInjected = false;
+let workerConfigured = false;
 
 /** Inject the MapLibre chrome stylesheet exactly once, at map init. */
 function ensureMapStyles(): void {
@@ -89,6 +100,15 @@ export interface DetailMapOptions {
 }
 
 export function initDetailMap({ container, lat, lon, onReady, onError }: DetailMapOptions): void {
+  /*
+   * Pin the emitted worker URL before any map work. Idempotent, so `Reintentar`
+   * re-entering here never re-registers it.
+   */
+  if (!workerConfigured) {
+    setWorkerUrl(maplibreWorkerUrl);
+    workerConfigured = true;
+  }
+
   /*
    * The overlay colour reads the token at runtime (§13: raw palette values
    * stay in the token layer). If the token is unavailable the mandated
