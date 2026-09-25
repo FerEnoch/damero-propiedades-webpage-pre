@@ -111,7 +111,24 @@ de data obliga a actualizar esas specs en el mismo commit.
   sirve con un estilo mínimo local (sin red) y asserta canvas visible + overlay + fallback
   oculto; (b) smoke test contra OpenFreeMap real que no rompe el gate si no hay red.
 - **Criterio:** el test determinista pasa sin red externa; el live pasa con red.
-- [ ] hecho
+- [x] hecho. Commit _(hash no conocible antes del commit; se informa en el retorno de la tarea)_.
+  Spec nueva `e2e/propiedades-detalle-map.spec.ts` + helper `e2e/helpers/png-decode.ts`
+  (decodificador PNG mínimo con `node:zlib`, sin dependencias). (a) Test determinista: intercepta
+  `https://tiles.openfreemap.org/styles/positron` y la sirve con un estilo stub local (fondo negro
+  puro); todo otro request al host de tiles se aborta, así que cualquier fuga de red rompe el
+  render y falla el test. Asserta canvas visible + `is-ready` + fallback `hidden`, que el handler
+  del estilo stub efectivamente disparó, y — a nivel de píxeles pintados, no de clases — que el
+  centro del frame (dentro del círculo de zona de 400 m a zoom 14.5) difiere de la esquina (negro
+  puro del stub): screenshot del frame → PNG decodificado en Node → media de parche 8×8 en centro
+  vs. esquina (el canal verde levanta ≥ 12 por el fill sage al 0.15 sobre negro). (b) Smoke live
+  contra OpenFreeMap real: preflight DENTRO de la página (`fetch` con timeout 8 s) y `test.skip`
+  honesto si es inalcanzable — el preflight usa el stack de red del browser porque puede diferir
+  del del proceso de test: verificado con proxy muerto (`HTTPS_PROXY=http://127.0.0.1:9`) que
+  `page.request` ignora el proxy de entorno y Chromium lo honra, así que con `page.request` el
+  test fallaba en vez de skipear. Ambos tests skipean con razón explícita si WebGL no está
+  disponible (gap de entorno, no regresión). Verificación: spec sola → 6 passed (3 viewports × 2
+  tests); simulacro offline → determinista 3 passed + live 3 skipped; gate completo
+  `pnpm test:e2e` → `check:images` OK y Playwright 286 passed / 11 skipped en los 3 viewports.
 
 ### T4 — Gate completo y verificación
 - [ ] `pnpm test:e2e` verde en los 3 viewports.
