@@ -1,6 +1,6 @@
 # ODD — Damero: render real del mapa de detalle y data de prueba de Santa Fe
 
-**Estado:** en curso. **T1–T4** abiertas sobre la branch `feat/detail-map-render`.
+**Estado:** **T1–T4 ✅ cerradas** (2026-09-28). Branch `feat/detail-map-render` rebasada sobre `main` (`728a1e8`), 6 work-unit commits, gate verde y verificación independiente `success`. **PR en revisión** (ver Progreso).
 
 **Objetivo:** que el mapa de las páginas de detalle **renderice de verdad**, que el gate e2e lo
 pruebe (hoy sólo prueba el fallback), y que la cartera de prueba sean cuatro propiedades de la
@@ -80,7 +80,7 @@ de data obliga a actualizar esas specs en el mismo commit.
   `setWorkerUrl()` antes de construir el `Map`.
 - **Criterio:** build emite el worker bundleado; el diagnóstico contra `dist/` muestra
   `canvasVisibility: visible`, `canvas.is-ready`, fallback `hidden`, sin request fallido.
-- [x] hecho. Commit `e73cf8c`. Build emite `_astro/maplibre-gl-worker-CD0Mhlp9.js` (507 KB) y el
+- [x] hecho. Commit `bcfe2a2`. Build emite `_astro/maplibre-gl-worker-CD0Mhlp9.js` (507 KB) y el
   script de página lo referencia. Diagnóstico contra `dist/` en Chromium: `canvasClasses:
   "map-canvas maplibregl-map is-ready"`, `canvasVisibility: visible`, `fallbackHidden: true`,
   `FAILED REQUESTS:` vacío.
@@ -91,7 +91,7 @@ de data obliga a actualizar esas specs en el mismo commit.
   Candioti. Toda la suite que referencia los slugs viejos se actualiza en el mismo commit.
 - **Criterio:** build verde; las 4 rutas nuevas responden 200; los conteos y filtros e2e
   actualizados quedan consistentes con la nueva data.
-- [x] hecho. Commit `f3fab36`. Las 3 semillas Luján / Mercedes se reemplazan por 4
+- [x] hecho. Commit `f191f5f` (+ `82391d7` docs). Las 3 semillas Luján / Mercedes se reemplazan por 4
   propiedades de la ciudad de Santa Fe (`casa-3-amb-guadalupe-santa-fe`,
   `departamento-2-amb-centro-santa-fe`, `departamento-3-amb-barrio-norte-santa-fe`,
   `lote-600-m2-candioti-santa-fe`), todas `localidad: Santa Fe`, `fotos: []` y `whatsapp` con el
@@ -111,7 +111,7 @@ de data obliga a actualizar esas specs en el mismo commit.
   sirve con un estilo mínimo local (sin red) y asserta canvas visible + overlay + fallback
   oculto; (b) smoke test contra OpenFreeMap real que no rompe el gate si no hay red.
 - **Criterio:** el test determinista pasa sin red externa; el live pasa con red.
-- [x] hecho. Commit `5a68ef6`.
+- [x] hecho. Commit `e8019cf`.
   Spec nueva `e2e/propiedades-detalle-map.spec.ts` + helper `e2e/helpers/png-decode.ts`
   (decodificador PNG mínimo con `node:zlib`, sin dependencias). (a) Test determinista: intercepta
   `https://tiles.openfreemap.org/styles/positron` y la sirve con un estilo stub local (fondo negro
@@ -134,16 +134,51 @@ de data obliga a actualizar esas specs en el mismo commit.
 - [x] `pnpm test:e2e` verde en los 3 viewports (verificación del orquestador sobre el árbol
   final: `check:images` OK y Playwright 286 passed / 11 skipped / 0 failed en 28.6 s —
   desktop-1280, mobile-390, mobile-320).
-- [ ] verificación independiente read-only de la slice.
+- [x] verificación independiente read-only de la slice (2026-09-28, agente
+  `engineering-astro-verifier`, árbol rebasado sobre `728a1e8`): **success**, 5/5 ítems PASS.
+  Reprodujo el gate por su cuenta: `check:images` OK (4 listings, 0 fotos) + Playwright
+  **286 passed / 11 skipped / 0 failed en 32.0 s**; el smoke live contra OpenFreeMap real
+  **pasó** (no skipeó) en los 3 viewports. Hallazgos: 1 WARNING (cobertura del worker en el test
+  determinista; el smoke live es el que prueba el fix) y 2 SUGGESTION documentales, ninguno
+  bloqueante.
 
 ---
 
 ## Evidencia
 
-_(se completa a medida que cierran las tareas)_
+- **Gate de aceptación (`pnpm test:e2e`):** `check:images` OK (4 listings, 0 fotos referenciadas)
+  y Playwright **286 passed / 11 skipped / 0 failed** en `desktop-1280`, `mobile-390`,
+  `mobile-320`. Reproducido por el verificador independiente (32.0 s) y por el orquestador.
+- **Render real probado:** el smoke live contra OpenFreeMap **pasó** en los 3 viewports en la
+  corrida del verificador (no skipeó), que es la prueba más fuerte de que el mapa renderiza.
+- **Worker emitido y referenciado:** `dist/_astro/maplibre-gl-worker-CD0Mhlp9.js` (507 757 bytes)
+  referenciado por `detail-map.*.js`; `setWorkerUrl()` cablea `WORKER_URL` al asset emitido.
+- **Verificación independiente:** `status: success`, riesgo leído `passive` (el `review assess`
+  nativo marca `medium` por `executable_change` en `e2e/helpers/png-decode.ts`; RDD está off, así
+  que no se abre review). 5/5 ítems PASS.
+
+**Limitación conocida (WARNING, no bloqueante):** el test determinista sirve un estilo stub sin
+sources, así que un `background` puro puede llegar a `load` sin despachar tarea de worker. En un
+entorno **sin red**, una regresión del worker específico podría no romper el determinista; el
+smoke live (con red) sí lo cubre. Decisión de diseño asumida, no defecto.
+
+**Fuera de alcance, registrado:** `docs/GUIA_CARGA_PROPIEDADES.md` y `docs/PRD_Damero_MVP.md`
+todavía usan `casa-quinta-3amb` como slug de *ejemplo* ilustrativo (no como referencia a data
+semilla). Pre-existente y fuera del alcance de la slice.
+
+---
+
+## Progreso
+
+- **2026-09-25:** T1–T3 implementadas y commiteadas; gate verde.
+- **2026-09-28:** T4 cerrada. Rebase sobre `main` (`728a1e8`): se actualizan los hashes de los
+  commits en este documento (pre-rebase: `e73cf8c` / `f3fab36` / `5a68ef6`). Verificación
+  independiente read-only `success`. Se elimina el residuo `.map-check.mjs` (diagnóstico de T1,
+  obsoleto). Branch pusheada y PR abierto como parte de este cierre.
 
 ---
 
 ## Próximo paso
 
-Crear la branch `feat/detail-map-render`, aplicar T1 (causa raíz), luego T2 y T3, gate y PR.
+Mergear el PR y validar el mapa en el deploy. **Bloqueantes de lanzamiento** (B1–B5, B7–B8 en
+`damero-release-prep.md`) siguen abiertos y se tratan aparte.
