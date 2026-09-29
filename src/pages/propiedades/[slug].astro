@@ -440,7 +440,9 @@ const houseGlyph = iconHouse
      (§17.2:697). Mobile: one column, DOM order (§10). */
   .detail-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    /* `minmax(0, 1fr)`, not `1fr`: the `auto` minimum would let any band's
+       content (the gallery rail) stretch the column past the viewport. */
+    grid-template-columns: minmax(0, 1fr);
     row-gap: var(--space-10);
     padding-block: var(--space-8);
   }
@@ -495,6 +497,13 @@ const houseGlyph = iconHouse
   }
 
   /* ---- 1. Gallery (§17.2:675-681) --------------------------------------- */
+  /* Grid items default to `min-width: auto`, which lets the thumbnail rail's
+     content force the page wider than the viewport. The rail scrolls instead
+     (§17.2:679): it may shrink below its content and clips inside itself. */
+  .gallery {
+    min-width: 0;
+  }
+
   .gallery__rail {
     display: flex;
     gap: var(--space-2);
@@ -847,7 +856,7 @@ const houseGlyph = iconHouse
   /* ---- Desktop layout (≥ 768px) ------------------------------------------ */
   @media (min-width: 768px) {
     .detail-grid {
-      grid-template-columns: repeat(12, 1fr);
+      grid-template-columns: repeat(12, minmax(0, 1fr));
       column-gap: var(--space-8);
       row-gap: var(--space-12);
       padding-block: var(--space-10) var(--section-y-tight);
