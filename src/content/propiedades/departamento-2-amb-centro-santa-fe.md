@@ -17,7 +17,17 @@ map_lat: -31.6572
 map_lon: -60.7005
 # Pending stakeholder value, mirrored from WHATSAPP_NUMBER_PENDING in src/data/site.ts. Not a real number.
 whatsapp: "+54 9 2304 000000"
-fotos: []
+fotos:
+  - src: "/propiedades/departamento-2-amb-centro-santa-fe/01-frente-edificio.webp"
+    titulo: "Frente del edificio"
+  - src: "/propiedades/departamento-2-amb-centro-santa-fe/02-living.webp"
+    titulo: "Living"
+  - src: "/propiedades/departamento-2-amb-centro-santa-fe/03-cocina.webp"
+    titulo: "Cocina"
+  - src: "/propiedades/departamento-2-amb-centro-santa-fe/04-dormitorio.webp"
+    titulo: "Dormitorio"
+  - src: "/propiedades/departamento-2-amb-centro-santa-fe/05-balcon.webp"
+    titulo: "Balcón"
 destacada: false
 ---
 
