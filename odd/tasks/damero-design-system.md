@@ -28,7 +28,7 @@
 - [x] T5 — FAQs `/faqs`
 - [x] T6 — Set de 8 íconos duotono SVG
 - [x] T7 — Variante knockout blanca del logo
-- [ ] T8 — Los 2 glifos restantes: `icon-house.svg` (empty-state/fallback) y `icon-search-house.svg` (buscador) — `DESIGN.md` §8 línea 406
+- [x] T8 — ~~Los 2 glifos restantes~~ **cerrado 2026-09-29 con desvío declarado:** `icon-house.svg` ya existía y queda como glifo del fallback del mapa (`src/pages/propiedades/[slug].astro`); `icon-search-house.svg` **no se construye** — sin consumidor en el diseño aprobado (0 `<svg>` en `design/screens/03|04-busqueda-*`) ni en el código (input label-first §6, empty state con tile de marca §17.1:666). `DESIGN.md` §8 enmendado con la resolución. Si un affordance de búsqueda aparece en un diseño futuro, se construye el glifo con el mismo construction spec.
 
 ## Criterios de aceptación
 
@@ -120,4 +120,4 @@
 - **2026-09-17 (c):** T3, T4 y T5 completados — 6 pantallas generadas y verificadas. `DESIGN.md` en 739 líneas (§17 nueva). Datos legales inventados por Stitch detectados y corregidos en 5 de 6 pantallas.
 - **2026-09-17 (d):** T6 y T7 completados — 8 íconos duotono (6.550 B) + logo knockout (PNG + SVG). Detectada la contradicción §8 vs. los PNG viejos.
 - **2026-09-17 (e):** pasada de corrección sobre las 8 pantallas. Eliminados los datos legales inventados por Stitch (`CUCICBA`, `Ley 5115`) y los links a páginas inexistentes; FAQ con lorem ipsum + badge `PENDIENTE`; detalle y búsqueda unificados entre dispositivos; placeholders de marca en todo. Verificado por grep: **0 ocurrencias** en los 8 exports. Exportado a `design/screens/`.
-- **Pendiente:** T8 (2 glifos de UI) y los datos reales del stakeholder.
+- **Pendiente:** solo los datos reales del stakeholder. (T8 cerrado 2026-09-29 — ver Tareas.)

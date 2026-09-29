@@ -423,7 +423,7 @@ The eight existing PNG icons (`img/png/*.png`, 4.4MB total) are **discarded**: 3
 | 7 | Fotografía profesional | `icon-camera.svg` | Rangefinder body, top plate. Accent mass = the lens. |
 | 8 | Marketing inmobiliario | `icon-target.svg` | Concentric target with an offset mark. Accent mass = inner ring. |
 
-Two further glyphs are required in phase 2 but are **not** part of the service set: `icon-search-house.svg` (search page affordance) and `icon-house.svg` (empty-state and fallback). Same construction spec.
+Two further glyphs were required in phase 2 but are **not** part of the service set: `icon-search-house.svg` (search page affordance) and `icon-house.svg` (empty-state and fallback). Same construction spec. **Resolved (2026-09-29), design-system T8 closed:** `icon-house.svg` ships as the map-fallback glyph (§17.2:709); the empty state took the §7 brand tile instead (§17.1:666 — never a magnifying glass), and `icon-search-house.svg` is **not** shipped — no approved screen and no built component has a slot for it (the §6 filter input is label-first, and the approved search screens render no glyphs at all). If a search affordance is ever designed, build the glyph then, to this spec.
 
 **Also required in phase 2:** a **knockout white variant of the logo** for the footer band — the three-diamond cluster in `--color-on-forest`, wordmark in `--color-on-forest`, delivered as SVG with a transparent background. The existing PNG cannot be recoloured and cannot sit on `forest-ink`.
 
