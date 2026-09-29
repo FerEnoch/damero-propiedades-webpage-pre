@@ -41,14 +41,14 @@ test('removing a chip re-runs the filter and rewrites the URL (§17.1:641)', asy
 
   await page.locator('.filter-chip:visible').first().click();
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 3');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 4');
   expect(page.url()).not.toContain('operacion=');
 });
 
 test('an impossible filter set renders the empty state (§17.1:664)', async ({ page }) => {
-  // No alquiler listing exists in Luján: the filtered set is empty.
-  await page.goto('/propiedades?operacion=alquiler&localidad=Luj%C3%A1n');
+  // The only alquiler listing has no cochera: the filtered set is empty.
+  await page.goto('/propiedades?operacion=alquiler&cochera=si');
 
   await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 0');
   await expect(page.locator('[data-results-grid]')).toBeHidden();
@@ -95,13 +95,13 @@ test('Ordenar reorders the grid and is never written to the URL (R2/R9)', async 
   await page.locator('#ordenar').selectOption('precio-asc');
   await expect(page.locator('[data-card]:visible .card').first()).toHaveAttribute(
     'href',
-    '/propiedades/lote-600-m2-apto-credito',
+    '/propiedades/lote-600-m2-candioti-santa-fe',
   );
 
   await page.locator('#ordenar').selectOption('precio-desc');
   await expect(page.locator('[data-card]:visible .card').first()).toHaveAttribute(
     'href',
-    '/propiedades/departamento-2-amb-balcon',
+    '/propiedades/departamento-2-amb-centro-santa-fe',
   );
 
   expect(page.url()).not.toContain('orden');
@@ -114,7 +114,7 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   testInfo.skip(!viewport || viewport.width < 768, 'The desktop filter bar exists only ≥ 768px.');
 
   await page.goto('/propiedades');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
 
   // OPERACIÓN segmented → Alquiler.
   await page.locator('[data-filters="desktop"] .segmented__segment', { hasText: 'Alquiler' }).click();
@@ -123,25 +123,26 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   expect(page.url()).toContain('operacion=alquiler');
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText(/alquiler/i);
 
-  // HABITACIONES select → 3+ (minimum semantics; only the casa matches).
+  // HABITACIONES select → 3+ (minimum semantics; both 3+ listings are
+  // venta, so the alquiler intersection is empty).
   await page.locator('#filter-habitaciones').selectOption('3');
   await expect(page.locator('[data-card]:visible')).toHaveCount(0);
   expect(page.url()).toContain('habitaciones=3');
 
   // Back to a matching combination: operacion = Todas.
   await page.locator('[data-filters="desktop"] .segmented__segment', { hasText: 'Todas' }).click();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(2);
   expect(page.url()).not.toContain('operacion=');
 
-  // COCHERA checkbox.
+  // COCHERA checkbox (of the 3+ listings only the casa has one).
   await page.locator('[data-filters="desktop"]').getByText('Con cochera').click();
   await expect(page.locator('[data-card]:visible')).toHaveCount(1);
   expect(page.url()).toContain('cochera=si');
 
-  // LOCALIDAD select.
-  await page.locator('#filter-localidad').selectOption('Mercedes');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(0);
-  expect(page.url()).toContain('localidad=Mercedes');
+  // LOCALIDAD select (the whole portfolio is Santa Fe: the count holds).
+  await page.locator('#filter-localidad').selectOption('Santa Fe');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
+  expect(page.url()).toContain('localidad=Santa+Fe');
 
   // R2: only the eight canonical params ever appear.
   const keys = [...new URL(page.url()).searchParams.keys()];
@@ -151,8 +152,8 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
 
   // Limpiar filtros resets everything.
   await page.locator('.filter-bar__clear').click();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 3');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 4');
   expect(new URL(page.url()).search).toBe('');
 });
 
@@ -164,18 +165,18 @@ test('desktop bar: the price range filters within the selected currency only (§
 
   await page.goto('/propiedades');
 
-  // Narrow the USD range to 50.000–95.000: the lote (32.000) drops out and so
-  // does the ARS listing — the range never reaches across currencies.
+  // Narrow the USD range to 50.000–118.000: the lote (30.000) drops out and
+  // so does the ARS listing — the range never reaches across currencies.
   await page
     .locator('[data-filters="desktop"] [data-price-pane="USD"] [data-price-range-min]')
     .fill('50000');
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(2);
   expect(page.url()).toContain('precio_min=50000');
   // The active range serialises both bounds (they round-trip to the same state).
-  expect(page.url()).toContain('precio_max=95000');
+  expect(page.url()).toContain('precio_max=118000');
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText(
-    /USD 50\.000–95\.000/,
+    /USD 50\.000–118\.000/,
   );
 
   // Switching MONEDA re-derives the range and drops the price params: a
@@ -184,7 +185,7 @@ test('desktop bar: the price range filters within the selected currency only (§
   expect(page.url()).toContain('moneda=ARS');
   expect(page.url()).not.toContain('precio_min=');
   // Moneda alone never filters the set — it scopes the range.
-  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
 });
 
 test('mobile sheet: filtering from the sheet updates results, badge and URL', async ({

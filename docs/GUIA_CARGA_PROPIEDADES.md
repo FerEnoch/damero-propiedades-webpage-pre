@@ -170,39 +170,41 @@ Son dos textos distintos y **no hay que repetir el mismo contenido en los dos**:
 ### Ejemplo real
 
 Este es el archivo real de una propiedad que ya está en el sitio
-(`src/content/propiedades/casa-quinta-3amb.md`). Copialo como modelo y
+(`src/content/propiedades/casa-3-amb-guadalupe-santa-fe.md`). Copialo como modelo y
 reemplazá los valores por los de tu propiedad:
 
 ```markdown
 ---
-titulo: "Casa 3 ambientes con patio en zona quinta"
-descripcion: "Casa de 3 ambientes con patio y cochera en zona de quintas, camino rural km 12, Luján."
-slug: "casa-quinta-3amb"
+titulo: "Casa 3 ambientes con patio en Guadalupe"
+descripcion: "Casa de 3 ambientes con patio y cochera en barrio Guadalupe, Santa Fe."
+slug: "casa-3-amb-guadalupe-santa-fe"
 operacion: "venta"
 tipo: "casa"
-precio: 95000
+precio: 118000
 moneda: "USD"
 habitaciones: 3
 cochera: true
-caracteristicas: ["patio"]
-zona: "Zona quintas, camino rural km 12"
-localidad: "Luján"
-map_lat: -34.55
-map_lon: -59.12
+caracteristicas: ["patio", "parrilla"]
+zona: "Guadalupe"
+localidad: "Santa Fe"
+# Approximate zone centre with the deliberate PRD §11 offset. Never rendered as numbers.
+map_lat: -31.6375
+map_lon: -60.6873
+# Pending stakeholder value, mirrored from WHATSAPP_NUMBER_PENDING in src/data/site.ts. Not a real number.
 whatsapp: "+54 9 2304 000000"
 fotos: []
 destacada: true
 ---
 
-La propiedad se ubica sobre camino rural km 12, en la zona de quintas. Cuenta con patio y cochera.
+La propiedad se ubica en barrio Guadalupe, Santa Fe. Cuenta con patio, parrilla y cochera.
 ```
 
 En ese ejemplo:
 
-- El **resumen** es "Casa de 3 ambientes con patio y cochera en zona de
-  quintas, camino rural km 12, Luján." (el campo `descripcion`).
-- La **descripción larga** es "La propiedad se ubica sobre camino rural km 12,
-  en la zona de quintas. Cuenta con patio y cochera." (el texto de abajo).
+- El **resumen** es "Casa de 3 ambientes con patio y cochera en barrio
+  Guadalupe, Santa Fe." (el campo `descripcion`).
+- La **descripción larga** es "La propiedad se ubica en barrio Guadalupe,
+  Santa Fe. Cuenta con patio, parrilla y cochera." (el texto de abajo).
 
 > Las líneas que empiezan con `#` (como los comentarios del archivo original)
 > son notas para quien lee el archivo y no afectan el resultado.

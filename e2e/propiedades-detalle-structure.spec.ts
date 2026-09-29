@@ -15,25 +15,29 @@ import { readFileSync } from 'node:fs';
  */
 
 const SLUGS = [
-  'casa-quinta-3amb',
-  'departamento-2-amb-balcon',
-  'lote-600-m2-apto-credito',
+  'casa-3-amb-guadalupe-santa-fe',
+  'departamento-2-amb-centro-santa-fe',
+  'departamento-3-amb-barrio-norte-santa-fe',
+  'lote-600-m2-candioti-santa-fe',
 ] as const;
 
 const TITLES: Record<(typeof SLUGS)[number], string> = {
-  'casa-quinta-3amb': 'Casa 3 ambientes con patio en zona quinta',
-  'departamento-2-amb-balcon': 'Departamento 2 ambientes con balcón',
-  'lote-600-m2-apto-credito': 'Lote 600 m² apto crédito',
+  'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
+  'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
+  'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
+  'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
 };
 
-/** The seed coordinates plus the schema field names — banned from HTML. */
+/** The test-listing coordinates plus the schema field names — banned from HTML. */
 const COORDINATE_MARKERS = [
-  '-34.55',
-  '-59.12',
-  '-34.665',
-  '-59.445',
-  '-34.555',
-  '-59.085',
+  '-31.6375',
+  '-60.6873',
+  '-31.6572',
+  '-60.7005',
+  '-31.6243',
+  '-60.6855',
+  '-31.6724',
+  '-60.7028',
   'map_lat',
   'map_lon',
 ];
@@ -56,7 +60,7 @@ test('each detail route responds 200 with a title and exactly one h1', async ({ 
 });
 
 test('the §17.2 section order renders, with the documented CTA divergence', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   /*
    * §17.2:671 fixes gallery → title/description → characteristics → price →
@@ -74,7 +78,7 @@ test('the §17.2 section order renders, with the documented CTA divergence', asy
 });
 
 test('header, main, footer and breadcrumb landmarks are present', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -83,7 +87,7 @@ test('header, main, footer and breadcrumb landmarks are present', async ({ page 
 });
 
 test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const levels = await page.evaluate(() =>
     Array.from(document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6')).map(
@@ -102,7 +106,7 @@ test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
 });
 
 test('no horizontal overflow', async ({ page }) => {
-  await page.goto('/propiedades/lote-600-m2-apto-credito');
+  await page.goto('/propiedades/lote-600-m2-candioti-santa-fe');
 
   const metrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -117,7 +121,7 @@ test('no horizontal overflow', async ({ page }) => {
 test('breadcrumb ancestors are links and the current segment is not (§17.2:673)', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-quinta-3amb');
+  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
   const breadcrumb = page.getByRole('navigation', { name: 'Miga de pan' });
   const links = breadcrumb.getByRole('link');
@@ -130,13 +134,13 @@ test('breadcrumb ancestors are links and the current segment is not (§17.2:673)
   await expect(breadcrumb.locator('.breadcrumb__list')).toHaveCSS('text-transform', 'uppercase');
   await expect(links.nth(0)).toHaveText(/^propiedades$/i);
   await expect(links.nth(0)).toHaveAttribute('href', '/propiedades');
-  await expect(links.nth(1)).toHaveText(/^luján$/i);
-  await expect(links.nth(1)).toHaveAttribute('href', '/propiedades?localidad=Luj%C3%A1n');
+  await expect(links.nth(1)).toHaveText(/^santa fe$/i);
+  await expect(links.nth(1)).toHaveAttribute('href', '/propiedades?localidad=Santa%20Fe');
 
   // The current segment is plain text — never a link.
   const current = breadcrumb.locator('.breadcrumb__current');
   await expect(current).toHaveCount(1);
-  await expect(current).toHaveText('Casa 3 ambientes con patio en zona quinta');
+  await expect(current).toHaveText('Casa 3 ambientes con patio en Guadalupe');
   await expect(current).toHaveAttribute('aria-current', 'page');
   await expect(breadcrumb.locator('li:last-child a')).toHaveCount(0);
 });
@@ -163,9 +167,10 @@ test('the build emits the per-listing map payload as a separate asset', async ()
    * build-emitted JSON assets, fetched at map init — never in the HTML.
    */
   const payloads: Record<string, { lat: number; lon: number }> = {
-    'casa-quinta-3amb': { lat: -34.55, lon: -59.12 },
-    'departamento-2-amb-balcon': { lat: -34.665, lon: -59.445 },
-    'lote-600-m2-apto-credito': { lat: -34.555, lon: -59.085 },
+    'casa-3-amb-guadalupe-santa-fe': { lat: -31.6375, lon: -60.6873 },
+    'departamento-2-amb-centro-santa-fe': { lat: -31.6572, lon: -60.7005 },
+    'departamento-3-amb-barrio-norte-santa-fe': { lat: -31.6243, lon: -60.6855 },
+    'lote-600-m2-candioti-santa-fe': { lat: -31.6724, lon: -60.7028 },
   };
   for (const [slug, expected] of Object.entries(payloads)) {
     const raw = readFileSync(`dist/propiedades/${slug}.json`, 'utf8');
@@ -220,6 +225,6 @@ test('the search cards resolve to the detail routes', async ({ page }) => {
   await page.goto('/propiedades');
 
   await page.locator('.results-grid .card').first().click();
-  await expect(page).toHaveURL(/\/propiedades\/casa-quinta-3amb\/?$/);
-  await expect(page.locator('h1')).toHaveText('Casa 3 ambientes con patio en zona quinta');
+  await expect(page).toHaveURL(/\/propiedades\/casa-3-amb-guadalupe-santa-fe\/?$/);
+  await expect(page.locator('h1')).toHaveText('Casa 3 ambientes con patio en Guadalupe');
 });
