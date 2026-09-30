@@ -140,6 +140,8 @@ Ninguno bloquea el build ni el deploy: bloquean el **lanzamiento**.
 | B7 | `icon-handshake.svg` a 44 px | **Abierto.** Punto débil declarado del set. Revisión visual. |
 | B8 | Métricas / prueba social en la landing | **Abierto.** No se inventó ninguna; sólo si el stakeholder las quiere. |
 
+> Backlog de trabajo por bloqueante (contexto, archivos exactos y verificación): `odd/tasks/damero-launch-blockers.md`.
+
 ---
 
 ## Progreso
