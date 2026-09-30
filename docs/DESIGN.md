@@ -356,6 +356,26 @@ Composed, on-brand, never an apology.
 - **Performance:** `width`/`height` attributes always present to reserve layout (no CLS). `loading="lazy"` + `decoding="async"` for everything below the fold; the lead/hero-adjacent image is `loading="eager"` + `fetchpriority="high"`. Deliverables: WebP, ≤1600px wide, <300KB each, ≤10 per listing (per PRD §7).
 - **Gallery (detail page):** a lead image at 3:2 with a thumbnail rail beneath it, thumbnails also 3:2, each `1px solid --color-border-hairline`, active thumbnail `1px solid --color-border-interactive`. A keyboard-navigable pattern; no autoplay carousel, no arrows floating over the photo.
 
+### Pre-validation exception — provisional stock photography (declared 2026-09-29)
+
+For the MVP pre-validation round only, listing photography may come from a
+royalty-free stock bank, **downloaded into `public/propiedades/<slug>/` and
+committed to the repository** — never hotlinked, never fetched at runtime from
+a third-party host, never broken.
+
+- **Replacement with real property photography is mandatory before launch.**
+  The stock files are provisional scaffolding; they are not the property and
+  must not survive into production content.
+- **No UI notice of provisional status** (stakeholder decision, 2026-09-29).
+  No watermark, badge, caption or disclaimer marks the tiles as stock. The
+  provisional nature is declared here, in the ODD feature record
+  (`odd/tasks/damero-demo-photos.md`) and in the commit history only.
+- Everything else in §7 still applies unchanged: 3:2 frame, no filters, no
+  text over the photograph, WebP ≤1600px / <300KB / ≤10 per listing,
+  `width`/`height` always present.
+- Source URL and license are recorded per photograph in the ODD feature
+  record (`odd/tasks/damero-demo-photos.md`).
+
 ### Brand placeholder tile (used until real photography exists)
 
 A placeholder must never be mistakable for a photograph. It is flat, graphic, and obviously brand-owned.
@@ -403,7 +423,7 @@ The eight existing PNG icons (`img/png/*.png`, 4.4MB total) are **discarded**: 3
 | 7 | Fotografía profesional | `icon-camera.svg` | Rangefinder body, top plate. Accent mass = the lens. |
 | 8 | Marketing inmobiliario | `icon-target.svg` | Concentric target with an offset mark. Accent mass = inner ring. |
 
-Two further glyphs are required in phase 2 but are **not** part of the service set: `icon-search-house.svg` (search page affordance) and `icon-house.svg` (empty-state and fallback). Same construction spec.
+Two further glyphs were required in phase 2 but are **not** part of the service set: `icon-search-house.svg` (search page affordance) and `icon-house.svg` (empty-state and fallback). Same construction spec. **Resolved (2026-09-29), design-system T8 closed:** `icon-house.svg` ships as the map-fallback glyph (§17.2:709); the empty state took the §7 brand tile instead (§17.1:666 — never a magnifying glass), and `icon-search-house.svg` is **not** shipped — no approved screen and no built component has a slot for it (the §6 filter input is label-first, and the approved search screens render no glyphs at all). If a search affordance is ever designed, build the glyph then, to this spec.
 
 **Also required in phase 2:** a **knockout white variant of the logo** for the footer band — the three-diamond cluster in `--color-on-forest`, wordmark in `--color-on-forest`, delivered as SVG with a transparent background. The existing PNG cannot be recoloured and cannot sit on `forest-ink`.
 
@@ -475,7 +495,7 @@ Mobile-first, and **adapted rather than shrunk**. The mobile layout is the prima
 - ❌ `LABEL // YEAR` formatting
 - ❌ AI copywriting clichés: "Elevá tu experiencia", "Encontrá el hogar de tus sueños", "Soluciones sinérgicas", "Next-Gen", "Seamless"
 - ❌ **Fabricated data of any kind.** No invented property counts, years of experience, satisfaction percentages, response times, or testimonials. If a number has not been supplied by the stakeholder, it does not appear. Where a number is structurally required but unknown, use an explicit placeholder label rather than a plausible-looking invention.
-- ❌ Broken or hotlinked stock images. If no real photograph exists, use the brand placeholder tile from §7.
+- ❌ Broken or hotlinked stock images. If no real photograph exists, use the brand placeholder tile from §7. (Declared exception, §7: the pre-validation stock photography — royalty-free, downloaded and committed, never hotlinked — is allowed until real photography replaces it before launch.)
 
 ---
 

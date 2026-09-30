@@ -1,6 +1,6 @@
 # ODD — Damero: release prep (README, CI y repo remoto)
 
-**Estado:** **plan cerrado 2026-09-22.** T1–T7 ✅ — higiene de docs, README, gate de CI, verificación independiente, repo público `FerEnoch/damero-propiedades-webpage-pre` y **CI verde end-to-end**. El primer push del track destapó un defecto real del lockfile que nunca se había visto porque no existía remote; se diagnosticó, se arregló y el gate e2e corrió por primera vez en el servidor: **280 passed / 11 skipped**, job de 1m34s. Detalle en Progreso (c)/(d)/(e) y en el Veredicto. **Queda una decisión abierta, deliberadamente no resuelta: el check 3 (límites de imagen). Ver "Deuda de CI — decisión abierta" en el Veredicto.**
+**Estado:** **plan cerrado 2026-09-22.** T1–T7 ✅ — higiene de docs, README, gate de CI, verificación independiente, repo público `FerEnoch/damero-propiedades-webpage-pre` y **CI verde end-to-end**. El primer push del track destapó un defecto real del lockfile que nunca se había visto porque no existía remote; se diagnosticó, se arregló y el gate e2e corrió por primera vez en el servidor: **280 passed / 11 skipped**, job de 1m34s. Detalle en Progreso (c)/(d)/(e) y en el Veredicto. ~~Queda una decisión abierta, deliberadamente no resuelta: el check 3 (límites de imagen)~~ — **RESUELTA después de este track** (ver "Deuda de CI" en el Veredicto): `scripts/check-image-limits.mjs` existe, corre en `pnpm check:images`, en `pnpm test:e2e` y en `acceptance.yml`.
 
 **Objetivo:** dejar el MVP publicable: higiene de los documentos de harness, un `README.md` público, un CI que cubra el gate de aceptación real, y el repo remoto público creado con `main` pusheada.
 
@@ -113,6 +113,8 @@ El stakeholder reconoce que **es el gap más importante** ahora que el empleado 
 Queda registrado como **identificado y no decidido**. No es un plan, no es una tarea asignada y no debe asumirse al retomar: si se decide hacerlo, es un validador sobre `src/content/propiedades/` + `public/` más un paso de CI que falla el build.
 
 Nada de esto bloquea el build ni el deploy.
+
+**RESUELTO (posterior a esta entrada, registrado 2026-09-29):** el check 3 **sí** se implementó después, en el track `employee-content-flow` (PR #5): `scripts/check-image-limits.mjs` — validador cero-dependencias sobre `src/content/propiedades/` y **todo** archivo bajo `public/propiedades/` (huérfanos incluidos), ≤10 fotos por listing, `.webp`, ancho ≤1600px, tope 300 KB **inclusivo**, `src` bajo `/propiedades/<slug>/` — cableado en `pnpm check:images` → `pnpm test:e2e` y como paso propio en `.github/workflows/acceptance.yml:60`. Primera corrida no vacua (track `damero-demo-photos`, 2026-09-29): **4 listings, 19 fotos referenciadas, 0 violaciones**. La entrada de arriba queda como registro histórico del estado al 2026-09-22.
 
 ---
 

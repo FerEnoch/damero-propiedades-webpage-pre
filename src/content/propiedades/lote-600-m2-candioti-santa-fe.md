@@ -16,7 +16,15 @@ map_lat: -31.6724
 map_lon: -60.7028
 # Pending stakeholder value, mirrored from WHATSAPP_NUMBER_PENDING in src/data/site.ts. Not a real number.
 whatsapp: "+54 9 2304 000000"
-fotos: []
+fotos:
+  - src: "/propiedades/lote-600-m2-candioti-santa-fe/01-terreno.webp"
+    titulo: "Terreno"
+  - src: "/propiedades/lote-600-m2-candioti-santa-fe/02-terreno.webp"
+    titulo: "Terreno — vista 2"
+  - src: "/propiedades/lote-600-m2-candioti-santa-fe/03-terreno.webp"
+    titulo: "Terreno — vista 3"
+  - src: "/propiedades/lote-600-m2-candioti-santa-fe/04-terreno.webp"
+    titulo: "Terreno — vista 4"
 destacada: false
 ---
 

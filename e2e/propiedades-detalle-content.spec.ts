@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Detail page content rules (ODD §17 slice S3): R4's gallery degradation,
+ * Detail page content rules (ODD §17 slice S3): R4's per-listing gallery
+ * contract (photos → lead + rail + counter; `fotos: []` → brand tile only),
  * R12's ficha técnica rows, the always-present currency code (§17.2:690),
  * the no-dictionary characteristics labels (§17.2:686), the CTA placement
  * and mutual exclusion per viewport (§17.2:697-699), and the map fallback
@@ -16,25 +17,91 @@ const SLUGS = [
   'lote-600-m2-candioti-santa-fe',
 ] as const;
 
+/**
+ * Per-listing gallery fixture: how many photos the listing ships and the
+ * `titulo` of the cover photo (which feeds the lead `alt`, PRD §4/§7).
+ * A `count` of 0 exercises R4's empty branch; no listing ships one today
+ * (the demo-photography slice gave all four photos), so the branch below is
+ * contract documentation until content returns to `fotos: []`.
+ */
+const GALLERY: Record<string, { count: number; leadAlt: string }> = {
+  'casa-3-amb-guadalupe-santa-fe': { count: 5, leadAlt: 'Fachada' },
+  'departamento-2-amb-centro-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
+  'departamento-3-amb-barrio-norte-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
+  'lote-600-m2-candioti-santa-fe': { count: 4, leadAlt: 'Terreno' },
+};
+
 test.beforeEach(async ({ page }) => {
   await page.route(/openfreemap/, (route) => route.abort());
 });
 
-test('R4: with fotos: [] the gallery shows the brand tile and omits rail and counter', async ({
+test('R4: each gallery matches its fotos contract — lead + rail + counter, or brand tile alone', async ({
   page,
 }) => {
-  for (const slug of SLUGS) {
+  for (const [slug, { count, leadAlt }] of Object.entries(GALLERY)) {
     await page.goto(`/propiedades/${slug}`);
 
-    // The brand placeholder renders — never a fabricated photograph (§7).
-    await expect(page.locator('.gallery__lead .damero-placeholder')).toBeVisible();
-    await expect(page.locator('.gallery__lead img')).toHaveCount(0);
+    const leadImg = page.locator('.gallery__lead img');
 
-    // R4: no rail, no thumbnails, and never an invented `1 / 5`.
-    await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
-    await expect(page.locator('[data-gallery-thumb]')).toHaveCount(0);
-    await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+    if (count > 0) {
+      // The cover photo renders from the listing's own folder (PRD §7) and
+      // is the first `fotos` entry.
+      await expect(leadImg).toBeVisible();
+      await expect(leadImg).toHaveAttribute('src', new RegExp(`/propiedades/${slug}/`));
+      await expect(leadImg).toHaveAttribute('alt', leadAlt);
+
+      // CLS contract: layout-reserving attributes and the eager lead (§7).
+      await expect(leadImg).toHaveAttribute('width', /\d+/);
+      await expect(leadImg).toHaveAttribute('height', /\d+/);
+      await expect(leadImg).toHaveAttribute('loading', 'eager');
+      await expect(leadImg).toHaveAttribute('fetchpriority', 'high');
+
+      // Rail, one thumbnail per photo, and the honest counter (§17.2:678).
+      await expect(page.locator('[data-gallery-rail]')).toBeVisible();
+      await expect(page.locator('[data-gallery-thumb]')).toHaveCount(count);
+      await expect(page.locator('[data-gallery-counter]')).toHaveText(`1 / ${count}`);
+      await expect(page.locator('[data-gallery-thumb]').first()).toHaveAttribute(
+        'aria-label',
+        `Ver foto 1 de ${count}`,
+      );
+      await expect(page.locator('[data-gallery-thumb]').first()).toHaveAttribute(
+        'aria-current',
+        'true',
+      );
+    } else {
+      // R4 empty contract: the brand placeholder only — never a fabricated
+      // photograph, never an invented `1 / N` (§7).
+      await expect(page.locator('.gallery__lead .damero-placeholder')).toBeVisible();
+      await expect(leadImg).toHaveCount(0);
+      await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-thumb]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+    }
   }
+});
+
+test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and counts 2 / N', async ({
+  page,
+}) => {
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  await page.goto(`/propiedades/${slug}`);
+
+  const thumbs = page.locator('[data-gallery-thumb]');
+  const leadImg = page.locator('.gallery__lead img');
+  const counter = page.locator('[data-gallery-counter]');
+
+  await expect(leadImg).toHaveAttribute('alt', 'Fachada');
+  await expect(counter).toHaveText('1 / 5');
+
+  // §17.2:680 — activating a thumbnail swaps the lead, its alt, the
+  // `aria-current` marker and the counter.
+  await thumbs.nth(1).click();
+
+  await expect(leadImg).toHaveAttribute('src', /02-living-comedor\.webp/);
+  await expect(leadImg).toHaveAttribute('alt', 'Living-comedor');
+  await expect(counter).toHaveText('2 / 5');
+  await expect(thumbs.nth(1)).toHaveAttribute('aria-current', 'true');
+  await expect(thumbs.nth(0)).not.toHaveAttribute('aria-current', 'true');
 });
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {
