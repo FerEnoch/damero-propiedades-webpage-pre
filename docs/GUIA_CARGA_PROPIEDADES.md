@@ -1,9 +1,9 @@
 # Guía para publicar una propiedad en el sitio
 
 Esta guía explica, paso a paso, cómo publicar una propiedad nueva en el sitio de
-Damero Propiedades. Está pensada para seguirse tal cual, sin conocimientos
-técnicos y sin instalar nada en tu computadora: todo se hace desde el sitio web
-de GitHub.
+Damero Propiedades, y cómo actualizar una que ya esté publicada. Está pensada
+para seguirse tal cual, sin conocimientos técnicos y sin instalar nada en tu
+computadora: todo se hace desde el sitio web de GitHub.
 
 Al terminar vas a tener la propiedad publicada: aparece en la lista de
 `/propiedades` y tiene su propia página de detalle en `/propiedades/<slug>`.
@@ -13,6 +13,55 @@ Al terminar vas a tener la propiedad publicada: aparece en la lista de
 > datos inventados (precios, direcciones, fotos, cantidades). Si un valor no
 > existe todavía, se deja un marcador explícito como `PENDIENTE`, nunca un dato
 > que "suene bien".
+
+---
+
+## El recorrido, de un vistazo
+
+Sea que publiques una propiedad **nueva** o que **actualices** una que ya existe, el camino es el
+mismo. Preparás dos cosas (las fotos y el archivo de la propiedad), lo subís en una rama nueva con
+un *pull request*, los controles automáticos revisan todo, una persona aprueba y el sitio se
+actualiza solo. Si algo falla, se corrige y se vuelve a subir: por eso un error no puede romper el
+sitio en vivo.
+
+```mermaid
+flowchart TD
+    A([Empezar: tenés una propiedad para publicar o actualizar])
+    B["1 · Preparar las fotos<br/>WebP · hasta 1600 px de ancho · hasta 300 KB · hasta 10"]
+    C["2 · Preparar el archivo de la propiedad<br/>src/content/propiedades/nombre-de-la-propiedad.md<br/>Si ya existe, se edita ese archivo"]
+    D["3 · Subir a GitHub en una RAMA NUEVA<br/>y abrir un pull request<br/>Nunca directo sobre main"]
+    E{"4 · Los controles automáticos<br/>¿pasan?"}
+    F["Leé el mensaje del error<br/>(sección Errores comunes)"]
+    G["Corregí lo que indica"]
+    H["5 · Otra persona revisa<br/>y aprueba el pull request<br/>Vos no podés aprobar el tuyo"]
+    I["6 · Se fusiona el pull request"]
+    J["7 · El sitio se actualiza solo"]
+    K([Listo: la propiedad ya se ve en vivo])
+
+    A --> B --> C --> D --> E
+    E -->|No · cruz roja| F --> G --> D
+    E -->|Sí · tilde verde| H --> I --> J --> K
+
+    classDef start fill:#F4F1E8,stroke:#8A7B5C,color:#3D3524
+    classDef manual fill:#E9F0E6,stroke:#7C916F,color:#2F3A2B
+    classDef auto fill:#E8F1FA,stroke:#5B86B5,color:#1E3A56
+    classDef human fill:#FBF1E3,stroke:#B5842F,color:#5C3F10
+    classDef error fill:#FBE9E9,stroke:#C25B5B,color:#6B1F1F
+    class A,K start
+    class B,C,D manual
+    class E,J auto
+    class H,I human
+    class F,G error
+```
+
+Los colores distinguen quién hace cada paso:
+
+| Color | Quién actúa |
+| --- | --- |
+| Verde | Vos (lo hacés a mano) |
+| Azul | El sistema (controles y publicación: corre solo) |
+| Naranja | Otra persona (revisión y aprobación) |
+| Rojo | Camino de corrección cuando un control falla |
 
 ---
 
@@ -58,10 +107,11 @@ el nombre exacto del `slug` de la propiedad:
 public/propiedades/<slug>/
 ```
 
-Por ejemplo, para la propiedad con `slug: "casa-quinta-3amb"`, la carpeta es:
+Por ejemplo, si el `slug` de tu propiedad fuera `casa-ejemplo-3amb` (es un nombre de ejemplo,
+ninguna propiedad real se llama así), la carpeta sería:
 
 ```
-public/propiedades/casa-quinta-3amb/
+public/propiedades/casa-ejemplo-3amb/
 ```
 
 ### Los límites de las fotos (son obligatorios)
@@ -127,7 +177,7 @@ Todos los campos son **obligatorios**, salvo los dos que dicen "(opcional)".
 | --- | --- | --- |
 | `titulo` | El título de la propiedad, el que se ve como encabezado. | Texto entre comillas. |
 | `descripcion` | Un **resumen corto** de una o dos líneas. | Texto entre comillas. |
-| `slug` | El identificador de la propiedad en la dirección web. Único. | Minúsculas, con guiones, sin espacios, sin acentos ni `ñ`. Ej.: `casa-quinta-3amb`. |
+| `slug` | El identificador de la propiedad en la dirección web. Único. | Minúsculas, con guiones, sin espacios, sin acentos ni `ñ`. Ej.: `casa-ejemplo-3amb`. |
 | `operacion` | Si la propiedad es para vender o para alquilar. | Solo `"venta"` o `"alquiler"`. |
 | `tipo` | El tipo de propiedad. | Texto. Ej.: `"casa"`, `"departamento"`, `"lote"`. |
 | `precio` | El precio. | Número, **sin comillas y sin puntos de miles**. Ej.: `95000`, no `"95.000"`. |
@@ -167,11 +217,11 @@ Son dos textos distintos y **no hay que repetir el mismo contenido en los dos**:
   larga**. Se muestra dentro del bloque **DESCRIPCIÓN** y puede tener varios
   párrafos.
 
-### Ejemplo real
+### Ejemplo para copiar
 
-Este es el archivo real de una propiedad que ya está en el sitio
-(`src/content/propiedades/casa-3-amb-guadalupe-santa-fe.md`). Copialo como modelo y
-reemplazá los valores por los de tu propiedad:
+El modelo de abajo está basado en una propiedad que **sí está** en el sitio
+(`src/content/propiedades/casa-3-amb-guadalupe-santa-fe.md`): los datos y las fotos son los de esa
+propiedad real. Copialo y reemplazá cada valor por los de tu propiedad:
 
 ```markdown
 ---
@@ -187,12 +237,22 @@ cochera: true
 caracteristicas: ["patio", "parrilla"]
 zona: "Guadalupe"
 localidad: "Santa Fe"
-# Approximate zone centre with the deliberate PRD §11 offset. Never rendered as numbers.
+# Centro aproximado de la zona, con un desfase a propósito. Nunca se muestran como números.
 map_lat: -31.6375
 map_lon: -60.6873
-# Pending stakeholder value, mirrored from WHATSAPP_NUMBER_PENDING in src/data/site.ts. Not a real number.
+# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 2304 000000"
-fotos: []
+fotos:
+  - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/01-fachada.webp"
+    titulo: "Fachada"
+  - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/02-living-comedor.webp"
+    titulo: "Living-comedor"
+  - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/03-cocina.webp"
+    titulo: "Cocina"
+  - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/04-dormitorio.webp"
+    titulo: "Dormitorio"
+  - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/05-patio.webp"
+    titulo: "Patio"
 destacada: true
 ---
 
@@ -270,7 +330,7 @@ Todo se hace desde el sitio web de GitHub, con tu usuario de colaborador.
 2. Navegá hasta la carpeta `public/propiedades/`.
 3. Hacé clic en **Add file** → **Upload files**.
 4. Arrastrá una carpeta llamada exactamente como el `slug` de la propiedad
-   (por ejemplo `casa-quinta-3amb`), con las fotos adentro. GitHub conserva el
+   (por ejemplo `casa-ejemplo-3amb`), con las fotos adentro. GitHub conserva el
    nombre de la carpeta.
 5. Abajo de todo, en la sección **Commit changes**, aparece la elección de
    rama. Elegí la opción:
@@ -280,7 +340,7 @@ Todo se hace desde el sitio web de GitHub, con tu usuario de colaborador.
    (Debajo dice *Learn more about branches*. Es un botón de opción: hay que
    marcar ese, no el que dice *Commit directly to the `main` branch*.)
 6. GitHub propone un nombre de rama. Podés aceptarlo o escribir uno más claro,
-   por ejemplo `propiedad-casa-quinta-3amb`.
+   por ejemplo `propiedad-casa-ejemplo-3amb`.
 7. Confirmá con el botón verde. GitHub crea la rama y abre el pull request.
 
 > Si las fotos todavía no están listas, podés subirlas después. Lo importante es
@@ -294,7 +354,7 @@ Todo se hace desde el sitio web de GitHub, con tu usuario de colaborador.
 2. Navegá hasta `src/content/propiedades/`.
 3. Hacé clic en **Add file** → **Create new file**.
 4. En el nombre del archivo escribí `<slug>.md` (por ejemplo
-   `casa-quinta-3amb.md`) y pegá el contenido que armaste en la Parte 2.
+   `casa-ejemplo-3amb.md`) y pegá el contenido que armaste en la Parte 2.
 5. Abajo de todo, confirmá el cambio. Como ya estás sobre la rama nueva, este
    cambio se suma al mismo pull request.
 
@@ -312,6 +372,32 @@ en el pull request:
   es lo que queremos: evita que un error llegue al sitio en vivo. Leé el mensaje
   (ver *Errores comunes*), corregí lo que indica y subí el cambio de nuevo. El
   pull request se vuelve a revisar solo.
+
+Cuando los controles estén en verde, el pull request **queda esperando la aprobación de otra
+persona**. Vos no podés aprobar ni fusionar tu propio pull request: está configurado así a
+propósito en el repositorio. Cuando alguien lo apruebe y lo fusione, el sitio se actualiza solo.
+
+---
+
+## Actualizar una propiedad que ya existe
+
+El recorrido es **exactamente el mismo** que el de publicar una nueva (rama nueva, *pull request*,
+controles, aprobación, fusión). Cambian sólo los dos primeros pasos:
+
+- **El archivo no se crea: se edita.** Abrí `src/content/propiedades/<slug>.md` con el botón de
+  lápiz (*Edit this file*), cambiá lo que haga falta y guardá. Ese cambio se suma al *pull request*.
+- **Las fotos que ya están no se vuelven a subir.** Si querés sumar fotos, subí **sólo los archivos
+  nuevos** a `public/propiedades/<slug>/` y agregá sus entradas al campo `fotos`, en el lugar que
+  corresponda al orden: la primera entrada sigue siendo la portada.
+
+Dos advertencias importantes:
+
+- **No cambies el `slug`.** Es la dirección web de la propiedad: si lo cambiás, la dirección vieja
+  deja de funcionar y se rompen los enlaces que ya se hayan compartido.
+- **No dejes fotos sueltas sin usar.** Si sacás una foto de la lista, borrá también el archivo de
+  `public/propiedades/<slug>/`: el control de imágenes revisa **todos** los archivos de esa carpeta,
+  aunque ninguna propiedad los referencie, y un archivo que se pasa de peso frena la publicación
+  (ver *Errores comunes*).
 
 ---
 
@@ -357,31 +443,31 @@ Ejemplos reales de cada mensaje:
 - **Demasiadas fotos:**
 
   ```
-  casa-quinta-3amb.md: 12 photos referenced, the limit is 10
+  casa-ejemplo-3amb.md: 12 photos referenced, the limit is 10
   ```
 
 - **Una foto pesa de más:**
 
   ```
-  /propiedades/casa-quinta-3amb/frente.webp (referenced by casa-quinta-3amb.md): 480 KB exceeds the 300 KB limit
+  /propiedades/casa-ejemplo-3amb/frente.webp (referenced by casa-ejemplo-3amb.md): 480 KB exceeds the 300 KB limit
   ```
 
 - **La foto no es WebP:**
 
   ```
-  /propiedades/casa-quinta-3amb/frente.jpg (referenced by casa-quinta-3amb.md): must be .webp, found ".jpg"
+  /propiedades/casa-ejemplo-3amb/frente.jpg (referenced by casa-ejemplo-3amb.md): must be .webp, found ".jpg"
   ```
 
 - **La foto es demasiado ancha:**
 
   ```
-  /propiedades/casa-quinta-3amb/frente.webp (referenced by casa-quinta-3amb.md): width 2400px exceeds the 1600px limit
+  /propiedades/casa-ejemplo-3amb/frente.webp (referenced by casa-ejemplo-3amb.md): width 2400px exceeds the 1600px limit
   ```
 
 - **La foto referenciada no está subida:**
 
   ```
-  /propiedades/casa-quinta-3amb/frente.webp (referenced by casa-quinta-3amb.md): file does not exist under public/
+  /propiedades/casa-ejemplo-3amb/frente.webp (referenced by casa-ejemplo-3amb.md): file does not exist under public/
   ```
 
 - **La foto está en la carpeta de otra propiedad, o fuera de `propiedades/`:**
@@ -390,13 +476,13 @@ Ejemplos reales de cada mensaje:
   olvidarse de cambiar la carpeta:
 
   ```
-  /propiedades/otra-propiedad/frente.webp (referenced by casa-quinta-3amb.md): must live under /propiedades/casa-quinta-3amb/ — the guide requires the listing's own slug folder
+  /propiedades/otra-propiedad/frente.webp (referenced by casa-ejemplo-3amb.md): must live under /propiedades/casa-ejemplo-3amb/ — the guide requires the listing's own slug folder
   ```
 
 - **El archivo dice ser WebP pero no es válido:**
 
   ```
-  /propiedades/casa-quinta-3amb/frente.webp (referenced by casa-quinta-3amb.md): unrecognisable WebP header — the file is not a valid WebP
+  /propiedades/casa-ejemplo-3amb/frente.webp (referenced by casa-ejemplo-3amb.md): unrecognisable WebP header — the file is not a valid WebP
   ```
 
 - **Una foto subida que no está enlazada en ninguna propiedad.** También se
@@ -404,20 +490,21 @@ Ejemplos reales de cada mensaje:
   mensaje dice `in public/propiedades/`:
 
   ```
-  /propiedades/casa-quinta-3amb/otra.webp (in public/propiedades/): 512 KB exceeds the 300 KB limit
+  /propiedades/casa-ejemplo-3amb/otra.webp (in public/propiedades/): 512 KB exceeds the 300 KB limit
   ```
 
 - **La ruta `src` intenta salir de `public/`.** Caso raro: solo pasa si la ruta
   lleva `..`. Se rechaza por seguridad:
 
   ```
-  /propiedades/casa-quinta-3amb/../../../../etc/hosts (referenced by casa-quinta-3amb.md): resolves outside public/
+  /propiedades/casa-ejemplo-3amb/../../../../etc/hosts (referenced by casa-ejemplo-3amb.md): resolves outside public/
   ```
 
-Cuando los límites están bien, el control muestra una línea como:
+Cuando los límites están bien, el control muestra una línea como esta (los números cambian con
+cada carga; estos son los del sitio al momento de escribir esta guía):
 
 ```
-Image limits OK — 3 listing(s), 0 referenced photo(s), 0 file(s) under public/propiedades/.
+Image limits OK — 4 listing(s), 19 referenced photo(s), 19 file(s) under public/propiedades/.
 ```
 
 ---
@@ -441,4 +528,4 @@ Antes de dar por publicada la propiedad, confirmá:
       menos** y pesan **hasta 300 KB**.
 - [ ] El cambio se subió en una **rama nueva** con un pull request, no directo
       a `main`.
-- [ ] Los controles automáticos del pull request están en **verde**.
+- [ ] Los controles automáticos del pull request están en **verde** y otra persona lo aprobó.
