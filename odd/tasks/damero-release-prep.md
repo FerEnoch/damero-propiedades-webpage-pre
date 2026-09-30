@@ -104,6 +104,13 @@ O sea: sumar el gate e2e a CI cubre 4 y 5 de una; el check 3 queda como deuda ex
 
 **Recomendaciones, en orden de valor:** (1) ✅ **hecho** — fix pusheado y verde real confirmado; (2) ✅ **`paths-ignore` hecho** (`245c5f9`), con el ignore angosto a propósito por el flujo del empleado; (3) el **check 3** — ver la decisión abierta de abajo; (4) pinear las actions por SHA: los 4 PRs de Dependabot ya abiertos van en esa dirección y además eliminan los warnings de Node 20 de los tags `@v4`.
 
+**Actualización (2026-09-30):** los dos primeros puntos de "Tres cosas que el CI NO es" quedaron
+obsoletos. `main` tiene branch protection activa (PR con 1 aprobación + check requerido
+`Playwright e2e (1280 / 390 / 320)`), así que el CI **sí es barrera** para lo que pasa por PR. Y
+el deploy **sí está cableado**: el repo está conectado a Vercel, que deploya solo (`Preview` por
+rama, `Production` por `main`); sigue sin haber `vercel.json` ni paso de deploy en el repo. El
+`README.md` se actualizó en el mismo cambio.
+
 ### Deuda de CI — decisión abierta del stakeholder (2026-09-22)
 
 **El check 3 del PRD §9 no está implementado en ningún lado:** límites de imagen (≤10 fotos por propiedad, WebP, ancho ≤1600px, cada una <300 KB). El PRD lo enuncia como "fail the build" y hoy es papel.
