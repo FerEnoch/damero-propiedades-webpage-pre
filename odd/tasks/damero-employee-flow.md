@@ -53,23 +53,32 @@ Contraste hecho contra `src/content.config.ts` (schema real) y `scripts/check-im
 
 ## Tareas
 
-- [ ] **T0 — Diagrama "El recorrido, de un vistazo".** Mermaid `flowchart TD` con colores por quién actúa (manual / sistema / otra persona / corrección), la decisión de controles verdes-rojos y el bucle de corrección. Cubre los dos puntos de entrada (nueva y actualización), porque a partir de la rama el camino es idéntico. Ubicación: después de la introducción y antes de "Qué necesitás antes de empezar", con su leyenda de colores.
-- [ ] **T1 — Sección "Actualizar una propiedad que ya existe".** Qué cambia respecto de crear una nueva (se edita el `.md` existente, se suben sólo los archivos de foto nuevos), qué **no** hay que tocar (el `slug`) y que todo lo demás es idéntico.
-- [ ] **T2 — Corregir F1, F2 y F3.** Ejemplo con las fotos reales de la propiedad modelo; slug de ejemplo hipotético y claramente marcado; comentarios en español sin jerga interna.
-- [ ] **T3 — Corregir F5 y F6.** Aviso explícito de la aprobación obligatoria del pull request; números del mensaje "OK" realistas.
-- [ ] **T4 — Gate.** `pnpm test:e2e` en verde (3 viewports).
-- [ ] **T5 — Cierre.** Evidencia en este doc + espejo en Engram.
+- [x] **T0 — Diagrama "El recorrido, de un vistazo".** Mermaid `flowchart TD` con colores por quién actúa (manual / sistema / otra persona / corrección), la decisión de controles verdes-rojos y el bucle de corrección. Cubre los dos puntos de entrada (nueva y actualización), porque a partir de la rama el camino es idéntico. Ubicación: después de la introducción y antes de "Qué necesitás antes de empezar", con su leyenda de colores.
+- [x] **T1 — Sección "Actualizar una propiedad que ya existe".** Qué cambia respecto de crear una nueva (se edita el `.md` existente, se suben sólo los archivos de foto nuevos), qué **no** hay que tocar (el `slug`) y que todo lo demás es idéntico.
+- [x] **T2 — Corregir F1, F2 y F3.** Ejemplo con las fotos reales de la propiedad modelo; slug de ejemplo hipotético y claramente marcado; comentarios en español sin jerga interna.
+- [x] **T3 — Corregir F5 y F6.** Aviso explícito de la aprobación obligatoria del pull request; números del mensaje "OK" realistas.
+- [x] **T4 — Gate.** `pnpm test:e2e` en verde (3 viewports).
+- [ ] **T5 — Cierre.** Evidencia en este doc + espejo en Engram + PR.
 
 ## Criterios de aceptación
 
-1. El Mermaid es sintácticamente válido y muestra las etapas del recorrido **más** el bucle de corrección.
-2. La guía cubre **publicar** y **actualizar**; el diagrama refleja los dos caminos de entrada.
-3. Cero afirmaciones falsas: el ejemplo coincide con el archivo real, y los mensajes citados del validador coinciden con `scripts/check-image-limits.mjs`.
-4. El aviso de aprobación del pull request está explícito.
-5. `pnpm test:e2e` en verde en los 3 viewports.
+1. El Mermaid es sintácticamente válido y muestra las etapas del recorrido **más** el bucle de corrección. ✅
+2. La guía cubre **publicar** y **actualizar**; el diagrama refleja los dos caminos de entrada. ✅
+3. Cero afirmaciones falsas: el ejemplo coincide con el archivo real, y los mensajes citados del validador coinciden con `scripts/check-image-limits.mjs`. ✅
+4. El aviso de aprobación del pull request está explícito. ✅
+5. `pnpm test:e2e` en verde en los 3 viewports. ✅
+
+## Evidencia (2026-09-30)
+
+- Commits: `c27fb97` (este plan) + `76b4c80` (la guía), rama `docs/employee-flow-diagram`.
+- `pnpm test:e2e` → `check:images` OK + **289 passed / 11 skipped / 0 failed** (33.3 s) en `desktop-1280`, `mobile-390` y `mobile-320`.
+- Mensajes del validador citados: **9 de 9** coinciden con `scripts/check-image-limits.mjs`. F6 corregida con la salida real: `Image limits OK — 4 listing(s), 19 referenced photo(s), 19 file(s) under public/propiedades/.`
+- Ejemplo copiable: las 5 entradas de `fotos` se copiaron de `src/content/propiedades/casa-3-amb-guadalupe-santa-fe.md` y los 5 archivos se verificaron presentes en `public/propiedades/casa-3-amb-guadalupe-santa-fe/`.
+- Mermaid: `classDef` antes que `class`, sin `<` `>` dentro de los labels, sin `|` sin escapar dentro de nodos.
+- **Corrección del orquestador sobre el trabajo delegado:** los `classDef` venían después de los `class` (orden no documentado de Mermaid) y los ejemplos de error seguían usando el slug muerto `casa-quinta-3amb`; ambos corregidos inline.
 
 ## Verificación aplicada
 
-- `pnpm test:e2e` (gate de aceptación del repo).
-- Relectura del Mermaid contra la sintaxis documentada y render en GitHub.
-- Contraste de los mensajes citados contra `scripts/check-image-limits.mjs` (hecho en la revisión: 8 de 9 formatos exactos, el restante es F6).
+- `pnpm test:e2e` (gate de aceptación del repo): verde.
+- Relectura del Mermaid contra la sintaxis documentada.
+- Contraste de los mensajes citados contra `scripts/check-image-limits.mjs`.
