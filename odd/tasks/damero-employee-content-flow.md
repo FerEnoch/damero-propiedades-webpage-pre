@@ -1,6 +1,6 @@
 # ODD — Damero: flujo de contenido del empleado (portada, límites de imagen, instructivo y PR)
 
-**Estado:** **T1–T5 ✅ cerradas.** Entrega en curso: **PR #5** (código) con todos los checks en verde y `BLOCKED` esperando la aprobación requerida — la protección de rama **verificada end-to-end**; **PR #6** (instructivo) apilado sobre #5.
+**Estado:** **T1–T5 ✅ cerradas.** Entrega mergeada: **PR #5** (código) y **PR #6** (instructivo) mergeados el 2026-09-24 — la protección de rama quedó **verificada end-to-end** y activa.
 
 **Objetivo:** dejar el pipeline de contenido **seguro para un empleado instruido**: una regla de portada sin contradicciones, la carpeta de fotos existente, el check 3 del PRD §9 implementado como barrera real, un instructivo publicable, y el flujo PR + branch protection configurado y verificado.
 

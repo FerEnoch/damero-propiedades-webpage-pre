@@ -1,6 +1,6 @@
 # ODD — Damero: render real del mapa de detalle y data de prueba de Santa Fe
 
-**Estado:** **T1–T4 ✅ cerradas** (2026-09-28). Branch `feat/detail-map-render` rebasada sobre `main` (`728a1e8`), 6 work-unit commits, gate verde y verificación independiente `success`. **PR en revisión** (ver Progreso).
+**Estado:** **T1–T4 ✅ cerradas** (2026-09-28). Branch `feat/detail-map-render` rebasada sobre `main` (`728a1e8`), 6 work-unit commits, gate verde y verificación independiente `success`. **PR #9 mergeado el 2026-09-29** (ver Progreso).
 
 **Objetivo:** que el mapa de las páginas de detalle **renderice de verdad**, que el gate e2e lo
 pruebe (hoy sólo prueba el fallback), y que la cartera de prueba sean cuatro propiedades de la
@@ -180,5 +180,6 @@ semilla). Pre-existente y fuera del alcance de la slice.
 
 ## Próximo paso
 
-Mergear el PR y validar el mapa en el deploy. **Bloqueantes de lanzamiento** (B1–B5, B7–B8 en
-`damero-release-prep.md`) siguen abiertos y se tratan aparte.
+PR #9 ya mergeado (2026-09-29). Queda **validar el mapa en el deploy** (stakeholder).
+**Bloqueantes de lanzamiento** (B1–B5, B7–B8 en `damero-release-prep.md`) siguen abiertos y se
+tratan aparte.

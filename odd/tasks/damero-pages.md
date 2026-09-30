@@ -1,6 +1,6 @@
 # ODD — Damero: fundación del sitio + landing
 
-**Estado:** T0–T5 y **T7** ✅ commiteados. **T6 y el track §17 cerrados** (2026-09-22): `/propiedades`, `/propiedades/<slug>`, `/faqs`, los 3 componentes diferidos y `icon-house` existen, y el gate está verde (**280 passed / 11 skipped**). **Siguiente: release prep** — `odd/tasks/damero-release-prep.md` (README, CI con el gate real, repo remoto).
+**Estado:** T0–T5 y **T7** ✅ commiteados. **T6 y el track §17 cerrados** (2026-09-22): `/propiedades`, `/propiedades/<slug>`, `/faqs`, los 3 componentes diferidos y `icon-house` existen, y el gate está verde (**280 passed / 11 skipped**). **Release prep cerrado** el 2026-09-22 (`odd/tasks/damero-release-prep.md`: README, CI con el gate real, repo remoto).
 
 **Objetivo:** Dejar el sitio Astro con los cimientos de código (tokens, layout, componentes base y content collection) y la landing `/` funcionando contra `docs/DESIGN.md`.
 
