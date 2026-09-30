@@ -21,7 +21,7 @@ The site never fabricates content: any value that is still pending renders as
 
 ## Stack
 
-- **Astro 7.3.3**, static output. **No UI framework**: components are `.astro`
+- **Astro 7.3.5**, static output. **No UI framework**: components are `.astro`
   files and client-side JavaScript is the exception, not the rule.
 - **Plain CSS driven by design tokens** — the single source of visual truth is
   `src/styles/tokens.css`, consumed by `src/styles/global.css`. No Tailwind,
@@ -112,14 +112,19 @@ Two GitHub Actions workflows run on every pull request and push to `main`:
 | `supply-chain` | Frozen install + `pnpm audit --audit-level high` + build |
 | `acceptance` | The full Playwright e2e gate |
 
-Under the current direct-to-`main` flow, CI is a **signal, not a barrier**:
-nothing blocks a push. It exists to catch regressions before they ship.
+`main` is protected: merging requires a pull request with one approving review
+and the required status check `Playwright e2e (1280 / 390 / 320)`. CI is
+therefore a **barrier**, not just a signal — a red gate blocks the merge.
 
 ## Deployment
 
-The project builds to a static site intended for Vercel's free tier. Deployment
-is **not wired in this repository**: there is no `vercel.json` and no deployment
-configuration or CI deploy step. The site is not yet deployed anywhere.
+The project builds to a static site deployed on Vercel's free tier. The
+repository is connected to Vercel, which builds and deploys on its own: a
+`Preview` deployment per branch and a `Production` deployment for `main`. There
+is no `vercel.json` and no deploy step in this repository.
+
+The site is deployed but **not launched**: the public launch is still blocked by
+the stakeholder-pending content listed under [Status](#status).
 
 ## Contributing
 

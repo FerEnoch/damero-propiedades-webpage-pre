@@ -5,7 +5,7 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
 
 ## Stack
 
-- **Astro 7.3.3** (sitio estático). **Sin framework de UI**: nada de React, Vue ni Svelte.
+- **Astro 7.3.5** (sitio estático). **Sin framework de UI**: nada de React, Vue ni Svelte.
   Los componentes son `.astro`; el JavaScript de cliente es la excepción, no la regla.
 - **CSS plano con tokens.** El único punto de verdad visual es `src/styles/tokens.css`,
   consumido por `global.css`. Nada de Tailwind ni de utilidades.
@@ -36,7 +36,8 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
    realmente declara scripts. `@playwright/test` **no** necesitó entrada en `allowBuilds`:
    la descarga del browser la hace `playwright install`, no un postinstall.
 3. `minimumReleaseAge: 4320` (3 días) bloquea versiones recién publicadas.
-   Única excepción autorizada: `astro@7.3.3`.
+   Sin excepciones activas: la autorizada el 2026-09-18 para `astro@7.3.3` se retiró
+   el 2026-09-30 (el pin es `astro@7.3.5`, publicado 2026-09-24, ya fuera de la cuarentena).
    Ojo: `pnpm view <pkg> version time.modified` **no** es la fecha de publicación.
    Usá `pnpm view <pkg>@<version> time --json` y leé el mapa por versión.
 4. `engineStrict: true` convierte `engines` en error de instalación.
