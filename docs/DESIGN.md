@@ -757,3 +757,48 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 - The service copy and the legal block remain fixed (§16).
 
 **Open item carried into implementation.** The registered Stitch asset `assets/5c6d34089cb34b22ae8bfdaa315e2d5b` currently exposes `labelFont = PUBLIC_SANS`, which diverges from the mapping recorded in §15 (`JETBRAINS_MONO`). The Astro build must follow §3 and §14 — prices, counters and apparatus labels in JetBrains Mono with tabular figures — regardless of what the mockups render. Align the Stitch asset before the next design round so mockups and build stop diverging.
+
+---
+
+## 18. Error Page — 404
+
+### 18.1 Scope: the 404 only, no custom 500
+
+The product ships **one** custom error page: the 404. A custom `500` is **not available for prerendered pages** (Astro, since v4.10.3) — it requires on-demand rendering plus an adapter, which changes the build and deploy model. The MVP is `output: static` on Vercel, so a 500 stays the host's default and is **out of scope**. This is a recorded decision, not an omission: wanting a custom 500 later is an architecture change with its own track, never a file added on the side.
+
+### 18.2 Route and mechanism
+
+`src/pages/404.astro` builds to `404.html` at the site root. No adapter, no config change: both `astro preview` and Vercel serve it for unmatched routes and the response carries the real `404` status. Nothing is added to `BaseLayout`; the status code is what keeps the page out of search indexes, so no `robots` meta is needed.
+
+### 18.3 Composition
+
+The 404 reuses the approved **empty-state pattern** (`EmptyState`, §6 extended by §17.1) and introduces **no new colour, radius, shadow, typeface or motion primitive**. Top to bottom, inside `BaseLayout` (header and footer stay — the nav is part of the recovery path, and no nav link is marked active):
+
+- **Band.** Full-bleed `--color-bg-subtle`, `--section-y` padding — the same treatment as the empty state. (The FAQ closing band is tighter: it uses `--section-y-tight`.)
+- **Eyebrow.** `ERROR 404` in `--text-label-sm` mono uppercase, `--color-text-accent`.
+- **Heading** (`<h1>`). Serif at `--text-display-lg`, weight 400 — the page-head token every other route uses (§17.1, §17.3), not a section title.
+- **Body.** `--text-body-lg` / `--color-text-secondary`, capped at `52ch`.
+- **Actions.** The primary CTA first in the DOM (so it is the first tab stop), then the secondary text link. Stacked on mobile, inline from `md`.
+- **Alignment.** **Left-aligned with a ragged right edge — never centred.** §11 bans centred hero sections and centred text blocks outright. This is the single most important rule here: the 404 is the page most likely to be built centred out of habit.
+- **No image, no icon, no emoji, no magnifying glass, no illustration.** Unlike the empty state — which shows the §7 tile because it stands in for missing listings — the 404 has no content to stand in for. Type and the band carry it (§4, §11).
+
+### 18.4 Copy
+
+Copy is neutral professional Spanish (§16) and is the only text in the product with no source screen, so it is stakeholder-owned: the wording below was reviewed and approved by the stakeholder. The approved wording:
+
+| Slot | Text |
+|---|---|
+| Heading | `No encontramos esta página.` |
+| Body | `Puede que la dirección esté mal escrita o que el enlace ya no exista. Podés buscar una propiedad o volver al inicio.` |
+| Primary | `Ver propiedades` → `/propiedades` |
+| Text link | `Volver al inicio` → `/` |
+
+Not apologetic (the empty state never apologises either, §17.1), no marketing cliché (§11), no invented figure.
+
+### 18.5 Single primary CTA
+
+Exactly one `.button--primary` per viewport (§6, §11). Recovery is `/propiedades` (primary) and `/` (text link). The header's WhatsApp link is not a primary button and does not count.
+
+### 18.6 How it is verified
+
+The same gate as every other route (§12; `AGENTS.md`: new pages are added to the gate, not outside it). `e2e/404-structure.spec.ts` asserts: an unmatched URL answers `404` and renders the custom page; `lang="es"`; exactly one `<h1>`; the `header`/`main`/`footer` landmarks; exactly one primary button per viewport; no horizontal overflow at 390 and 320; the §2 contrast matrix; zero sage as rendered text; touch targets ≥ 44px; live internal links; and — specific to this section — that the head block is **not** `text-align: center`.
