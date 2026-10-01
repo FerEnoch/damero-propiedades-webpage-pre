@@ -1,0 +1,131 @@
+---
+/**
+ * Custom 404 page — docs/DESIGN.md §18 (Error Page — 404),
+ * odd/tasks/damero-error-pages.md work unit W2.
+ *
+ * The only custom error page this product ships (§18.1). A custom `500` is
+ * NOT available for prerendered pages (Astro, since v4.10.3): it needs
+ * on-demand rendering plus an adapter, which changes the `output: static`
+ * build and deploy model on Vercel. That is an architecture change with its
+ * own track, never a file added on the side — so it is out of scope here.
+ *
+ * Route and mechanism (§18.2): `src/pages/404.astro` builds to `404.html` at
+ * the site root. No adapter, no config change: `astro preview` and Vercel both
+ * serve it for unmatched routes and the response carries the real 404 status.
+ * Nothing is added to `BaseLayout` and no `robots` meta is needed — the status
+ * code is what keeps the page out of search indexes.
+ *
+ * Composition (§18.3) reuses the `EmptyState` band pattern (§6 extended by
+ * §17.1) with zero new colour, radius, shadow, typeface or motion primitive:
+ * full-bleed `--color-bg-subtle` band with `--section-y` padding; eyebrow
+ * `ERROR 404` in `--text-label-sm` mono uppercase / `--color-text-accent`; the
+ * `<h1>` in the page-head token `--text-display-lg`, weight 400 (§17.1,
+ * §17.3) — not a section title; the body in `--text-body-lg` /
+ * `--color-text-secondary` capped at 52ch; then the actions.
+ *
+ * Left-aligned with a ragged right edge — NEVER centred. §11 bans centred hero
+ * sections and centred text blocks outright, and a centred 404 is the single
+ * most likely way to break that rule out of habit (§18.3). `text-align: left`
+ * is declared explicitly on the head block so the computed value cannot drift
+ * to `center`; e2e/404-structure.spec.ts asserts it on the `<h1>`.
+ *
+ * No image, no icon, no emoji, no magnifying glass, no illustration, no
+ * `DameroPlaceholder` (§18.3): unlike the empty state — which shows the §7
+ * tile because it stands in for missing listings — the 404 has no content to
+ * stand in for. Type and the band carry it.
+ *
+ * Actions (§18.5): exactly one `.button--primary` per viewport. `Ver
+ * propiedades` (primary) comes FIRST in the DOM so it is the first tab stop,
+ * `Volver al inicio` (text-link) after it; stacked on mobile, inline from md.
+ * No WhatsApp CTA on this page: the header's WhatsApp text link is not a
+ * primary button and does not count (§18.5).
+ *
+ * No nav link is marked active (§18.3). The page is prerendered as the `/404`
+ * route, which matches none of `NAV_ROUTES`, so `SiteHeader`'s active
+ * indicator never fires — asserted in the e2e spec.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+---
+
+<BaseLayout title="Página no encontrada | Damero Propiedades">
+  <!-- 404 head band — the EmptyState tint band, minus the §7 tile -->
+  <section class="error-404" aria-labelledby="error-404-title">
+    <div class="container">
+      <p class="error-404__eyebrow">ERROR 404</p>
+      <h1 class="error-404__title" id="error-404-title">No encontramos esta página.</h1>
+      <p class="error-404__body">
+        Puede que la dirección esté mal escrita o que el enlace ya no exista. Podés buscar una
+        propiedad o volver al inicio.
+      </p>
+      <div class="error-404__actions">
+        <Button variant="primary" href="/propiedades">Ver propiedades</Button>
+        <Button variant="text-link" href="/">Volver al inicio</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Full-bleed tint band, the EmptyState treatment (§18.3). */
+  .error-404 {
+    max-width: var(--container-bleed);
+    margin-inline: auto;
+    padding-block: var(--section-y);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .error-404__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    text-transform: uppercase;
+    color: var(--color-text-accent);
+    text-align: left;
+  }
+
+  /* §18.3 — the page-head token every other route uses, not a section title. */
+  .error-404__title {
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-display-lg);
+    font-weight: 400;
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+    text-align: left;
+  }
+
+  .error-404__body {
+    max-width: 52ch;
+    margin: var(--space-6) 0 0;
+    font-size: var(--text-body-lg);
+    line-height: var(--leading-body-lg);
+    color: var(--color-text-secondary);
+    text-align: left;
+  }
+
+  /*
+   * §18.3 — the primary CTA is first in the DOM (first tab stop) and the text
+   * link follows it. Stacked on mobile, inline from md. The text link keeps
+   * its own 44px target (Button.astro), so the tighter gap is safe here.
+   */
+  .error-404__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .error-404__actions {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+    }
+  }
+</style>
