@@ -2,7 +2,7 @@
 
 **Canonical source:** `odd/tasks/damero-currency-filter.md`  
 **Engram mirror:** topic `odd/damero-currency-filter/tasks` (synced 2026-10-07, observation `a050b6237d889545`; the write required the previously registered manual-save session because multiple active runtime sessions matched the project)  
-**Status:** Implementation and verification complete (desktop/mobile references aligned; focused spec and full acceptance gate green). Commit pending the user's explicit request.  
+**Status:** Complete. Implemented, verified, committed as `f5adfc4`, and opened as PR #15. PD-02 remains open.  
 **Branch:** Current work is on `feat/propiedades-demo-ars`. `feat/currency-filter-states` still points to the same base commit as `main` and lacks the PD-01 ARS listings required by the six-listing CF-01 expectations. Keep the current tree on its existing branch; do not switch or move changes.  
 **Delivery strategy:** `ask-on-risk` (default; no chain decision currently needed)  
 **Forecast:** approximately 200 authored changed lines, excluding generated files.
@@ -41,7 +41,7 @@ The existing USD/ARS control only scopes a price range; by itself it does not fi
 - [x] Clear price bounds when switching to `Todas`; keep chips, counts, and URL state consistent.
 - [x] Update `docs/DESIGN.md`, the approved desktop/mobile search references, and Playwright behavior coverage.
 - [x] Verify with `pnpm exec playwright test e2e/propiedades-filtering.spec.ts` and `pnpm test:e2e`.
-- [ ] Record verification, commit identity, and next step below. (verification and next step recorded; commit identity unresolved because no commit has been requested)
+- [x] Record verification, commit identity, and next step below.
 
 **Authorized scope:** one delegated implementation task covering the behavior, tests, and design documentation above.  
 **Acceptance:** no currency selected means all listings; ARS/USD each show only matching listings; `Todas` is selected on a clean URL and its price-range controls are visibly disabled and non-interactive; switching to `Todas` removes stale price bounds; reloading explicit currency URLs reproduces the same results; all existing acceptance gates pass.  
@@ -56,5 +56,5 @@ The existing USD/ARS control only scopes a price range; by itself it does not fi
 - The six-listing/three-ARS expectations depend on PD-01 commits present on `feat/propiedades-demo-ars`; moving CF-01 onto stale `feat/currency-filter-states` would remove that test data.
 - RED evidence is unavailable because test and implementation edits were already co-located at resume; it was not manufactured (per the Constraints above). No CF-01 commit exists.
 
-**Commit:** pending (requires the user's explicit commit request).  
-**Next step:** on the user's explicit request, stage only the CF-01 files (`src/pages/propiedades/index.astro`, `src/components/FilterControls.astro`, `src/components/PriceRange.astro`, `docs/DESIGN.md`, `design/screens/03-busqueda-desktop.html`, `design/screens/04-busqueda-mobile.html`, `e2e/propiedades-filtering.spec.ts`, `odd/tasks/damero-currency-filter.md`) and commit as one work unit with Conventional Commits, leaving the PD-02 files unstaged. Related open work on this branch: PD-02 (ARS demo photos) in `odd/tasks/propiedades-demo-ars.md`.
+**Commit:** `f5adfc4` — `feat(properties): filter listings by currency with three states` (8 files: the two component paths, `src/pages/propiedades/index.astro`, `docs/DESIGN.md`, the two design references, `e2e/propiedades-filtering.spec.ts`, this document).  
+**Next step:** PR #15 (`feat/propiedades-demo-ars` → `main`) is open for review; merge is a human decision. This PR also carries the prerequisite ARS demo listings (PD-01) because the currency filter's six-listing/three-ARS expectations depend on them. Related open work on this branch: PD-02 (ARS demo photos) in `odd/tasks/propiedades-demo-ars.md`.
