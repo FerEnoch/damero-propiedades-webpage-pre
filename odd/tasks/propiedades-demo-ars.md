@@ -2,7 +2,7 @@
 
 **Canonical source:** `odd/tasks/propiedades-demo-ars.md`
 **Engram mirror:** topic `odd/propiedades-demo-ars/tasks`
-**Status:** In progress (PD-02 implementation and verification complete; awaiting work-unit commit)
+**Status:** Complete
 **Branch:** `feat/propiedades-demo-ars`
 **Delivery strategy:** `ask-on-risk` (default; no chain decision currently needed)
 **Forecast:** approximately 260 authored changed lines across PD-01 and PD-02, excluding generated image files.
@@ -60,7 +60,7 @@ The user wants two more sample listings that demonstrate the site using ARS pric
 - [x] Append the nine Pexels source IDs and page URLs to the existing photo provenance table in `odd/tasks/damero-demo-photos.md`, preserving the historical T0–T6 results.
 - [x] Update the per-listing gallery fixture in `e2e/propiedades-detalle-content.spec.ts`; observe RED before adding images/frontmatter.
 - [x] Verify image limits with `pnpm check:images`, gallery behavior with `pnpm exec playwright test e2e/propiedades-detalle-content.spec.ts`, and the full `pnpm test:e2e` gate; record unrelated CF-01 failures separately.
-- [ ] Record verification, commit identity, and next step below.
+- [x] Record verification, commit identity, and next step below.
 
 **Authorized scope:** one delegated implementation task for nine local WebP demo assets, the two matching frontmatter blocks, photo provenance, and gallery expectations.
 **Acceptance:** each of the two ARS listings displays its locally committed demo gallery; nine new files are WebP, ≤1600px wide, <300KB each, correctly referenced under the listing-specific slug; source IDs/URLs are documented; focused gallery checks pass; unrelated CF-01 work remains intact and unstaged.
@@ -74,5 +74,5 @@ The user wants two more sample listings that demonstrate the site using ARS pric
 - GREEN: `pnpm test:e2e` → 346 passed, 17 skipped, 0 failed (exit 0), independently confirmed. The 17 skips are viewport-conditional; the current combined worktree includes the separate CF-01 implementation and its filter tests pass. CF-01 paths remain outside this PD-02 work unit.
 - Independent structural verification confirmed nine distinct local WebP files, five for Zona Sur and four for Candioti Norte; every referenced source, caption, filename, and Pexels ID matches the provenance table. All are ≤1600px wide and <300 KB. The 1600px source for the Candioti Norte building-front image exceeded the cap, so it was re-encoded at 1200px.
 - Risk/verification: `gentle-ai review mode status` reported clone-local `off`. `gentle-ai review assess --cwd <repo> --json` returned `high/unassessable` because untracked assets require an explicit inventory. No native review lifecycle was started; writer self-verification, independent verification, and the parent's `pnpm check:images` spot check were completed.
-**Commit:** pending; PD-01 remains recorded in `05aea19` and its documentation close in `3ac06bb`.
-**Next step:** create a PD-02-only work-unit commit containing the two property records, gallery fixture, provenance rows, and nine WebP files; leave all CF-01 paths unstaged, then record the commit identity and close this extension.
+**Commit:** `7c33191` — `feat(properties): add demo galleries to ARS listings`; PD-01 remains recorded in `05aea19` and its documentation close in `3ac06bb`.
+**Next step:** PD-01 and PD-02 are complete. Continue only with separately scoped feature work; this commit contains no CF-01 files.
