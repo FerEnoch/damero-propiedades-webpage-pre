@@ -93,7 +93,7 @@ test('R10: `Ver más propiedades` is omitted with ≤ 6 results', async ({ page 
   await page.goto('/propiedades');
 
   // A pagination promise with no page behind it is fabricated data: with the
-  // current 3 seeds the button must not exist in the DOM at all.
+  // current 6 records the button must not exist in the DOM at all.
   await expect(page.getByRole('button', { name: 'Ver más propiedades' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Ver más propiedades' })).toHaveCount(0);
 });

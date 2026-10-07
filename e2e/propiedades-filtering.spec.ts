@@ -30,24 +30,24 @@ test('RESULTADOS · n is derived from the rendered set', async ({ page }) => {
 test('a shared URL loads its filter state on first paint (R2)', async ({ page }) => {
   await page.goto('/propiedades?operacion=alquiler');
 
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 1');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 3');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
   await expect(page.locator('.filter-chip:visible').first()).toContainText(/alquiler/i);
 });
 
 test('removing a chip re-runs the filter and rewrites the URL (§17.1:641)', async ({ page }) => {
   await page.goto('/propiedades?operacion=alquiler');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
 
   await page.locator('.filter-chip:visible').first().click();
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 4');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(6);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 6');
   expect(page.url()).not.toContain('operacion=');
 });
 
 test('an impossible filter set renders the empty state (§17.1:664)', async ({ page }) => {
-  // The only alquiler listing has no cochera: the filtered set is empty.
+  // No alquiler listing has cochera: the filtered set is empty.
   await page.goto('/propiedades?operacion=alquiler&cochera=si');
 
   await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 0');
@@ -114,12 +114,12 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   testInfo.skip(!viewport || viewport.width < 768, 'The desktop filter bar exists only ≥ 768px.');
 
   await page.goto('/propiedades');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(6);
 
   // OPERACIÓN segmented → Alquiler.
   await page.locator('[data-filters="desktop"] .segmented__segment', { hasText: 'Alquiler' }).click();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(1);
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 1');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(3);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 3');
   expect(page.url()).toContain('operacion=alquiler');
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText(/alquiler/i);
 
@@ -152,8 +152,8 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
 
   // Limpiar filtros resets everything.
   await page.locator('.filter-bar__clear').click();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 4');
+  await expect(page.locator('[data-card]:visible')).toHaveCount(6);
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 6');
   expect(new URL(page.url()).search).toBe('');
 });
 
@@ -185,7 +185,7 @@ test('desktop bar: the price range filters within the selected currency only (§
   expect(page.url()).toContain('moneda=ARS');
   expect(page.url()).not.toContain('precio_min=');
   // Moneda alone never filters the set — it scopes the range.
-  await expect(page.locator('[data-card]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(6);
 });
 
 test('mobile sheet: filtering from the sheet updates results, badge and URL', async ({
@@ -204,8 +204,8 @@ test('mobile sheet: filtering from the sheet updates results, badge and URL', as
 
   await page.locator('[data-filters="sheet"] .segmented__segment', { hasText: 'Alquiler' }).click();
 
-  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 1');
-  await expect(page.locator('[data-sheet-count-label]')).toHaveText('Ver 1 propiedad');
+  await expect(page.locator('[data-results-count]')).toHaveText('RESULTADOS · 3');
+  await expect(page.locator('[data-sheet-count-label]')).toHaveText('Ver 3 propiedades');
   await expect(page.locator('[data-filter-count-badge]')).toHaveText('1');
   expect(page.url()).toContain('operacion=alquiler');
 
