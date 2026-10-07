@@ -22,13 +22,13 @@ const SLUGS = [
 /**
  * Per-listing gallery fixture: how many photos the listing ships and the
  * `titulo` of the cover photo (which feeds the lead `alt`, PRD §4/§7).
- * A `count` of 0 exercises R4's empty branch — the two ARS demo records
- * (PD-01) ship `fotos: []`, so `leadAlt` is only required when photos exist.
+ * As of PD-02 all six listings ship photos, so the empty branch stays as
+ * the R4 contract fallback; `leadAlt` is required whenever `count > 0`.
  */
 const GALLERY: Record<string, { count: number; leadAlt?: string }> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': { count: 0 },
+  'casa-2-dormitorios-zona-sur-santa-fe': { count: 5, leadAlt: 'Fachada' },
   'casa-3-amb-guadalupe-santa-fe': { count: 5, leadAlt: 'Fachada' },
-  'departamento-1-amb-candioti-norte-santa-fe': { count: 0 },
+  'departamento-1-amb-candioti-norte-santa-fe': { count: 4, leadAlt: 'Frente del edificio' },
   'departamento-2-amb-centro-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
   'departamento-3-amb-barrio-norte-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
   'lote-600-m2-candioti-santa-fe': { count: 4, leadAlt: 'Terreno' },

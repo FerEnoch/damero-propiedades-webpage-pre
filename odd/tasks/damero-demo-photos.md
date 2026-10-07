@@ -77,5 +77,16 @@ Todas las fotos provienen de **Pexels** ([Pexels License](https://www.pexels.com
 | `lote-600-m2-candioti-santa-fe/02-terreno.webp` | 38440476 | https://www.pexels.com/photo/38440476/ |
 | `lote-600-m2-candioti-santa-fe/03-terreno.webp` | 37181892 | https://www.pexels.com/photo/37181892/ |
 | `lote-600-m2-candioti-santa-fe/04-terreno.webp` | 2317579 | https://www.pexels.com/photo/2317579/ |
+| `casa-2-dormitorios-zona-sur-santa-fe/01-fachada.webp` | 1974596 | https://www.pexels.com/photo/1974596/ |
+| `casa-2-dormitorios-zona-sur-santa-fe/02-living-comedor.webp` | 4119832 | https://www.pexels.com/photo/4119832/ |
+| `casa-2-dormitorios-zona-sur-santa-fe/03-cocina.webp` | 4221389 | https://www.pexels.com/photo/4221389/ |
+| `casa-2-dormitorios-zona-sur-santa-fe/04-dormitorio.webp` | 34574606 | https://www.pexels.com/photo/34574606/ |
+| `casa-2-dormitorios-zona-sur-santa-fe/05-patio-y-jardin.webp` | 13600836 | https://www.pexels.com/photo/13600836/ |
+| `departamento-1-amb-candioti-norte-santa-fe/01-frente-edificio.webp` | 11631278 | https://www.pexels.com/photo/11631278/ |
+| `departamento-1-amb-candioti-norte-santa-fe/02-living.webp` | 16056400 | https://www.pexels.com/photo/16056400/ |
+| `departamento-1-amb-candioti-norte-santa-fe/03-cocina.webp` | 10886638 | https://www.pexels.com/photo/10886638/ |
+| `departamento-1-amb-candioti-norte-santa-fe/04-dormitorio.webp` | 6903157 | https://www.pexels.com/photo/6903157/ |
+
+**Extensión PD-02 (2026-10-07, track `propiedades-demo-ars`):** las últimas 9 filas corresponden a los dos listings ARS. Mismo workflow T1 (CDN Pexels, ImageMagick 7, WebP ≤1600px, <300 KB). `departamento-1-amb…/01-frente-edificio.webp` se recodificó a 1200px de ancho porque superaba los 300 KB a 1600px (mismo criterio que `casa…guadalupe/05-patio.webp` en T1).
 
 **Reemplazo obligatorio antes del lanzamiento:** borrar el contenido de `public/propiedades/<slug>/`, soltar las fotos reales con la misma convención `NN-<ambiente>.webp` y ajustar los `src`/`titulo` del frontmatter. El resto del pipeline (galería, cards, `check:images`) no cambia.
