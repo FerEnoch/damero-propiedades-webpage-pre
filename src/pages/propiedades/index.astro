@@ -14,15 +14,17 @@
  * paint and every filter change rewrites it. `Ordenar` is deliberately NOT a
  * URL param (R2 lists exactly eight).
  *
- * Moneda semantics (§17.1:630-633): the segmented `MONEDA` control scopes
- * the dual-thumb range — "the range applies only within the selected
- * currency" — it does not filter the set by itself: with a clean URL every
- * listing renders (R1), the screens' chip row carries no moneda chip of its
- * own (the single price chip carries the currency), and §17.1:633's
- * currency-scope sentence would be redundant if the set were already
- * currency-filtered. The price filter is active exactly when the range is
- * narrower than the selected currency's derived domain; only then do
- * listings in other currencies drop out.
+ * Moneda semantics (CF-01, §17.1:630-633): the segmented `MONEDA` control
+ * (`Todas` / `ARS` / `USD`) FILTERS the listing set by the displayed
+ * currency. `Todas` is the initial state — canonically NO `moneda` URL
+ * parameter — and shows every listing with the price range visible but
+ * disabled (§6 disabled voice, one stand-in pane only); entering `Todas`
+ * clears any price bounds and drops their params so hidden bounds can never
+ * narrow the all-currency set. `ARS`/`USD` show only their own listings and
+ * enable the dual-thumb range within that currency's derived domain — "the
+ * range applies only within the selected currency" (§17.1:633), never a
+ * conversion. A selected currency is an active filter: it chips and counts;
+ * `Todas` chips nothing.
  *
  * R9 — the schema has no date field, so `Más recientes` resolves to
  * collection order (same criterion as index.astro). Price sorts are raw
@@ -71,8 +73,11 @@ const habitacionesValues = [
  * the selected currency (§17.1:633), so the domain never mixes USD and ARS
  * amounts and never implies a conversion. A currency with no listings is not
  * offered in the segmented control.
+ *
+ * Display order is `Todas` / `ARS` / `USD` (CF-01); `Todas` is prepended by
+ * FilterControls as the structural neutral entry.
  */
-const CURRENCIES = ['USD', 'ARS'] as const;
+const CURRENCIES = ['ARS', 'USD'] as const;
 type Currency = (typeof CURRENCIES)[number];
 const priceDomains = Object.fromEntries(
   CURRENCIES.map((currency) => {
@@ -82,7 +87,15 @@ const priceDomains = Object.fromEntries(
     return [currency, prices.length > 0 ? [Math.min(...prices), Math.max(...prices)] : null];
   }),
 ) as Record<Currency, [number, number] | null>;
-const DEFAULT_CURRENCY: Currency = 'USD';
+/*
+ * The pane rendered while `Todas` is selected (CF-01): the USD stand-in when
+ * the collection has USD listings, else the first currency that does. Its
+ * range is visible but disabled — one pane at a time, never both.
+ */
+const TODAS_PANE_CURRENCY: Currency =
+  priceDomains.USD !== null
+    ? 'USD'
+    : ((CURRENCIES.find((currency) => priceDomains[currency] !== null) ?? 'USD') as Currency);
 
 /** Slug to display label without a dictionary (same rule as §17.2:686). */
 const labelize = (slug: string) => slug.charAt(0).toUpperCase() + slug.slice(1);
@@ -109,7 +122,7 @@ const hasCochera = (cochera: boolean | number) =>
   <div
     data-search-page
     data-price-domains={JSON.stringify(priceDomains)}
-    data-default-currency={DEFAULT_CURRENCY}
+    data-todas-pane={TODAS_PANE_CURRENCY}
   >
     <!-- 1. Page head band -->
     <section class="search-head" data-band="head" aria-labelledby="search-title">
@@ -160,7 +173,7 @@ const hasCochera = (cochera: boolean | number) =>
             habitaciones={habitacionesOptions}
             monedas={monedaOptions}
             priceDomains={priceDomains}
-            defaultCurrency={DEFAULT_CURRENCY}
+            todasPaneCurrency={TODAS_PANE_CURRENCY}
           >
             {/*
               The row ends with `Limpiar filtros` as a ghost text link; the bar
@@ -312,7 +325,7 @@ const hasCochera = (cochera: boolean | number) =>
             habitaciones={habitacionesOptions}
             monedas={monedaOptions}
             priceDomains={priceDomains}
-            defaultCurrency={DEFAULT_CURRENCY}
+            todasPaneCurrency={TODAS_PANE_CURRENCY}
           />
         </form>
       </div>
@@ -353,7 +366,8 @@ const hasCochera = (cochera: boolean | number) =>
       string,
       [number, number] | null
     >;
-    const defaultCurrency = pageRoot.dataset.defaultCurrency ?? 'USD';
+    /** Pane shown (inert) while `Todas` is selected (CF-01). */
+    const todasPane = pageRoot.dataset.todasPane ?? 'USD';
     const numberFormat = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 
     const forms = Array.from(document.querySelectorAll<HTMLFormElement>('[data-filters]'));
@@ -385,6 +399,7 @@ const hasCochera = (cochera: boolean | number) =>
       /** Minimum room count ('' = any); semantics per the screens' `N+` labels. */
       habitaciones: string;
       cochera: boolean;
+      /** `''` = `Todas` (canonical: no `moneda` param); else `ARS` / `USD`. */
       moneda: string;
       /** Price bounds; both null while the range sits at the full domain. */
       precioMin: number | null;
@@ -401,7 +416,7 @@ const hasCochera = (cochera: boolean | number) =>
       localidad: '',
       habitaciones: '',
       cochera: false,
-      moneda: defaultCurrency,
+      moneda: '',
       precioMin: null,
       precioMax: null,
     });
@@ -433,8 +448,12 @@ const hasCochera = (cochera: boolean | number) =>
 
       if (params.get('cochera') === 'si') state.cochera = true;
 
+      // `Todas` is canonically the absent parameter (CF-01). A value naming a
+      // known currency is kept even when that currency currently has no
+      // listings — it matches nothing and the empty state renders; anything
+      // else falls back to `Todas`, the same enum rule `operacion` uses above.
       const moneda = params.get('moneda');
-      if (moneda && domains[moneda]) state.moneda = moneda;
+      if (moneda && Object.hasOwn(domains, moneda)) state.moneda = moneda;
 
       // Price params count only inside the selected currency's domain and
       // only when they actually narrow it (§17.1:633). Note `Number(null)`
@@ -467,7 +486,8 @@ const hasCochera = (cochera: boolean | number) =>
       if (state.precioMin !== null) params.set('precio_min', String(state.precioMin));
       if (state.precioMax !== null) params.set('precio_max', String(state.precioMax));
       if (state.localidad) params.set('localidad', state.localidad);
-      if (state.moneda !== defaultCurrency) params.set('moneda', state.moneda);
+      // `Todas` is canonically the absent parameter (CF-01).
+      if (state.moneda) params.set('moneda', state.moneda);
 
       const query = params.toString();
       const path = window.location.pathname;
@@ -487,6 +507,9 @@ const hasCochera = (cochera: boolean | number) =>
         return false;
       }
       if (state.cochera && data.cochera !== '1') return false;
+      // CF-01: a currency selection filters the set by itself; `Todas` ('')
+      // is the absence of that filter.
+      if (state.moneda && data.moneda !== state.moneda) return false;
       if (state.precioMin !== null || state.precioMax !== null) {
         // The range applies only within the selected currency (§17.1:633).
         if (data.moneda !== state.moneda) return false;
@@ -520,14 +543,26 @@ const hasCochera = (cochera: boolean | number) =>
           });
 
         form.querySelectorAll<HTMLElement>('[data-price-pane]').forEach((pane) => {
-          const active = pane.dataset.pricePane === state.moneda;
+          // One pane visible at a time (CF-01): the selected currency's, or
+          // the `todasPane` stand-in while `Todas` is selected — inert there,
+          // so the range can be seen but never narrows the all-currency set.
+          const isTodas = state.moneda === '';
+          const paneCurrency = isTodas ? todasPane : state.moneda;
+          const active = pane.dataset.pricePane === paneCurrency;
           pane.hidden = !active;
-          if (!active) return;
-          const domain = domains[state.moneda];
-          if (!domain) return;
           const minInput = pane.querySelector<HTMLInputElement>('[data-price-range-min]');
           const maxInput = pane.querySelector<HTMLInputElement>('[data-price-range-max]');
+          const rangeRoot = pane.querySelector<HTMLElement>('[data-price-range]');
           if (!minInput || !maxInput) return;
+          minInput.disabled = isTodas;
+          maxInput.disabled = isTodas;
+          if (rangeRoot) {
+            if (isTodas) rangeRoot.setAttribute('data-disabled', '');
+            else rangeRoot.removeAttribute('data-disabled');
+          }
+          if (!active) return;
+          const domain = domains[paneCurrency];
+          if (!domain) return;
           minInput.value = String(state.precioMin ?? domain[0]);
           maxInput.value = String(state.precioMax ?? domain[1]);
           // The component's own script repaints fill and readout.
@@ -564,6 +599,10 @@ const hasCochera = (cochera: boolean | number) =>
       }
       if (state.cochera) {
         specs.push({ key: 'cochera', value: 'si', label: 'Con cochera' });
+      }
+      // `Todas` chips nothing (CF-01); ARS/USD are a filter like any other.
+      if (state.moneda) {
+        specs.push({ key: 'moneda', value: state.moneda, label: `Moneda ${state.moneda}` });
       }
       if (state.precioMin !== null || state.precioMax !== null) {
         const domain = domains[state.moneda];
@@ -603,14 +642,15 @@ const hasCochera = (cochera: boolean | number) =>
     };
 
     const updateBadge = (state: FilterState) => {
-      // Active FILTERS, never results (§17.1:653). Moneda is not counted: it
-      // scopes the price range (§17.1:633), it does not filter the set.
+      // Active FILTERS, never results (§17.1:653). `Todas` is not a filter
+      // (CF-01); ARS/USD count like any other active filter.
       const count =
         (state.operacion ? 1 : 0) +
         (state.tipo ? 1 : 0) +
         (state.localidad ? 1 : 0) +
         (state.habitaciones ? 1 : 0) +
         (state.cochera ? 1 : 0) +
+        (state.moneda ? 1 : 0) +
         (state.precioMin !== null || state.precioMax !== null ? 1 : 0);
       if (badge) {
         badge.hidden = count === 0;
@@ -752,7 +792,14 @@ const hasCochera = (cochera: boolean | number) =>
         else if (key === 'localidad') state.localidad = '';
         else if (key === 'habitaciones') state.habitaciones = '';
         else if (key === 'cochera') state.cochera = false;
-        else if (key === 'precio') {
+        else if (key === 'moneda') {
+          // Back to `Todas`: same rule as the segmented switch (CF-01) —
+          // bounds go with the currency, so hidden bounds cannot narrow the
+          // all-currency set.
+          state.moneda = '';
+          state.precioMin = null;
+          state.precioMax = null;
+        } else if (key === 'precio') {
           state.precioMin = null;
           state.precioMax = null;
         } else return;

@@ -7,21 +7,28 @@
  *
  * Control order (contractual): `OPERACIÓN` (segmented Todas / Venta /
  * Alquiler), `TIPO` (select), `LOCALIDAD` (select), `HABITACIONES` (select),
- * `COCHERA` (square checkbox + inline label), `MONEDA` (segmented USD / ARS),
- * `PRECIO` (dual-thumb). Every control is 44px tall (§12, guaranteed by the
- * primitives).
+ * `COCHERA` (square checkbox + inline label), `MONEDA` (segmented Todas /
+ * ARS / USD), `PRECIO` (dual-thumb). Every control is 44px tall (§12,
+ * guaranteed by the primitives).
  *
  * Option lists are NOT decided here: they are derived from the rendered
  * collection by the page and passed in (plan open items #2/#3 — never
- * hard-coded).
+ * hard-coded). The neutral entries (`Todas`, `Todos los tipos`, …) are the
+ * one exception: they are structural, not data.
  *
- * `MONEDA` scopes the price range; it is not a standalone set filter
- * (§17.1:633: "The range applies only within the selected currency"). One
- * PriceRange instance is rendered per currency that exists in the collection,
- * each with its own derived domain, and only the active currency's pane is
- * visible — so no control ever mutates another currency's domain and the
- * component's own script keeps painting the right readout. A currency with
- * no listings is never offered (derived set).
+ * `MONEDA` filters the listing set by the displayed currency (CF-01).
+ * `Todas` is the initial state — canonically no `moneda` URL parameter — and
+ * it leaves the range inert; `ARS`/`USD` show only their own listings and
+ * enable the range within that currency (§17.1:633: "The range applies only
+ * within the selected currency" — never a conversion). One PriceRange
+ * instance is rendered per currency that exists in the collection, each with
+ * its own derived domain, and only one pane is ever visible: the selected
+ * currency's, or `todasPaneCurrency`'s stand-in while `Todas` is selected.
+ * A currency with no listings is never offered (derived set).
+ *
+ * SSR paints the canonical `Todas` default (checked segment, stand-in pane
+ * inert); the page's client script enables the pane for a URL-restored
+ * currency and re-derives everything from there.
  */
 import FilterCheckbox from './FilterCheckbox.astro';
 import FilterSelect from './FilterSelect.astro';
@@ -43,7 +50,8 @@ interface Props {
   habitaciones: Option[];
   monedas: Option[];
   priceDomains: Record<string, [number, number] | null>;
-  defaultCurrency: string;
+  /** Currency whose pane stands in (inert) while `Todas` is selected. */
+  todasPaneCurrency: string;
 }
 
 const {
@@ -54,7 +62,7 @@ const {
   habitaciones,
   monedas,
   priceDomains,
-  defaultCurrency,
+  todasPaneCurrency,
 } = Astro.props;
 
 const pid = (id: string) => `${idPrefix}-${id}`;
@@ -109,8 +117,8 @@ const domainEntries = Object.entries(priceDomains).filter(
     name="moneda"
     label="Moneda"
     filterKey="moneda"
-    value={defaultCurrency}
-    options={monedas}
+    value=""
+    options={[{ value: '', label: 'Todas' }, ...monedas]}
   />
 
   {
@@ -118,8 +126,13 @@ const domainEntries = Object.entries(priceDomains).filter(
       <div
         class="filter-controls__price"
         data-price-pane={currency}
-        hidden={currency !== defaultCurrency}
+        hidden={currency !== todasPaneCurrency}
       >
+        {/*
+          SSR paints the canonical `Todas` state: the stand-in pane visible
+          and inert. The page script enables the pane for a URL-restored
+          currency (CF-01).
+        */}
         <PriceRange
           id={pid(`precio-${currency.toLowerCase()}`)}
           currency={currency as 'USD' | 'ARS'}
@@ -128,6 +141,7 @@ const domainEntries = Object.entries(priceDomains).filter(
           nameMin="precio_min"
           nameMax="precio_max"
           filterKey="precio"
+          disabled
         />
       </div>
     ))

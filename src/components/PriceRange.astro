@@ -9,6 +9,11 @@
  * applies only within the selected currency; the readout never implies a
  * conversion (§17.1:633).
  *
+ * `disabled` renders the §6 disabled treatment (subtle fill, muted text at
+ * 60%, `cursor: not-allowed`) and takes both thumbs out of interaction: on
+ * the search page this is the `Todas` state, where the range is visible but
+ * inert and holds no bounds (CF-01).
+ *
  * The initial fill position and readout are computed at build time so the
  * control renders complete without JS; a small plain script then keeps the
  * fill, the readout and the thumb clamping in sync (progressive
@@ -33,6 +38,8 @@ interface Props {
   error?: string;
   /** Filter identity for the client-side wiring. */
   filterKey?: string;
+  /** Visible but inert (`Todas` on search): no thumb, no readout change. */
+  disabled?: boolean;
   class?: string;
 }
 
@@ -49,6 +56,7 @@ const {
   nameMax = `${id}-max`,
   error,
   filterKey,
+  disabled = false,
   class: className,
 } = Astro.props;
 
@@ -70,6 +78,7 @@ const errorId = `${id}-error`;
   data-price-range
   data-currency={currency}
   data-filter-key={filterKey}
+  data-disabled={disabled ? '' : undefined}
   data-invalid={error ? '' : undefined}
 >
   <span class="price-range__label" id={labelId}>{label}</span>
@@ -88,6 +97,7 @@ const errorId = `${id}-error`;
       max={max}
       step={step}
       value={lo}
+      disabled={disabled}
       aria-label="Precio mínimo"
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={error ? errorId : undefined}
@@ -101,6 +111,7 @@ const errorId = `${id}-error`;
       max={max}
       step={step}
       value={hi}
+      disabled={disabled}
       aria-label="Precio máximo"
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={error ? errorId : undefined}
@@ -213,6 +224,37 @@ const errorId = `${id}-error`;
   .price-range[data-invalid] .price-range__track {
     outline: 1px solid var(--color-text-primary);
     outline-offset: 4px;
+  }
+
+  /*
+   * §6 disabled treatment (the `Todas` state on search, CF-01): subtle,
+   * non-accent fill, muted text at 60%, `cursor: not-allowed`, and never a
+   * reduced-opacity primary fill. The control stays visible and readable; it
+   * just cannot act. The filled segment drops to the hairline tone — the
+   * `--color-bg-subtle` of §6's button voice would vanish against the track,
+   * which is that same token.
+   */
+  .price-range[data-disabled] .price-range__readout {
+    color: var(--color-muted-text);
+    opacity: 0.6;
+  }
+
+  .price-range[data-disabled] .price-range__fill {
+    background-color: var(--color-border-decorative);
+  }
+
+  .price-range[data-disabled] .price-range__input::-webkit-slider-thumb {
+    background-color: var(--color-muted-text);
+    border-color: var(--color-bg-surface);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .price-range[data-disabled] .price-range__input::-moz-range-thumb {
+    background-color: var(--color-muted-text);
+    border-color: var(--color-bg-surface);
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   /*
