@@ -2,7 +2,7 @@
 
 **Canonical source:** `odd/tasks/propiedades-demo-ars.md`
 **Engram mirror:** topic `odd/propiedades-demo-ars/tasks`
-**Status:** In progress
+**Status:** Complete
 **Branch:** `feat/propiedades-demo-ars`
 **Delivery strategy:** `ask-on-risk` (default; no chain decision currently needed)
 **Forecast:** approximately 180 authored changed lines, excluding generated files.
@@ -39,7 +39,7 @@ The user wants two more sample listings that demonstrate the site using ARS pric
 - [x] Extend detail-page Playwright coverage to assert both new routes and key record data; observe RED before the content records are added.
 - [x] Update any catalog count expectations required for six records without disturbing unrelated in-progress test edits.
 - [x] Verify with `pnpm exec playwright test e2e/propiedades-detalle-structure.spec.ts` and `pnpm test:e2e`; record any unrelated pre-existing failures separately.
-- [ ] Record commit identity and close the work unit below.
+- [x] Record commit identity and close the work unit below.
 
 **Authorized scope:** one delegated implementation task for the two content records and narrowly affected Playwright coverage.
 **Acceptance:** the collection builds with six records; exactly two new records have `moneda: "ARS"`; both detail routes render; the full applicable e2e gate passes or any unrelated existing failure is reported with evidence; unrelated worktree changes remain intact.
@@ -49,5 +49,5 @@ The user wants two more sample listings that demonstrate the site using ARS pric
 - GREEN (records added): same command → 36 passed, 0 failed (exit 0).
 - Full gate: `pnpm test:e2e` (check:images passed, then Playwright) → 326 passed, 17 skipped, 17 failed (exit 1). All 17 failures are the separate in-progress CF-01 currency-filter tests in `e2e/propiedades-filtering.spec.ts` (uncommitted spec-first work whose `src/` implementation does not exist yet): `[data-filter-key="moneda"] input[value=""]` → "element(s) not found"; `?moneda=ARS` does not filter (`Expected: 3, Received: 6`). No PD-01-owned spec fails; the new count expectations (6 total, 3 ARS, 3 alquiler) hold wherever the CF-01 implementation is not required.
 - Collection-order note: `casa-2-dormitorios-zona-sur-santa-fe` sorts first by filename, so the `the search cards resolve to the detail routes` expectation moved to it (observed in the GREEN run).
-**Commit:** pending (orchestrator owns commits; PD-01 will be committed separately from preserved CF-01 work).
-**Next step:** commit the verified PD-01 files as one work unit; CF-01 implementation then makes the 17 currency-filter failures actionable.
+**Commit:** `05aea19` — `feat(properties): add two ARS demo listings`.
+**Next step:** PD-01 is complete. The separate in-progress CF-01 implementation remains necessary to clear its 17 currency-filter failures from the current working-tree gate run.
