@@ -131,3 +131,7 @@ the stakeholder-pending content listed under [Status](#status).
 `.opencode/` — the per-developer AI agent harness — is gitignored on purpose:
 each contributor brings their own. If your harness does not define the project
 agents, `AGENTS.md` is the contract to follow.
+
+<a href="https://github.com/Gentleman-Programming/gentle-ai">
+  <img width="220" src="https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/docs/assets/brand/built-with-gentle-ai.png" alt="Built with Gentle-AI" />
+</a>
