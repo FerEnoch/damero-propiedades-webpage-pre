@@ -2,7 +2,7 @@
 
 **Canonical source:** `odd/tasks/supply-chain-audit-remediation.md`
 **Engram mirror:** topic `odd/supply-chain-audit-remediation/tasks`
-**Status:** SA-01 and SA-02 complete; fix branch published; PR remains issue-gated
+**Status:** SA-01 and SA-02 complete; branch published; issue creation blocked by missing repository policy
 **Branch:** `fix/supply-chain-audit-pr15` (based on `feat/propiedades-demo-ars` at `be6b1d0`)
 **Work-unit commits:** `02d603b` (`fix(deps): clear transitive security advisories`), `822ca6a` (`fix(deps): update maplibre-gl to 6.12.0`)
 **Remote branch:** `origin/fix/supply-chain-audit-pr15`
@@ -25,7 +25,7 @@ The original PR branch's committed lockfile resolved vulnerable transitive packa
 - Preserve `pnpm`-only policy, frozen-lockfile installs, `minimumReleaseAge`, `strictDepBuilds`, `allowBuilds`, and `pnpm audit --audit-level high`; do not add advisory ignores.
 - Expected SA-02 source/config changes are limited to the exact `maplibre-gl` pin in `package.json` and its transitive lockfile updates; do not change `allowBuilds` without explicit approval.
 - The map E2E live-style smoke test requests `https://tiles.openfreemap.org/styles/positron`; run it only after explicit authorization for anonymous requests to that external service. Local deterministic map coverage/build do not need that access.
-- PR creation remains blocked until the user provides an existing issue with `status:approved` or separately authorizes issue creation.
+- PR creation requires an issue with `status:approved`. The default branch currently has no YAML Issue Form and the repository has no `status:approved` label; neither issue creation nor direct PR without an issue may bypass those controls.
 - Technical artifacts are in English. Site copy is not in scope.
 
 ## Tasks
@@ -80,7 +80,7 @@ The original PR branch's committed lockfile resolved vulnerable transitive packa
 - Verification: frozen install exit 0; high-severity audit exit 0 (`No known vulnerabilities found`); build exit 0 (10 pages; benign >500 kB chunk warning); E2E exit 0 (346 passed, 0 failed, 17 intentional skips across 363 tests; image check passed for 6 listings/28 photos). The first E2E attempt could not launch Chromium under isolated HOME; the successful rerun pointed `PLAYWRIGHT_BROWSERS_PATH` at the preinstalled local browser cache without loading user config or credentials.
 - At the SA-01 verification point, supplemental `pnpm check-deps` exited 1 because `pnpm outdated` reported exact-pinned `maplibre-gl@6.11.2` had `6.12.0` available; that was outside the original audit scope. SA-02 now addresses that exact stale pin, and its `check-deps` run passes with no outdated rows.
 - Work-unit commit `02d603b` contains the targeted overrides, lockfile resolution changes, and this task record. The user authorized and the branch was pushed to `origin/fix/supply-chain-audit-pr15`.
-- No related approved issue was found (`gh issue list --state all --search "audit"` and open `status:approved` list both returned empty). PR creation is blocked by the repository's PR workflow requirement to link an issue with `status:approved`; PR #15 has not been modified.
+- No related approved issue was found (`gh issue list --state all --search "audit"` and open `status:approved` list both returned empty). Default-branch `.github` contains only `dependabot.yml` and `workflows`; no YAML Issue Form exists, and the label inventory contains no `status:approved`. The user authorized issue creation, but the issue workflow forbids a Markdown/blank-body fallback; no duplicate search or issue write occurred because no form could be selected. PR #15 has not been modified.
 - SA-02 safety evidence: official v6.12.0 release notes report additive features/bug fixes and no breaking changes; the known critical GHSA affects `<=6.4.0` and is fixed in `6.4.1`. The npm publish timestamp (2026-10-03T21:45Z) is outside the 4320-minute quarantine. `pnpm add --save-exact` updated only `package.json`/`pnpm-lock.yaml`; MapLibre remained an exact pin, the lockfile also advanced `earcut` 3.2.3→3.2.4, and no install-script or workspace policy change was needed.
 - SA-02 verification: frozen install, high audit, `check-deps` (no outdated rows), build (10 pages; existing benign >500 kB chunk warning), image check (6 listings/28 photos), and deterministic map E2E all passed. The deterministic map test passed across 3 viewport projects. No other packages are outdated.
 - Full E2E after explicit anonymous OpenFreeMap authorization passed: 346 passed, 17 intentional skips, 0 failed across 363 tests. The live-style smoke passed in all 3 viewports; the image gate passed for 6 listings/28 photos, and the run changed no tracked files.
@@ -88,4 +88,4 @@ The original PR branch's committed lockfile resolved vulnerable transitive packa
 
 ## Next step
 
-Provide an existing `status:approved` issue number before creating a PR targeting `feat/propiedades-demo-ars`; PR #15 remains unchanged until a follow-up PR is integrated.
+The repository maintainer must establish a YAML Issue Form and the approved-issue label/process; then an authorized person can create and approve the issue. Only after that can the stacked PR target `feat/propiedades-demo-ars`. No issue or PR write occurred in this step.
