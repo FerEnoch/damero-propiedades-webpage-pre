@@ -2,20 +2,20 @@
 
 **Canonical source:** `odd/tasks/supply-chain-audit-remediation.md`
 **Engram mirror:** topic `odd/supply-chain-audit-remediation/tasks`
-**Status:** Fix committed and branch published; PR creation blocked pending an approved issue
+**Status:** SA-01 complete; SA-02 verification complete; commit/push pending; PR remains issue-gated
 **Branch:** `fix/supply-chain-audit-pr15` (based on `feat/propiedades-demo-ars` at `be6b1d0`)
-**Work-unit commit:** `02d603b` (`fix(deps): clear transitive security advisories`)
+**Completed work-unit commit:** `02d603b` (`fix(deps): clear transitive security advisories`)
 **Remote branch:** `origin/fix/supply-chain-audit-pr15`
 **Delivery strategy:** `ask-on-risk` (default; forecast below budget)
 **Estimated authored changed lines:** Under 100, excluding generated lockfile changes
 
 ## Objective
 
-Clear the high-severity dependency findings that make `pnpm audit --audit-level high` fail, without weakening audit or install policy, and keep the remediation isolated from the original feature branch until explicitly integrated.
+Clear the high-severity dependency findings that made `pnpm audit --audit-level high` fail, preserve the audit/install policy, update the stale exact MapLibre pin after a safety review, and keep the changes isolated from the original feature branch until explicitly integrated.
 
 ## Problem and rationale
 
-The PR branch's committed lockfile resolves `devalue@5.9.2`, `http-cache-semantics@4.2.0`, `source-map-js@1.2.1`, and `sharp@0.35.4`. Current public advisories identify fixed versions. The minimum-change route is pnpm's documented `audit --fix` override operation followed by `pnpm install`, preserving the existing high-severity gate rather than suppressing advisories or loosening package policy.
+The original PR branch's committed lockfile resolved vulnerable transitive packages and exact-pinned `maplibre-gl@6.11.2`. SA-01 fixed the audit findings. The user then authorized upgrading MapLibre only if the newer release is safe and regression checks pass. Official release notes show `6.12.0` is a non-breaking minor release; the known critical GHSA affects `<=6.4.0` and is patched in `6.4.1`; npm published `6.12.0` on 2026-10-03, outside this repo's 4320-minute quarantine as of 2026-10-08.
 
 ## Scope and constraints
 
@@ -23,7 +23,9 @@ The PR branch's committed lockfile resolves `devalue@5.9.2`, `http-cache-semanti
 - Registry queries/downloads are authorized only against `https://registry.npmjs.org`, anonymously and without reusing credentials or sessions.
 - Do not merge. The user authorized pushing this branch and opening a PR against `feat/propiedades-demo-ars`; no PR may be opened without linking an approved issue.
 - Preserve `pnpm`-only policy, frozen-lockfile installs, `minimumReleaseAge`, `strictDepBuilds`, `allowBuilds`, and `pnpm audit --audit-level high`; do not add advisory ignores.
-- Expected source/config changes are limited to `pnpm-lock.yaml` and `pnpm-workspace.yaml` for targeted transitive overrides; any release-age exclusion must carry owner/date/reason/expiry evidence.
+- Expected SA-02 source/config changes are limited to the exact `maplibre-gl` pin in `package.json` and its transitive lockfile updates; do not change `allowBuilds` without explicit approval.
+- The map E2E live-style smoke test requests `https://tiles.openfreemap.org/styles/positron`; run it only after explicit authorization for anonymous requests to that external service. Local deterministic map coverage/build do not need that access.
+- PR creation remains blocked until the user provides an existing issue with `status:approved` or separately authorizes issue creation.
 - Technical artifacts are in English. Site copy is not in scope.
 
 ## Tasks
@@ -46,6 +48,26 @@ The PR branch's committed lockfile resolves `devalue@5.9.2`, `http-cache-semanti
 6. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org build`
 7. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home ASTRO_PREVIEW_BACKGROUND=0 pnpm --config.registry=https://registry.npmjs.org test:e2e`
 
+### SA-02 — Upgrade maplibre-gl to 6.12.0 after safety review
+
+- [x] Update the direct dependency to the exact pin `6.12.0` with pnpm; keep the install-script policy unchanged.
+- [x] Verify frozen install, audit, dependency check, build, image gate, and deterministic map E2E.
+- [x] Run the full `pnpm test:e2e` gate, including the live style smoke, after explicit OpenFreeMap authorization.
+- [ ] Commit and push the verified follow-up to `fix/supply-chain-audit-pr15`; keep the PR issue-link gate unresolved until the user supplies an approved issue.
+
+**Route:** Direct inline for one known exact direct-dependency version update; mapping was completed by a read-only Astro mapper. Test-first exception: this is a behavior-preserving dependency patch/minor update with no meaningful new RED test; the existing map/full E2E baseline passed before this change.
+**Acceptance criteria:** `package.json` retains exact pin `6.12.0`; no high/critical audit findings; frozen install and build pass; deterministic map tests and authorized full E2E pass; no unexpected source/build-script policy changes; `pnpm check-deps` result is recorded accurately.
+**Evidence:** Official release: https://github.com/maplibre/maplibre-gl-js/releases/tag/v6.12.0; security advisory: https://github.com/advisories/GHSA-jrc7-96c5-q579. Current site only uses `Map`, `setWorkerUrl`, inline GeoJSON, fill/line layers, and the attribution control. Its CSS/worker package subpaths make `pnpm build` and the deterministic map E2E the key compatibility checks.
+**Verification commands:**
+
+1. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org add --save-exact maplibre-gl@6.12.0`
+2. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org install --frozen-lockfile`
+3. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org audit --audit-level high`
+4. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org check-deps`
+5. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home pnpm --config.registry=https://registry.npmjs.org build`
+6. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home PLAYWRIGHT_BROWSERS_PATH=/home/ferenoch/.cache/ms-playwright pnpm --config.registry=https://registry.npmjs.org exec playwright test e2e/propiedades-detalle-map.spec.ts --grep 'deterministic:'`
+7. `env -i PATH="$PATH" HOME=/tmp/opencode/pnpm-anon-home PLAYWRIGHT_BROWSERS_PATH=/home/ferenoch/.cache/ms-playwright ASTRO_PREVIEW_BACKGROUND=0 pnpm --config.registry=https://registry.npmjs.org test:e2e` (run after explicit anonymous OpenFreeMap authorization)
+
 ## Progress and evidence
 
 - Exploration confirmed the worktree was clean at `be6b1d0` and the local `origin/feat/propiedades-demo-ars` tracking ref matched that commit. No live GitHub state was inspected.
@@ -56,10 +78,14 @@ The PR branch's committed lockfile resolves `devalue@5.9.2`, `http-cache-semanti
 - The targeted `pnpm audit --fix` route added 8 version-range overrides; ordinary `pnpm install` applied them. A read-only review confirms the lockfile changes only the audited families and necessary sharp platform packages: devalue 5.9.2→5.9.4, http-cache-semantics 4.2.0→4.3.0, source-map-js 1.2.1→1.2.2, sharp 0.35.4→0.35.5, smol-toml 1.8.0→1.9.0, and sharp binaries/libvips. Direct dependencies/importers, package scripts, integrity coverage, and install policy are unchanged. The lockfile diff is 149 additions/139 deletions; `pnpm-workspace.yaml` adds only overrides.
 - Registry timestamps confirm the resolved fixed versions are older than the configured 4320-minute cooldown. No `minimumReleaseAgeExclude` entries were added.
 - Verification: frozen install exit 0; high-severity audit exit 0 (`No known vulnerabilities found`); build exit 0 (10 pages; benign >500 kB chunk warning); E2E exit 0 (346 passed, 0 failed, 17 intentional skips across 363 tests; image check passed for 6 listings/28 photos). The first E2E attempt could not launch Chromium under isolated HOME; the successful rerun pointed `PLAYWRIGHT_BROWSERS_PATH` at the preinstalled local browser cache without loading user config or credentials.
-- Supplemental `pnpm check-deps` exited 1 because `pnpm outdated` reports exact-pinned direct dependency `maplibre-gl@6.11.2` has newer `6.12.0`; the audit portion is clean. No MapLibre update was made because it is unrelated to the security remediation.
+- At the SA-01 verification point, supplemental `pnpm check-deps` exited 1 because `pnpm outdated` reported exact-pinned `maplibre-gl@6.11.2` had `6.12.0` available; that was outside the original audit scope. SA-02 now addresses that exact stale pin, and its `check-deps` run passes with no outdated rows.
 - Work-unit commit `02d603b` contains the targeted overrides, lockfile resolution changes, and this task record. The user authorized and the branch was pushed to `origin/fix/supply-chain-audit-pr15`.
 - No related approved issue was found (`gh issue list --state all --search "audit"` and open `status:approved` list both returned empty). PR creation is blocked by the repository's PR workflow requirement to link an issue with `status:approved`; PR #15 has not been modified.
+- SA-02 safety evidence: official v6.12.0 release notes report additive features/bug fixes and no breaking changes; the known critical GHSA affects `<=6.4.0` and is fixed in `6.4.1`. The npm publish timestamp (2026-10-03T21:45Z) is outside the 4320-minute quarantine. `pnpm add --save-exact` updated only `package.json`/`pnpm-lock.yaml`; MapLibre remained an exact pin, the lockfile also advanced `earcut` 3.2.3→3.2.4, and no install-script or workspace policy change was needed.
+- SA-02 verification: frozen install, high audit, `check-deps` (no outdated rows), build (10 pages; existing benign >500 kB chunk warning), image check (6 listings/28 photos), and deterministic map E2E all passed. The deterministic map test passed across 3 viewport projects. No other packages are outdated.
+- Full E2E after explicit anonymous OpenFreeMap authorization passed: 346 passed, 17 intentional skips, 0 failed across 363 tests. The live-style smoke passed in all 3 viewports; the image gate passed for 6 listings/28 photos, and the run changed no tracked files.
+- The verified SA-02 package changes are still uncommitted; no source failure or install-policy change needs follow-up.
 
 ## Next step
 
-Provide an approved issue number (or separately authorize issue creation) so the branch can be submitted as a PR targeting `feat/propiedades-demo-ars`; the existing PR #15 remains unchanged until that PR is integrated.
+Commit and push the verified MapLibre update to `fix/supply-chain-audit-pr15`. An approved issue ID is still required before creating a PR targeting `feat/propiedades-demo-ars`; PR #15 remains unchanged until a follow-up PR is integrated.
