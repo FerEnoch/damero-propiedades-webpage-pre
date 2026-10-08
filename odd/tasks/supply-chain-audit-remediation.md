@@ -2,9 +2,9 @@
 
 **Canonical source:** `odd/tasks/supply-chain-audit-remediation.md`
 **Engram mirror:** topic `odd/supply-chain-audit-remediation/tasks`
-**Status:** SA-01 complete; SA-02 verification complete; commit/push pending; PR remains issue-gated
+**Status:** SA-01 and SA-02 complete; fix branch published; PR remains issue-gated
 **Branch:** `fix/supply-chain-audit-pr15` (based on `feat/propiedades-demo-ars` at `be6b1d0`)
-**Completed work-unit commit:** `02d603b` (`fix(deps): clear transitive security advisories`)
+**Work-unit commits:** `02d603b` (`fix(deps): clear transitive security advisories`), `822ca6a` (`fix(deps): update maplibre-gl to 6.12.0`)
 **Remote branch:** `origin/fix/supply-chain-audit-pr15`
 **Delivery strategy:** `ask-on-risk` (default; forecast below budget)
 **Estimated authored changed lines:** Under 100, excluding generated lockfile changes
@@ -53,7 +53,7 @@ The original PR branch's committed lockfile resolved vulnerable transitive packa
 - [x] Update the direct dependency to the exact pin `6.12.0` with pnpm; keep the install-script policy unchanged.
 - [x] Verify frozen install, audit, dependency check, build, image gate, and deterministic map E2E.
 - [x] Run the full `pnpm test:e2e` gate, including the live style smoke, after explicit OpenFreeMap authorization.
-- [ ] Commit and push the verified follow-up to `fix/supply-chain-audit-pr15`; keep the PR issue-link gate unresolved until the user supplies an approved issue.
+- [x] Commit and push the verified follow-up as `822ca6a` to `fix/supply-chain-audit-pr15`; keep the PR issue-link gate unresolved until the user supplies an approved issue.
 
 **Route:** Direct inline for one known exact direct-dependency version update; mapping was completed by a read-only Astro mapper. Test-first exception: this is a behavior-preserving dependency patch/minor update with no meaningful new RED test; the existing map/full E2E baseline passed before this change.
 **Acceptance criteria:** `package.json` retains exact pin `6.12.0`; no high/critical audit findings; frozen install and build pass; deterministic map tests and authorized full E2E pass; no unexpected source/build-script policy changes; `pnpm check-deps` result is recorded accurately.
@@ -84,8 +84,8 @@ The original PR branch's committed lockfile resolved vulnerable transitive packa
 - SA-02 safety evidence: official v6.12.0 release notes report additive features/bug fixes and no breaking changes; the known critical GHSA affects `<=6.4.0` and is fixed in `6.4.1`. The npm publish timestamp (2026-10-03T21:45Z) is outside the 4320-minute quarantine. `pnpm add --save-exact` updated only `package.json`/`pnpm-lock.yaml`; MapLibre remained an exact pin, the lockfile also advanced `earcut` 3.2.3→3.2.4, and no install-script or workspace policy change was needed.
 - SA-02 verification: frozen install, high audit, `check-deps` (no outdated rows), build (10 pages; existing benign >500 kB chunk warning), image check (6 listings/28 photos), and deterministic map E2E all passed. The deterministic map test passed across 3 viewport projects. No other packages are outdated.
 - Full E2E after explicit anonymous OpenFreeMap authorization passed: 346 passed, 17 intentional skips, 0 failed across 363 tests. The live-style smoke passed in all 3 viewports; the image gate passed for 6 listings/28 photos, and the run changed no tracked files.
-- The verified SA-02 package changes are still uncommitted; no source failure or install-policy change needs follow-up.
+- SA-02 was committed as `822ca6a` and pushed to `origin/fix/supply-chain-audit-pr15`; no source failure or install-policy change remains.
 
 ## Next step
 
-Commit and push the verified MapLibre update to `fix/supply-chain-audit-pr15`. An approved issue ID is still required before creating a PR targeting `feat/propiedades-demo-ars`; PR #15 remains unchanged until a follow-up PR is integrated.
+Provide an existing `status:approved` issue number before creating a PR targeting `feat/propiedades-demo-ars`; PR #15 remains unchanged until a follow-up PR is integrated.
