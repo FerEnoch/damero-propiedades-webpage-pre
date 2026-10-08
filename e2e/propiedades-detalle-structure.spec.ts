@@ -15,14 +15,18 @@ import { readFileSync } from 'node:fs';
  */
 
 const SLUGS = [
+  'casa-2-dormitorios-zona-sur-santa-fe',
   'casa-3-amb-guadalupe-santa-fe',
+  'departamento-1-amb-candioti-norte-santa-fe',
   'departamento-2-amb-centro-santa-fe',
   'departamento-3-amb-barrio-norte-santa-fe',
   'lote-600-m2-candioti-santa-fe',
 ] as const;
 
 const TITLES: Record<(typeof SLUGS)[number], string> = {
+  'casa-2-dormitorios-zona-sur-santa-fe': 'Casa 2 dormitorios en zona sur',
   'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
+  'departamento-1-amb-candioti-norte-santa-fe': 'Departamento 1 ambiente en Candioti Norte',
   'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
   'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
   'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
@@ -30,8 +34,12 @@ const TITLES: Record<(typeof SLUGS)[number], string> = {
 
 /** The test-listing coordinates plus the schema field names — banned from HTML. */
 const COORDINATE_MARKERS = [
+  '-31.679',
+  '-60.706',
   '-31.6375',
   '-60.6873',
+  '-31.664',
+  '-60.7015',
   '-31.6572',
   '-60.7005',
   '-31.6243',
@@ -167,7 +175,9 @@ test('the build emits the per-listing map payload as a separate asset', async ()
    * build-emitted JSON assets, fetched at map init — never in the HTML.
    */
   const payloads: Record<string, { lat: number; lon: number }> = {
+    'casa-2-dormitorios-zona-sur-santa-fe': { lat: -31.679, lon: -60.706 },
     'casa-3-amb-guadalupe-santa-fe': { lat: -31.6375, lon: -60.6873 },
+    'departamento-1-amb-candioti-norte-santa-fe': { lat: -31.664, lon: -60.7015 },
     'departamento-2-amb-centro-santa-fe': { lat: -31.6572, lon: -60.7005 },
     'departamento-3-amb-barrio-norte-santa-fe': { lat: -31.6243, lon: -60.6855 },
     'lote-600-m2-candioti-santa-fe': { lat: -31.6724, lon: -60.7028 },
@@ -224,7 +234,9 @@ test('R11: every WhatsApp CTA is the inert pending anchor — no wa.me ships', a
 test('the search cards resolve to the detail routes', async ({ page }) => {
   await page.goto('/propiedades');
 
+  // R9: collection order is canonical, so the first card is the first record
+  // in filename order — currently the zona sur casa.
   await page.locator('.results-grid .card').first().click();
-  await expect(page).toHaveURL(/\/propiedades\/casa-3-amb-guadalupe-santa-fe\/?$/);
-  await expect(page.locator('h1')).toHaveText('Casa 3 ambientes con patio en Guadalupe');
+  await expect(page).toHaveURL(/\/propiedades\/casa-2-dormitorios-zona-sur-santa-fe\/?$/);
+  await expect(page.locator('h1')).toHaveText('Casa 2 dormitorios en zona sur');
 });

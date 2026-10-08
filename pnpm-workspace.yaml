@@ -90,3 +90,13 @@ engineStrict: true
 # Nota: desde pnpm 11 el `ignore-scripts=true` del ~/.npmrc global ya no
 # se lee, pero se explicita igual como política del repo.
 ignoreScripts: false
+
+overrides:
+  devalue@<=5.9.2: ^5.9.3
+  devalue@>=1.0.0 <=5.9.2: ^5.9.3
+  devalue@>=5.1.0 <=5.9.2: ^5.9.3
+  devalue@>=5.8.0 <=5.9.2: ^5.9.3
+  http-cache-semantics@<=4.2.0: ^4.3.0
+  sharp@<0.35.5: ^0.35.5
+  smol-toml@<=1.8.0: ^1.9.0
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2

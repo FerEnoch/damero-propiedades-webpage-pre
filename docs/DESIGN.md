@@ -647,10 +647,12 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 **Filter bar (desktop ≥ `md`).**
 - One `--color-bg-surface` panel, `1px solid --color-border-hairline`, `--radius-sm`, `--space-6` padding. Not a card, not a shadowed surface.
 - A single horizontal row of controls. Each control carries its label **above** it in `--text-label-sm` mono uppercase, `--color-text-secondary`. Never a floating label.
-- Control order: `OPERACIÓN` (segmented: Todas / Venta / Alquiler), `TIPO` (select), `LOCALIDAD` (select), `HABITACIONES` (select), `COCHERA` (square checkbox + inline label), `MONEDA` (segmented USD / ARS), `PRECIO` (dual-thumb range).
+- Control order: `OPERACIÓN` (segmented: Todas / Venta / Alquiler), `TIPO` (select), `LOCALIDAD` (select), `HABITACIONES` (select), `COCHERA` (square checkbox + inline label), `MONEDA` (segmented: Todas / ARS / USD), `PRECIO` (dual-thumb range).
 - **Segmented control:** `--radius-sm`, `1px solid --color-border-interactive`. The selected option is marked by `--color-forest-ink` fill + `--color-on-forest` text — **weight and fill, never hue alone** (§12, colour independence). Unselected options are plain text on `surface`.
 - Every control is `44px` tall at every breakpoint (§12).
-- **Range readout** sits above the track in `--text-label-sm` mono: `USD 30.000 — USD 150.000`. The range applies **only within the selected currency** — there is no USD/ARS conversion, and the readout must never imply one.
+- **`MONEDA` filters the listing set** by the displayed currency. `Todas` is the initial state and is canonically **no `moneda` URL parameter**; it shows every listing. `ARS` / `USD` show only the listings priced in that currency. A selected currency is an active filter: it chips (`Moneda USD` / `Moneda ARS`) and counts in the badge. `Todas` is never a chip.
+- **Range readout** sits above the track in `--text-label-sm` mono: `USD 30.000 — USD 150.000`. The range applies **only within the selected currency** — there is no USD/ARS conversion, and the readout must never imply one. `ARS` / `USD` enable their range within that currency only.
+- **Under `Todas` the range is visible but disabled** (§6 disabled voice: `--color-muted-text` at 60%, `cursor: not-allowed`; the filled segment drops to the hairline tone — the `--color-bg-subtle` fill of §6's button voice would vanish against the track, which is that same token) and holds no bounds. Entering `Todas` clears `precio_min` / `precio_max` and drops them from the URL, so stale bounds can never narrow the all-currency set. One range pane is visible at a time — the selected currency's, or the default currency's stand-in while `Todas` is selected.
 - The row ends with `Limpiar filtros` as a **ghost text link**. The filter bar contains **no primary button** — the page's job is browsing, not converting.
 - Below `768px` this bar does not exist. See the collapsed pattern below.
 
@@ -658,7 +660,7 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 - `--radius-xs`, `--color-bg-subtle` fill, `--color-text-primary` label in `--text-label-sm` mono uppercase, plus a 16px `×` affordance on the right.
 - **Never pills. Never saturated. Never colour-coded by filter type.**
 - The `44px` minimum touch target is met by padding the chip, not by growing the `×` glyph.
-- One chip per active filter value; the price range collapses to a single chip (`USD 30.000–150.000 ×`). Removing a chip re-runs the filter **and rewrites the URL**.
+- One chip per active filter value; the price range collapses to a single chip (`USD 30.000–150.000 ×`) and a selected currency chips on its own (`Moneda USD ×`). Removing a chip re-runs the filter **and rewrites the URL**. Removing the currency chip returns to `Todas` and clears the price bounds with it.
 - Desktop: the chips wrap onto as many lines as needed, placed directly beneath the filter panel.
 
 **Shareable search strip.**

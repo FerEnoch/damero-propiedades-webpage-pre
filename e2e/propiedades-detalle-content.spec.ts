@@ -11,7 +11,9 @@ import { expect, test } from '@playwright/test';
  */
 
 const SLUGS = [
+  'casa-2-dormitorios-zona-sur-santa-fe',
   'casa-3-amb-guadalupe-santa-fe',
+  'departamento-1-amb-candioti-norte-santa-fe',
   'departamento-2-amb-centro-santa-fe',
   'departamento-3-amb-barrio-norte-santa-fe',
   'lote-600-m2-candioti-santa-fe',
@@ -20,12 +22,13 @@ const SLUGS = [
 /**
  * Per-listing gallery fixture: how many photos the listing ships and the
  * `titulo` of the cover photo (which feeds the lead `alt`, PRD §4/§7).
- * A `count` of 0 exercises R4's empty branch; no listing ships one today
- * (the demo-photography slice gave all four photos), so the branch below is
- * contract documentation until content returns to `fotos: []`.
+ * As of PD-02 all six listings ship photos, so the empty branch stays as
+ * the R4 contract fallback; `leadAlt` is required whenever `count > 0`.
  */
-const GALLERY: Record<string, { count: number; leadAlt: string }> = {
+const GALLERY: Record<string, { count: number; leadAlt?: string }> = {
+  'casa-2-dormitorios-zona-sur-santa-fe': { count: 5, leadAlt: 'Fachada' },
   'casa-3-amb-guadalupe-santa-fe': { count: 5, leadAlt: 'Fachada' },
+  'departamento-1-amb-candioti-norte-santa-fe': { count: 4, leadAlt: 'Frente del edificio' },
   'departamento-2-amb-centro-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
   'departamento-3-amb-barrio-norte-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
   'lote-600-m2-candioti-santa-fe': { count: 4, leadAlt: 'Terreno' },
@@ -44,6 +47,7 @@ test('R4: each gallery matches its fotos contract — lead + rail + counter, or 
     const leadImg = page.locator('.gallery__lead img');
 
     if (count > 0) {
+      if (!leadAlt) throw new Error(`${slug}: the fixture ships photos without a leadAlt`);
       // The cover photo renders from the listing's own folder (PRD §7) and
       // is the first `fotos` entry.
       await expect(leadImg).toBeVisible();
@@ -106,7 +110,9 @@ test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and count
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {
   const prices: Record<string, { currency: string; amount: string }> = {
+    'casa-2-dormitorios-zona-sur-santa-fe': { currency: 'ARS', amount: '410.000' },
     'casa-3-amb-guadalupe-santa-fe': { currency: 'USD', amount: '118.000' },
+    'departamento-1-amb-candioti-norte-santa-fe': { currency: 'ARS', amount: '320.000' },
     'departamento-2-amb-centro-santa-fe': { currency: 'ARS', amount: '480.000' },
     'departamento-3-amb-barrio-norte-santa-fe': { currency: 'USD', amount: '92.000' },
     'lote-600-m2-candioti-santa-fe': { currency: 'USD', amount: '30.000' },
@@ -121,12 +127,26 @@ test('the price renders with the currency code always present (§17.2:690)', asy
 
 test('R12: the ficha técnica rows degrade gracefully and never drop a row', async ({ page }) => {
   const expectations: Record<string, Record<string, string>> = {
+    'casa-2-dormitorios-zona-sur-santa-fe': {
+      OPERACIÓN: 'Alquiler',
+      HABITACIONES: '2',
+      COCHERA: 'No',
+      MONEDA: 'ARS',
+      EXPENSAS: 'No aplica',
+    },
     'casa-3-amb-guadalupe-santa-fe': {
       OPERACIÓN: 'Venta',
       HABITACIONES: '3',
       COCHERA: 'Sí',
       MONEDA: 'USD',
       EXPENSAS: 'No aplica',
+    },
+    'departamento-1-amb-candioti-norte-santa-fe': {
+      OPERACIÓN: 'Alquiler',
+      HABITACIONES: '1',
+      COCHERA: 'No',
+      MONEDA: 'ARS',
+      EXPENSAS: '35.000',
     },
     'departamento-2-amb-centro-santa-fe': {
       OPERACIÓN: 'Alquiler',
@@ -171,7 +191,9 @@ test('characteristics render the slugs as uppercase words, no dictionary (§17.2
   page,
 }) => {
   const expectations: Record<string, string[]> = {
+    'casa-2-dormitorios-zona-sur-santa-fe': ['PATIO'],
     'casa-3-amb-guadalupe-santa-fe': ['PATIO', 'PARRILLA'],
+    'departamento-1-amb-candioti-norte-santa-fe': ['LUMINOSO'],
     'departamento-2-amb-centro-santa-fe': ['BALCON'],
     'departamento-3-amb-barrio-norte-santa-fe': ['BALCON', 'LUMINOSO'],
     // The unknown `apto-credito` slug still renders — never dropped.
