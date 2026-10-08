@@ -1,0 +1,54 @@
+name: Dependency update
+description: Request a dependency change (security remediation or version update)
+title: "[dependencies] "
+labels: ["dependencies"]
+body:
+  - type: input
+    id: package
+    attributes:
+      label: Package
+      description: npm package name to add or change.
+      placeholder: e.g. maplibre-gl
+    validations:
+      required: true
+  - type: input
+    id: current-version
+    attributes:
+      label: Current version
+      description: Exact version pinned today. Write "none" for a brand-new dependency.
+      placeholder: e.g. 6.11.2
+    validations:
+      required: true
+  - type: input
+    id: requested-version
+    attributes:
+      label: Requested version
+      description: Exact version to install.
+      placeholder: e.g. 6.12.0
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale and evidence
+      description: >-
+        Why this change is needed. Include advisory IDs (GHSA/CVE), release
+        notes links, or the driving requirement.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: >-
+        Commands and expected results that prove the update is safe
+        (install, audit, build, e2e).
+    validations:
+      required: true
+  - type: checkboxes
+    id: duplicate-check
+    attributes:
+      label: Duplicate check
+      options:
+        - label: I have searched the open and closed issues for an existing request for this change.
+          required: true
