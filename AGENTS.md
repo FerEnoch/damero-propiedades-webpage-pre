@@ -55,6 +55,10 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
 Si una referencia contradice `docs/DESIGN.md`, **gana `DESIGN.md` — y hay que reportar la
 contradicción**, nunca resolverla en silencio.
 
+`design/` es **referencia de copy y layout aprobado, no insumo de build**: nada en `src/`,
+`e2e/` ni la configuración lo lee. No lo abras ni lo grepeás salvo que la tarea sea de copy o
+diseño; si hay un cambio de diseño, se trae de forma explícita.
+
 ## Reglas visuales que ya causaron fallos
 
 - **`--color-sage` (`#7C916F`) NUNCA es texto renderizado** (3.42:1, falla AA). No en headings,
