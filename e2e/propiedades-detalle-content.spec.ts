@@ -80,6 +80,34 @@ test('R4: each gallery matches its fotos contract — lead + rail + counter, or 
       await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
       await expect(page.locator('[data-gallery-thumb]')).toHaveCount(0);
       await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+      // §17.5: with no photographs the lead is NOT a link — the placeholder
+      // stays non-interactive, no morph target, no gallery route entry.
+      await expect(page.locator('.gallery__lead a')).toHaveCount(0);
+    }
+  }
+});
+
+test('the gallery lead links to the full-page gallery, with the photo count in its accessible name', async ({
+  page,
+}) => {
+  for (const [slug, { count }] of Object.entries(GALLERY)) {
+    await page.goto(`/propiedades/${slug}`);
+
+    if (count > 0) {
+      // §17.5: the lead is a real link — it navigates without JS — and its
+      // accessible name carries the photo count.
+      const leadLink = page.getByRole('link', {
+        name: `Ver galería de fotos (${count} ${count === 1 ? 'foto' : 'fotos'})`,
+        exact: true,
+      });
+      await expect(leadLink, `${slug} lead link`).toHaveCount(1);
+      await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria`);
+      // The link wraps the lead photo, and nothing else interactive.
+      await expect(leadLink.locator('img')).toHaveCount(1);
+    } else {
+      // `fotos: []`: the placeholder stays non-interactive (R4, §17.5).
+      await expect(page.locator('.gallery__lead a')).toHaveCount(0);
+      await expect(page.locator('.gallery__lead .damero-placeholder')).toBeVisible();
     }
   }
 });

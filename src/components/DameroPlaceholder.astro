@@ -34,9 +34,10 @@ interface Props {
   bordered?: boolean;
   class?: string;
   /**
-   * Cross-document view-transition name for the frame (docs/DESIGN.md §9).
-   * Only card media and the detail gallery lead carry one; when unset, no
-   * `style` attribute is emitted and nothing changes.
+   * Cross-document view-transition name for the frame (docs/DESIGN.md §9,
+   * §17.5). Card media, the detail gallery lead and the full-page gallery's
+   * active frame carry one; when unset, no `style` attribute is emitted and
+   * nothing changes.
    */
   transitionName?: string;
 }
