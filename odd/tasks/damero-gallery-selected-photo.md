@@ -1,6 +1,6 @@
 # Damero — Gallery preserves the selected photo (detail → full-page)
 
-**Estado:** En implementación (2026-10-09) sobre la PR abierta #21 (`feat/gallery-full-page`, worktree `/tmp/opencode/realtor-gallery-wt`). Enmienda del track cerrado `damero-gallery-full-page` — no lo reabre ni lo reescribe.
+**Estado:** Implementado y verificado (2026-10-09) sobre la PR #21 (`feat/gallery-full-page`, worktree `/tmp/opencode/realtor-gallery-wt`). Enmienda del track cerrado `damero-gallery-full-page` — no lo reabre ni lo reescribe. Push a la PR pendiente de decisión del stakeholder.
 **Decisión del stakeholder (2026-10-09):** cuando el usuario agrandó una foto del riel en la ficha y desde ahí abre la galería full-page, la foto grande al llegar debe ser la misma que eligió, sin reordenar la galería.
 
 **Objetivo:** el lead de la ficha propaga la foto activa (`?foto=N`) y la galería full-page llega renderizando esa foto como activa, conservando el morph cross-document (`propiedad-<slug>`) sobre la misma fotografía.
@@ -47,6 +47,7 @@ Hay runner determinístico vigente (Playwright e2e) y resultado esperado claro: 
 ## Progreso, evidencia y siguiente paso
 
 - S1 + S2 implementados con test-first (RED observado en ambos antes del GREEN); S3 gate completo en verde.
+- Riesgo nativo (`review assess` sobre el rango commiteado vs `origin/feat/gallery-full-page`): `medium` / `under_budget` (212 líneas, 6 paths); RDD off (clone-local) → verificación propia del autor + spot check estructural, sin ciclo de revisión nativa.
 - Verificación estructural sobre `dist/`: el script de llegada viaja como `<script>` clásico inline ubicado tras `</section>` y antes del módulo diferido; el detalle sirve el lead con `?foto=1`.
-- Commits en `feat/gallery-full-page` (ver historia por identidades finales en el commit de cierre).
+- Commits en `feat/gallery-full-page`: `0341f52` (docs: plan), `c7c25f3` (S1 detalle + spec), `2cf9d7e` (S2 galería + specs + DESIGN) y el commit de cierre de este documento.
 - Siguiente paso (decisión del stakeholder): push a `origin/feat/gallery-full-page` para actualizar la PR #21; merge NO autorizado aquí.
