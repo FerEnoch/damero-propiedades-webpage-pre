@@ -21,8 +21,8 @@
 ## Tareas
 
 - [x] **S1 — Detalle propaga la selección.** `activate()` sincroniza el `href` del lead (`?foto=N`); inicial `?foto=1`. **Evidencia:** test-first RED (2 failed / 8 passed, `propiedades-detalle-content`, desktop-1280) → GREEN (10 passed, desktop-1280).
-- [ ] **S2 — Galería llega en la foto pedida.** Head-script bloqueante mínimo (solo `src/alt` + contador + `aria-current`; inválidos → foto 1; `fotos: []` inerte). **Evidencia:** diff + spec galería en verde.
-- [ ] **S3 — Gate completo.** `pnpm test:e2e` en verde (3 viewports, 0 failed); registrar baseline. **Evidencia:** resultado observado del comando.
+- [x] **S2 — Galería llega en la foto pedida.** Script sincrónico `is:inline` tras el riel (solo `src/alt` + contador + `aria-current`; inválidos → foto 1; `fotos: []` inerte; no toca la URL). **Evidencia:** test-first RED (1 failed / 10 passed — el test pre-paint con el módulo diferido extirpado del documento servido) → GREEN (21 passed detalle+galería, desktop-1280).
+- [x] **S3 — Gate completo.** `pnpm test:e2e` en verde (3 viewports, 0 failed); registrar baseline. **Evidencia:** `CI=1 pnpm test:e2e`: **444 passed / 18 skipped / 0 failed** (51.2s) — baseline del track 435/18/0, delta +9 (3 specs nuevos × 3 viewports).
 
 ## Ruta de implementación
 
@@ -46,4 +46,7 @@ Hay runner determinístico vigente (Playwright e2e) y resultado esperado claro: 
 
 ## Progreso, evidencia y siguiente paso
 
-(Pendiente — lo completa el writer y el padre tras cada tarea.)
+- S1 + S2 implementados con test-first (RED observado en ambos antes del GREEN); S3 gate completo en verde.
+- Verificación estructural sobre `dist/`: el script de llegada viaja como `<script>` clásico inline ubicado tras `</section>` y antes del módulo diferido; el detalle sirve el lead con `?foto=1`.
+- Commits en `feat/gallery-full-page` (ver historia por identidades finales en el commit de cierre).
+- Siguiente paso (decisión del stakeholder): push a `origin/feat/gallery-full-page` para actualizar la PR #21; merge NO autorizado aquí.

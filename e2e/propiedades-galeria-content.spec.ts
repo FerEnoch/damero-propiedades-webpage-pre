@@ -197,6 +197,66 @@ test('?foto=N opens the requested photo after load', async ({ page }) => {
   await expect(page).toHaveURL(/\?foto=3$/);
 });
 
+test('?foto=N arrives on the requested photo without the deferred viewer script', async ({
+  page,
+}) => {
+  // Serve the document with the deferred viewer module stripped: only the
+  // synchronous pre-paint script may run, so the active photo must already
+  // be correct without the post-load deep-link apply (§17.5). Without the
+  // pre-paint script the page would still show photo 1 here. (Astro inlines
+  // page scripts into the HTML, so there is no external script to block —
+  // the document itself is intercepted instead.)
+  await page.route(
+    (url) => url.pathname.endsWith('/galeria') && url.searchParams.get('foto') === '3',
+    async (route) => {
+      const response = await route.fetch();
+      const body = (await response.text()).replace(
+        /<script type="module">[\s\S]*?<\/script>/,
+        '',
+      );
+      await route.fulfill({ response, body });
+    },
+  );
+
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  await page.goto(`/propiedades/${slug}/galeria?foto=3`);
+
+  const active = page.locator('[data-viewer-active] img');
+  await expect(active).toHaveAttribute('src', /03-cocina\.webp$/);
+  await expect(active).toHaveAttribute('alt', 'Cocina');
+  await expect(page.locator('[data-gallery-counter]')).toHaveText('3 / 5');
+  await expect(page.locator('[data-gallery-thumb]').nth(2)).toHaveAttribute('aria-current', 'true');
+  // The rail order is untouched — photo 1 still first, photo 5 still last.
+  await expect(page.locator('[data-gallery-thumb]').first()).toHaveAttribute(
+    'aria-label',
+    'Ver foto 1 de 5',
+  );
+  await expect(page.locator('[data-gallery-thumb]').nth(4)).toHaveAttribute(
+    'aria-label',
+    'Ver foto 5 de 5',
+  );
+});
+
+test('opening the gallery from the detail lands on the selected photo', async ({ page }) => {
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  await page.goto(`/propiedades/${slug}`);
+
+  // Enlarge the third photo on the detail page, then follow the lead link.
+  await page.locator('[data-gallery-thumb]').nth(2).click();
+  await page
+    .getByRole('link', { name: 'Ver galería de fotos (5 fotos)', exact: true })
+    .click();
+
+  // The lead href carries the selection and the gallery arrives on it —
+  // same order, no reset to photo 1.
+  await expect(page).toHaveURL(new RegExp(`/propiedades/${slug}/galeria\\?foto=3`));
+  const active = page.locator('[data-viewer-active] img');
+  await expect(active).toHaveAttribute('src', /03-cocina\.webp$/);
+  await expect(active).toHaveAttribute('alt', 'Cocina');
+  await expect(page.locator('[data-gallery-counter]')).toHaveText('3 / 5');
+  await expect(page.locator('[data-gallery-thumb]').nth(2)).toHaveAttribute('aria-current', 'true');
+});
+
 test('an invalid or out-of-range ?foto degrades to photo 1', async ({ page }) => {
   const slug = 'casa-3-amb-guadalupe-santa-fe';
   for (const query of ['?foto=99', '?foto=0', '?foto=-2', '?foto=abc', '?foto=2.5']) {
@@ -254,5 +314,18 @@ test.describe('without JavaScript', () => {
     await expect(
       page.getByRole('link', { name: '← Volver a la ficha', exact: true }),
     ).toHaveAttribute('href', `/propiedades/${slug}`);
+  });
+
+  test('a ?foto=N deep link still renders photo 1 (the document is static)', async ({ page }) => {
+    // Without JS nothing applies the deep link before or after load: the
+    // served document always carries photo 1 (§17.5).
+    const slug = 'casa-3-amb-guadalupe-santa-fe';
+    await page.goto(`/propiedades/${slug}/galeria?foto=3`);
+
+    await expect(page.locator('[data-viewer-active] img')).toHaveAttribute(
+      'src',
+      /01-fachada\.webp$/,
+    );
+    await expect(page.locator('[data-gallery-counter]')).toHaveText('1 / 5');
   });
 });

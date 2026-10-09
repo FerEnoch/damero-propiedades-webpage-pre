@@ -14,9 +14,11 @@
  * View transitions: the active frame is the gallery-side morph target; the
  * unified `propiedad-<slug>` name lands on the `DameroPlaceholder` frame
  * (exactly one named element per page) and never on the `<img>`; thumbnails
- * stay unnamed. The morph is always lead → `fotos[0]` because the page
- * renders `fotos[0]` on arrival — a `?foto=N` deep link swaps only after
- * load (§17.5).
+ * stay unnamed. The detail lead links here with `?foto=N` for the enlarged
+ * photo, and the synchronous arrival script below applies it during parsing
+ * — before first paint and before the deferred viewer script — so the entry
+ * snapshot already shows photo N and the morph is the same photograph,
+ * never a cross-fade between different photos (§17.5).
  *
  * With `fotos: []` the viewer chrome is omitted entirely: the §7 brand
  * tile, the back link and the h1 are the whole page — no controls, no
@@ -116,6 +118,47 @@ const hasFotos = fotos.length > 0;
           )
         }
       </section>
+
+      {/*
+        Synchronous arrival script (§17.5). The served document always
+        carries `fotos[0]` (static build), but the detail lead links here
+        with `?foto=N` for the enlarged photo. This classic script runs
+        during parsing — the rail above is already parsed, first paint has
+        not happened yet, and the deferred viewer script below has not run —
+        so the cross-document view-transition entry snapshot already shows
+        photo N with no photo-1 flash. Only a plain 1-based integer in range
+        is honoured (photo 1 needs no swap); anything else keeps photo 1.
+        `is:inline` keeps it unbundled and in place; without JS nothing runs
+        and the page renders photo 1 (documented degradation). The URL is
+        left untouched — syncing it stays owned by the viewer script below.
+      */}
+      <script is:inline>
+        (function () {
+          var viewer = document.querySelector('[data-viewer]');
+          if (!viewer) return;
+          var activeImg = viewer.querySelector('[data-viewer-active] img');
+          var thumbs = Array.prototype.slice.call(
+            viewer.querySelectorAll('[data-gallery-thumb]'),
+          );
+          var counter = viewer.querySelector('[data-gallery-counter]');
+          if (!activeImg || thumbs.length === 0) return;
+          var requested = new URLSearchParams(window.location.search).get('foto');
+          if (requested === null || !/^\d+$/.test(requested)) return;
+          var index = parseInt(requested, 10) - 1;
+          if (index <= 0 || index >= thumbs.length) return;
+          var thumb = thumbs[index];
+          var img = thumb.querySelector('img');
+          if (!img) return;
+          var src = img.getAttribute('src');
+          if (src) activeImg.setAttribute('src', src);
+          activeImg.setAttribute('alt', thumb.getAttribute('data-alt') || '');
+          thumbs.forEach(function (other, otherIndex) {
+            if (otherIndex === index) other.setAttribute('aria-current', 'true');
+            else other.removeAttribute('aria-current');
+          });
+          if (counter) counter.textContent = index + 1 + ' / ' + thumbs.length;
+        })();
+      </script>
     </div>
   </div>
 </BaseLayout>
@@ -125,9 +168,9 @@ const hasFotos = fotos.length > 0;
    * Gallery viewer behaviour (§17.5). A plain page script, the same pattern
    * as the §17.2 gallery: thumbnail click and prev/next swap the active
    * photo, the counter and `aria-current`; ←/→/Home/End do the same. The
-   * `?foto=N` deep link (1-based) applies after load — the page renders
-   * `fotos[0]` first so the ficha → galería morph is always the same
-   * photograph — and every move keeps the URL in sync with
+   * `?foto=N` deep link (1-based) is already applied during parsing by the
+   * synchronous arrival script above; the apply here just converges to the
+   * same state — and every move keeps the URL in sync with
    * `history.replaceState` (never pushState). Without JS the page renders
    * photo 1, the rail is inert and the back link still navigates.
    *
@@ -195,9 +238,9 @@ const hasFotos = fotos.length > 0;
         }
       });
 
-      // §17.5 — the deep link applies AFTER the initial render of fotos[0].
-      // Only a plain 1-based integer in range is honoured; anything else
-      // degrades to photo 1 (no URL rewrite, no swap).
+      // §17.5 — converges with the synchronous arrival script (same parse,
+      // same rules): only a plain 1-based integer in range is honoured;
+      // anything else keeps photo 1 (no URL rewrite, no swap).
       const requested = new URLSearchParams(window.location.search).get('foto');
       if (requested !== null && /^\d+$/.test(requested)) {
         const index = Number.parseInt(requested, 10) - 1;
