@@ -59,7 +59,19 @@ jobs:
       - name: Check image limits (PRD §9 check 3)
         run: pnpm check:images
 
+      # The `~/.cache/ms-playwright` directory survives across runs through
+      # the Actions cache, keyed on the lockfile so a Playwright bump
+      # re-downloads the matching browser build. On a cache hit the install
+      # below is skipped entirely — no ~170 MB download and no apt run.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install chromium (Playwright bundled build)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run the e2e gate
