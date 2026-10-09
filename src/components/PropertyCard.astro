@@ -58,6 +58,7 @@ const amount = formatAmount(precio);
       bordered={false}
       loading={priority ? 'eager' : 'lazy'}
       fetchpriority={priority ? 'high' : undefined}
+      transitionName={`propiedad-${slug}`}
     />
   </div>
 

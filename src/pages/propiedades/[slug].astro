@@ -140,6 +140,7 @@ const houseGlyph = iconHouse
             alt={hasFotos ? (fotos[0].titulo ?? '') : ''}
             loading="eager"
             fetchpriority="high"
+            transitionName={`propiedad-${slug}`}
           />
         </div>
         {

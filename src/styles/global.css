@@ -89,6 +89,24 @@ h6 {
   outline-offset: 2px;
 }
 
+/* ---- Cross-document view transitions (DESIGN.md §9) ----
+   Global opt-in: on same-origin, user-initiated navigations the browser
+   morphs elements whose `view-transition-name` pairs across documents
+   (property card → detail gallery lead) with its default timing — no
+   authored keyframes. Unsupported browsers navigate normally.
+   The reduced-motion opt-out lives at the `navigation` level because the
+   blanket duration neutraliser below never reaches `::view-transition-*`
+   pseudo-elements. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
 /* ---- Reduced motion (DESIGN.md §9) ----
    Animations and transitions are neutralised, so anything that animated
    lands directly on its final state.

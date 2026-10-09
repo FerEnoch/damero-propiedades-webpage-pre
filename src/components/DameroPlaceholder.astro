@@ -33,6 +33,12 @@ interface Props {
    */
   bordered?: boolean;
   class?: string;
+  /**
+   * Cross-document view-transition name for the frame (docs/DESIGN.md §9).
+   * Only card media and the detail gallery lead carry one; when unset, no
+   * `style` attribute is emitted and nothing changes.
+   */
+  transitionName?: string;
 }
 
 const {
@@ -44,6 +50,7 @@ const {
   fetchpriority,
   bordered = true,
   class: className,
+  transitionName,
 } = Astro.props;
 
 const hasPhoto = typeof src === 'string' && src.length > 0;
@@ -55,6 +62,7 @@ const hasPhoto = typeof src === 'string' && src.length > 0;
     { 'damero-placeholder--borderless': !bordered },
     className,
   ]}
+  style={transitionName ? `view-transition-name: ${transitionName};` : undefined}
 >
   {
     hasPhoto ? (
