@@ -441,6 +441,18 @@ Restrained, deliberate, and short. This is a catalogue: motion confirms a state 
 - **Performance:** animate `transform` and `opacity` exclusively. Never animate `top`, `left`, `width`, `height`, `margin` or `padding`. For height transitions use `grid-template-rows`.
 - **`prefers-reduced-motion: reduce`:** all transforms, transitions and the entrance cascade are disabled; elements render in their final state immediately. Opacity changes are retained.
 
+### Cross-document view transitions (property imagery)
+
+Navigating between a property card and its detail page morphs the photograph across documents via the CSS View Transitions API — no client-side router, no new JavaScript. The rendered effect is the browser default: a position/size morph plus a subtle cross-fade, with no authored keyframes, timing or easing overrides. It sits inside the restrained register above; nothing custom animates.
+
+- **Opt-in is global.** `@view-transition { navigation: auto; }` is declared once in `src/styles/global.css` and applies to every same-origin, user-initiated navigation (link activation, back/forward traverse) — there is no per-link scoping. All navigations gain the subtle default cross-fade where supported, not only the morphing ones.
+- **Naming convention.** One `view-transition-name` per property visual thread: `propiedad-<slug>`. The `propiedad-` prefix guarantees a valid `<custom-ident>` (never a leading digit). The same name is paired across the card image (home featured, listing) and the detail gallery's lead image, and extends to the future full-page gallery's active photo. One element, one name — a separate gallery-scoped name is never layered onto the same image.
+- **Uniqueness is a hard rule.** A `view-transition-name` must be unique within a document; a duplicate invalidates the whole transition. Only card images and the detail lead carry names. Gallery thumbnails and every other image stay unnamed.
+- **Reduced motion.** `@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }`. The blanket duration neutralizer does not reach `::view-transition-*` pseudo-elements, so the opt-out is declared at the `navigation` level.
+- **Timings.** Browser defaults. No duration token and no `::view-transition-*` keyframes yet; introducing either is a future refinement, coordinated so card→detail and detail→gallery share one duration scale.
+- **Degradation.** Supported in Chromium/Edge 126+ and Safari 18.2+. Firefox does not support cross-document transitions yet and falls back to plain navigation — no JavaScript fallback, no client-side router. The deprecated `<meta name="view-transition">` tag is never used.
+- **Scope.** Only property card images and the detail lead morph. No other element carries a transition name.
+
 ---
 
 ## 10. Responsive Rules
