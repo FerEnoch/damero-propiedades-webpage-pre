@@ -101,7 +101,7 @@ test('the gallery lead links to the full-page gallery, with the photo count in i
         exact: true,
       });
       await expect(leadLink, `${slug} lead link`).toHaveCount(1);
-      await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria`);
+      await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria?foto=1`);
       // The link wraps the lead photo, and nothing else interactive.
       await expect(leadLink.locator('img')).toHaveCount(1);
     } else {
@@ -134,6 +134,14 @@ test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and count
   await expect(counter).toHaveText('2 / 5');
   await expect(thumbs.nth(1)).toHaveAttribute('aria-current', 'true');
   await expect(thumbs.nth(0)).not.toHaveAttribute('aria-current', 'true');
+
+  // §17.5: the lead link follows the selection — opening the gallery from
+  // here lands on the enlarged photo instead of resetting to photo 1.
+  const leadLink = page.getByRole('link', {
+    name: 'Ver galería de fotos (5 fotos)',
+    exact: true,
+  });
+  await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria?foto=2`);
 });
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {

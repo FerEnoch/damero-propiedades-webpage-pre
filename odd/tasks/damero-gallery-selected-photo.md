@@ -20,7 +20,7 @@
 
 ## Tareas
 
-- [ ] **S1 — Detalle propaga la selección.** `activate()` sincroniza el `href` del lead (`?foto=N`); inicial `?foto=1`. **Evidencia:** diff + spec detalle en verde.
+- [x] **S1 — Detalle propaga la selección.** `activate()` sincroniza el `href` del lead (`?foto=N`); inicial `?foto=1`. **Evidencia:** test-first RED (2 failed / 8 passed, `propiedades-detalle-content`, desktop-1280) → GREEN (10 passed, desktop-1280).
 - [ ] **S2 — Galería llega en la foto pedida.** Head-script bloqueante mínimo (solo `src/alt` + contador + `aria-current`; inválidos → foto 1; `fotos: []` inerte). **Evidencia:** diff + spec galería en verde.
 - [ ] **S3 — Gate completo.** `pnpm test:e2e` en verde (3 viewports, 0 failed); registrar baseline. **Evidencia:** resultado observado del comando.
 
