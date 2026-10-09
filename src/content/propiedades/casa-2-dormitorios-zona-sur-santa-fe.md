@@ -4,7 +4,7 @@ descripcion: "Casa de 2 dormitorios con patio en zona sur de Santa Fe."
 slug: "casa-2-dormitorios-zona-sur-santa-fe"
 operacion: "alquiler"
 tipo: "casa"
-precio: 410000
+precio: 500000
 moneda: "ARS"
 habitaciones: 2
 cochera: false
