@@ -1,6 +1,6 @@
 # Damero — View transitions en las imágenes de propiedades (cards → ficha)
 
-**Estado:** Track abierto (2026-10-09) en la rama `feat/view-transitions` (desde `main` @ `a77d407`, en sync con `origin/main`). **Solo planificación: las tareas NO están iniciadas** — el stakeholder aprueba este plan y después se largan. Este documento es el primer commit del track.
+**Estado:** Track cerrado (2026-10-09) en la rama `feat/view-transitions` (desde `main` @ `a77d407`). T0–T2 completadas y verificadas — evidencia y baseline en `## Progreso`. Push/PR/merge: decisión del stakeholder (no ejecutados).
 **Decisión del stakeholder (2026-10-09):** view transitions sobre las imágenes de las propiedades en su tránsito hacia la ficha — desde las destacadas del home (`/`) y desde el listado completo (`/propiedades`).
 
 **Objetivo:** al navegar de una card de propiedad (home destacadas o listado) a la ficha `/propiedades/<slug>`, la imagen morfea de la card al lead de la ficha (y la vuelta), vía View Transitions cross-document — CSS puro, enhancement progresivo, cero JS nuevo.
@@ -47,9 +47,9 @@ El track de galería (solo plan, rama `feat/gallery-full-page`, tareas no inicia
 
 ## Tareas
 
-- [ ] **T0 — Docs primero (precedente del track de galería).** Registrar en `docs/DESIGN.md` el patrón de view transitions cross-document del sistema: opt-in global (`navigation: auto` en `global.css`), convención de nombres `propiedad-<slug>` unificada (card → lead → galería futura; unicidad por página: nombre duplicado invalida la transición), opt-out reduced-motion (`navigation: none`), degradación sin fallback JS (Chromium/Safari sí, Firefox hoy no), timings default. Registrar como coordinación explícita el desempate con el ejemplo `galeria-lead` del track de galería (ver sección Coordinación).
-- [ ] **T1 — Implementación RED→GREEN (un commit de work unit: spec + código).** (a) **RED**: spec nueva `e2e/propiedades-view-transitions.spec.ts` siguiendo las convenciones de `propiedades-detalle-*` (fixtures con slugs reales, selectores por `data-*`/estructura vigente): (1) el CSS servido contiene `@view-transition { navigation: auto }` y el opt-out reduce (fetch del stylesheet desde el DOM; ojo minificador: matching flexible, lowercase); (2) computed `view-transition-name` = `propiedad-<slug>` en las imágenes de las destacadas del home; (3) ídem en las cards del listado; (4) ídem en el lead de la ficha, emparejado con la card del mismo slug; (5) unicidad: sin nombres duplicados por página; (6) miniaturas y demás imágenes sin nombre; (7) cero overflow horizontal en los 3 viewports. Correr focused y observar RED. (b) **GREEN**: `DameroPlaceholder` prop `transitionName` (style en el frame, solo si está seteada); `PropertyCard` y lead de `[slug].astro` pasan `propiedad-${slug}`; `global.css` agrega el at-rule + opt-out. La aserción (1) cubre que el at-rule sobreviva al build (el minifier podría reescribirlo; complementar con `grep -i` sobre `dist/` — precedente del gotcha hex lowercase). Focused GREEN y después `pnpm test:e2e` completo.
-- [ ] **T2 — Gate + cierre.** `pnpm test:e2e` completo en verde (check:images + 3 viewports, 0 failed); baseline registrado acá (no inventar números); línea de la spec nueva en `AGENTS.md`; progreso y commits registrados acá; espejo Engram (`odd/damero-view-transitions/tasks`) actualizado. Push/PR/merge: decisión del stakeholder.
+- [x] **T0 — Docs primero (precedente del track de galería).** Registrar en `docs/DESIGN.md` el patrón de view transitions cross-document del sistema: opt-in global (`navigation: auto` en `global.css`), convención de nombres `propiedad-<slug>` unificada (card → lead → galería futura; unicidad por página: nombre duplicado invalida la transición), opt-out reduced-motion (`navigation: none`), degradación sin fallback JS (Chromium/Safari sí, Firefox hoy no), timings default. Registrar como coordinación explícita el desempate con el ejemplo `galeria-lead` del track de galería (ver sección Coordinación).
+- [x] **T1 — Implementación RED→GREEN (un commit de work unit: spec + código).** (a) **RED**: spec nueva `e2e/propiedades-view-transitions.spec.ts` siguiendo las convenciones de `propiedades-detalle-*` (fixtures con slugs reales, selectores por `data-*`/estructura vigente): (1) el CSS servido contiene `@view-transition { navigation: auto }` y el opt-out reduce (fetch del stylesheet desde el DOM; ojo minificador: matching flexible, lowercase); (2) computed `view-transition-name` = `propiedad-<slug>` en las imágenes de las destacadas del home; (3) ídem en las cards del listado; (4) ídem en el lead de la ficha, emparejado con la card del mismo slug; (5) unicidad: sin nombres duplicados por página; (6) miniaturas y demás imágenes sin nombre; (7) cero overflow horizontal en los 3 viewports. Correr focused y observar RED. (b) **GREEN**: `DameroPlaceholder` prop `transitionName` (style en el frame, solo si está seteada); `PropertyCard` y lead de `[slug].astro` pasan `propiedad-${slug}`; `global.css` agrega el at-rule + opt-out. La aserción (1) cubre que el at-rule sobreviva al build (el minifier podría reescribirlo; complementar con `grep -i` sobre `dist/` — precedente del gotcha hex lowercase). Focused GREEN y después `pnpm test:e2e` completo.
+- [x] **T2 — Gate + cierre.** `pnpm test:e2e` completo en verde (check:images + 3 viewports, 0 failed); baseline registrado acá (no inventar números); línea de la spec nueva en `AGENTS.md`; progreso y commits registrados acá; espejo Engram (`odd/damero-view-transitions/tasks`) actualizado. Push/PR/merge: decisión del stakeholder.
 
 ## Ruta de implementación
 
@@ -79,3 +79,39 @@ T0–T2 → `engineering-astro-implementer` (delegación por slice; writer trigg
 ## Alternativa descartada (registro explícito)
 
 `<ClientRouter />` (`astro:transitions`, incluido en astro@7.3.5): mismo efecto visual pero intercepta TODAS las navegaciones y obligaría a re-auditar el JS inline existente (riel de la ficha, sheet de filtros) — solo se retoma por decisión explícita del stakeholder si se exige fallback animado cross-browser. Mismo registro que el track de galería (enmienda en vuelo del track de galería, sin commit — ver Coordinación).
+
+## Progreso
+
+Track cerrado el 2026-10-09. Commits en `feat/view-transitions`:
+
+- **T0** — `1dd479d` `docs(design): document cross-document view transitions pattern` (`docs/DESIGN.md` §9, subsección "Cross-document view transitions (property imagery)").
+- **T1** — `105b267` `feat(properties): cross-document view transitions on property images` (4 archivos de implementación + spec nueva; 5 files changed, 262 insertions).
+- **T2** — este commit `docs(odd): register gate baseline and close view transitions track` (este documento + línea de la spec nueva en `AGENTS.md`).
+
+### Cómo se verificó T1
+
+La implementación de T1 se encontró **ya escrita y sin commitear** en el worktree (un intento previo de delegación falló antes de reportar). Se auditó contra este plan (diff de los 4 archivos + spec completa; sin extras fuera de alcance) y se observó RED real stasheando la implementación. No hizo falta corregir nada: focused GREEN y gate completo pasaron tal como estaba, y el commit `105b267` es exactamente lo verificado.
+
+### Evidencia RED (implementación stasheada, spec presente)
+
+- `git stash push -m "t1-impl-wip" -- src/styles/global.css src/components/DameroPlaceholder.astro src/components/PropertyCard.astro src/pages/propiedades/[slug].astro` → implementación ausente; `git status --short` deja solo `?? e2e/propiedades-view-transitions.spec.ts`.
+- `pnpm exec playwright test e2e/propiedades-view-transitions.spec.ts --project desktop-1280` → **5 failed / 2 passed (5.4s)**:
+  - `the served stylesheet ships the @view-transition opt-in and the reduced-motion opt-out` → `Error: global @view-transition opt-in` (el CSS servido no contiene el at-rule).
+  - `home featured card frames carry the paired propiedad-<slug> name` → `Expected: "propiedad-<slug>" / Received: "none"`.
+  - `listing card frames carry the paired propiedad-<slug> name` → ídem.
+  - `the detail lead frame pairs with the card of the same property on / and /propiedades` → `Expected: "propiedad-casa-2-dormitorios-zona-sur-santa-fe" / Received: "none"`.
+  - `transition names are unique within each transitioned page` → `Expected length: 3 / Received length: 0` (home).
+  - Pasan (esperado en RED): `gallery thumbnails and every other image element stay unnamed` y `no horizontal overflow on the transitioned pages` (nada tiene nombre todavía).
+- `git stash pop` → los 5 archivos restaurados; `git status --short` idéntico al estado inicial.
+
+### Evidencia GREEN + gate
+
+- `pnpm exec playwright test e2e/propiedades-view-transitions.spec.ts --project desktop-1280` → **7 passed (5.0s)**, 0 failed.
+- `pnpm test:e2e` → **EXIT 0 · 367 passed · 17 skipped · 0 failed (44.1s)**. Spec nueva: **21/21** (7 tests × 3 viewports). Los 17 skipped son condicionales pre-existentes de specs existentes (touch-target en desktop, mobile sheet, etc.); ninguno de la spec nueva.
+- Baseline por proyecto: `desktop-1280` **119 passed + 9 skipped** · `mobile-390` **124 passed + 4 skipped** · `mobile-320` **124 passed + 4 skipped**.
+- `pnpm check:images` → `Image limits OK — 6 listing(s), 28 referenced photo(s), 28 file(s) under public/propiedades/.`
+- Supervivencia del at-rule tras el minificador: `grep -ril "view-transition" dist/` → `dist/_astro/Button.CPUpf9e1.css` contiene `@view-transition{navigation:auto}@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}`; los HTML llevan `view-transition-name:propiedad-<slug>` (p. ej. `dist/index.html` con las 3 cards del home).
+
+**RDD:** OFF por decisión del stakeholder — sin assess ni review nativa; checks ordinarios (gate e2e) ejecutados.
+
+**Estado de cierre:** T0–T2 completas y verificadas en la rama. Push/PR/merge: decisión del stakeholder (no ejecutados).

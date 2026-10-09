@@ -85,7 +85,7 @@ diseño; si hay un cambio de diseño, se trae de forma explícita.
 - La suite corre **contra el build de producción**, no contra el dev server: `playwright.config.ts`
   levanta `pnpm build && pnpm preview --port 4321` como `webServer`.
 - Specs en `e2e/`: `landing-structure`, `landing-content`, `landing-cta-layout`,
-  `landing-accessibility`, más el helper `e2e/browser-audits.ts`.
+  `landing-accessibility`, `propiedades-view-transitions`, más el helper `e2e/browser-audits.ts`.
 - Browser: chromium empaquetado de Playwright (revisión 1243 para 1.63.0).
   Fallback documentado si la descarga se bloquea: `use: { channel: 'chrome' }` — decisión del
   stakeholder, no default.
