@@ -22,6 +22,7 @@ Ship a fast, mobile-first catalog that lets visitors browse 15–30 properties, 
 | Landing (`/`) | Hero, featured properties, 8 services (unchanged), footer with legal |
 | Search (`/propiedades`) | Filterable grid of all listings |
 | Detail (`/propiedades/<slug>`) | Full listing: photos, features, price, zone map, WhatsApp CTA |
+| Gallery (`/propiedades/<slug>/galeria`) | Full-page photo viewer for one listing: active photo, prev/next + counter, thumbnail rail, back link to the detail |
 | FAQs (`/faqs`) | 6 seed questions, content from `faqs.json` |
 
 Assets reused: existing landing copy keeps 8 services block and footer legal (permiso de difusión + corredor Luis Alejandro Da Silva CCI 000).
@@ -88,6 +89,7 @@ fotos:
 ## 6. Detail behavior
 
 - Sections: gallery, titulo/descripcion, caracteristicas (slugs), precio + moneda + expensas (if set), zona + localidad, map, WhatsApp CTA.
+- Gallery entry/exit: the detail's lead photo is a real link to the full-page gallery (`/propiedades/<slug>/galeria`), accessible name `Ver galería de fotos (N fotos)` (`foto` singular for 1); with `fotos: []` the placeholder stays non-interactive and no gallery link renders. The gallery page renders the active photo, prev/next + counter, thumbnail rail and a back link to the detail (DESIGN.md §17.5).
 - Map: OpenFreeMap embed, **circle only** with fixed radius set in code; center = manual approximate `map_lat`/`map_lon` (with offset). Never display numeric coordinates.
 - WhatsApp CTA format (prefilled title + slug, no forms):
 
