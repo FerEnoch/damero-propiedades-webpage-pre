@@ -80,6 +80,34 @@ test('R4: each gallery matches its fotos contract — lead + rail + counter, or 
       await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
       await expect(page.locator('[data-gallery-thumb]')).toHaveCount(0);
       await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+      // §17.5: with no photographs the lead is NOT a link — the placeholder
+      // stays non-interactive, no morph target, no gallery route entry.
+      await expect(page.locator('.gallery__lead a')).toHaveCount(0);
+    }
+  }
+});
+
+test('the gallery lead links to the full-page gallery, with the photo count in its accessible name', async ({
+  page,
+}) => {
+  for (const [slug, { count }] of Object.entries(GALLERY)) {
+    await page.goto(`/propiedades/${slug}`);
+
+    if (count > 0) {
+      // §17.5: the lead is a real link — it navigates without JS — and its
+      // accessible name carries the photo count.
+      const leadLink = page.getByRole('link', {
+        name: `Ver galería de fotos (${count} ${count === 1 ? 'foto' : 'fotos'})`,
+        exact: true,
+      });
+      await expect(leadLink, `${slug} lead link`).toHaveCount(1);
+      await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria?foto=1`);
+      // The link wraps the lead photo, and nothing else interactive.
+      await expect(leadLink.locator('img')).toHaveCount(1);
+    } else {
+      // `fotos: []`: the placeholder stays non-interactive (R4, §17.5).
+      await expect(page.locator('.gallery__lead a')).toHaveCount(0);
+      await expect(page.locator('.gallery__lead .damero-placeholder')).toBeVisible();
     }
   }
 });
@@ -106,6 +134,14 @@ test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and count
   await expect(counter).toHaveText('2 / 5');
   await expect(thumbs.nth(1)).toHaveAttribute('aria-current', 'true');
   await expect(thumbs.nth(0)).not.toHaveAttribute('aria-current', 'true');
+
+  // §17.5: the lead link follows the selection — opening the gallery from
+  // here lands on the enlarged photo instead of resetting to photo 1.
+  const leadLink = page.getByRole('link', {
+    name: 'Ver galería de fotos (5 fotos)',
+    exact: true,
+  });
+  await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria?foto=2`);
 });
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {

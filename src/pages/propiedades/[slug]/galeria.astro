@@ -1,0 +1,351 @@
+---
+/**
+ * Full-page gallery `/propiedades/<slug>/galeria` — docs/DESIGN.md §17.5.
+ *
+ * A dedicated page, not a modal (§11): no scrim, no focus trap, no
+ * scroll-lock, no Esc handling. Composition, top to bottom on the §5
+ * content container: back link (`← Volver a la ficha`, §6 text-link voice),
+ * the listing title in `--text-display-lg`, the dominant 3:2 active frame,
+ * the controls row OUTSIDE the photograph (prev/next real buttons in the
+ * ghost voice with the counter between them), then the §17.2 thumbnail
+ * rail unchanged. No arrows floating over the photo, no autoplay, no dot
+ * indicators (§17.2:680).
+ *
+ * View transitions: the active frame is the gallery-side morph target; the
+ * unified `propiedad-<slug>` name lands on the `DameroPlaceholder` frame
+ * (exactly one named element per page) and never on the `<img>`; thumbnails
+ * stay unnamed. The detail lead links here with `?foto=N` for the enlarged
+ * photo, and the synchronous arrival script below applies it during parsing
+ * — before first paint and before the deferred viewer script — so the entry
+ * snapshot already shows photo N and the morph is the same photograph,
+ * never a cross-fade between different photos (§17.5).
+ *
+ * With `fotos: []` the viewer chrome is omitted entirely: the §7 brand
+ * tile, the back link and the h1 are the whole page — no controls, no
+ * counter, no rail, no transition name (§17.5).
+ *
+ * Viewer copy is the §17.5 table, verbatim (§16): back link
+ * `← Volver a la ficha`, prev/next accessible names `Foto anterior` /
+ * `Foto siguiente` (visible labels `← Anterior` / `Siguiente →`), counter
+ * `N / M`, page title `<titulo> · Galería | Damero Propiedades`.
+ */
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Button from '../../../components/Button.astro';
+import DameroPlaceholder from '../../../components/DameroPlaceholder.astro';
+
+interface Props {
+  entry: CollectionEntry<'propiedades'>;
+}
+
+export async function getStaticPaths() {
+  const propiedades = await getCollection('propiedades');
+  return propiedades.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { titulo, slug, fotos } = entry.data;
+
+// §17.5: with no photographs the controls, counter, rail and transition
+// name are omitted — a fabricated `1 / N` line would be invented data (§11).
+const hasFotos = fotos.length > 0;
+---
+
+<BaseLayout title={`${titulo} · Galería | Damero Propiedades`}>
+  <div class="gallery-page" data-gallery-page>
+    <div class="container gallery-page__inner">
+      <Button variant="text-link" href={`/propiedades/${slug}`} class="gallery-page__back"
+        >← Volver a la ficha</Button
+      >
+      <h1 class="gallery-page__title">{titulo}</h1>
+
+      <section class="viewer" data-viewer aria-label="Galería de fotos de la propiedad">
+        {/* The active frame: §7 box metrics, dominant band, and the only
+            element on the page carrying a view-transition name. */}
+        <div class="viewer__active" data-viewer-active>
+          <DameroPlaceholder
+            src={hasFotos ? fotos[0].src : undefined}
+            alt={hasFotos ? (fotos[0].titulo ?? '') : ''}
+            loading="eager"
+            fetchpriority="high"
+            transitionName={hasFotos ? `propiedad-${slug}` : undefined}
+          />
+        </div>
+        {
+          hasFotos && (
+            <>
+              {/* Controls row, outside the photograph (§17.5): real buttons
+                  in the ghost voice, ≥44px, counter between them. */}
+              <div class="viewer__controls" data-viewer-controls>
+                <Button variant="ghost" ariaLabel="Foto anterior" class="viewer__nav--prev">
+                  ← Anterior
+                </Button>
+                <span class="viewer__counter" data-gallery-counter>
+                  1 / {fotos.length}
+                </span>
+                <Button variant="ghost" ariaLabel="Foto siguiente" class="viewer__nav--next">
+                  Siguiente →
+                </Button>
+              </div>
+
+              {/* The §17.2 rail, unchanged. */}
+              <div class="gallery__rail" data-gallery-rail>
+                {fotos.map((foto, index) => (
+                  <button
+                    type="button"
+                    class="gallery__thumb"
+                    data-gallery-thumb
+                    data-alt={foto.titulo ?? ''}
+                    aria-current={index === 0 ? 'true' : undefined}
+                    aria-label={`Ver foto ${index + 1} de ${fotos.length}`}
+                  >
+                    <img
+                      src={foto.src}
+                      alt=""
+                      width="320"
+                      height="213"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </button>
+                ))}
+              </div>
+            </>
+          )
+        }
+      </section>
+
+      {/*
+        Synchronous arrival script (§17.5). The served document always
+        carries `fotos[0]` (static build), but the detail lead links here
+        with `?foto=N` for the enlarged photo. This classic script runs
+        during parsing — the rail above is already parsed, first paint has
+        not happened yet, and the deferred viewer script below has not run —
+        so the cross-document view-transition entry snapshot already shows
+        photo N with no photo-1 flash. Only a plain 1-based integer in range
+        is honoured (photo 1 needs no swap); anything else keeps photo 1.
+        `is:inline` keeps it unbundled and in place; without JS nothing runs
+        and the page renders photo 1 (documented degradation). The URL is
+        left untouched — syncing it stays owned by the viewer script below.
+      */}
+      <script is:inline>
+        (function () {
+          var viewer = document.querySelector('[data-viewer]');
+          if (!viewer) return;
+          var activeImg = viewer.querySelector('[data-viewer-active] img');
+          var thumbs = Array.prototype.slice.call(
+            viewer.querySelectorAll('[data-gallery-thumb]'),
+          );
+          var counter = viewer.querySelector('[data-gallery-counter]');
+          if (!activeImg || thumbs.length === 0) return;
+          var requested = new URLSearchParams(window.location.search).get('foto');
+          if (requested === null || !/^\d+$/.test(requested)) return;
+          var index = parseInt(requested, 10) - 1;
+          if (index <= 0 || index >= thumbs.length) return;
+          var thumb = thumbs[index];
+          var img = thumb.querySelector('img');
+          if (!img) return;
+          var src = img.getAttribute('src');
+          if (src) activeImg.setAttribute('src', src);
+          activeImg.setAttribute('alt', thumb.getAttribute('data-alt') || '');
+          thumbs.forEach(function (other, otherIndex) {
+            if (otherIndex === index) other.setAttribute('aria-current', 'true');
+            else other.removeAttribute('aria-current');
+          });
+          if (counter) counter.textContent = index + 1 + ' / ' + thumbs.length;
+        })();
+      </script>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  /**
+   * Gallery viewer behaviour (§17.5). A plain page script, the same pattern
+   * as the §17.2 gallery: thumbnail click and prev/next swap the active
+   * photo, the counter and `aria-current`; ←/→/Home/End do the same. The
+   * `?foto=N` deep link (1-based) is already applied during parsing by the
+   * synchronous arrival script above; the apply here just converges to the
+   * same state — and every move keeps the URL in sync with
+   * `history.replaceState` (never pushState). Without JS the page renders
+   * photo 1, the rail is inert and the back link still navigates.
+   *
+   * The in-page swap stays instant: no same-document view transition.
+   */
+  const pageRoot = document.querySelector<HTMLElement>('[data-gallery-page]');
+
+  if (pageRoot) {
+    const viewer = pageRoot.querySelector<HTMLElement>('[data-viewer]');
+    const activeImg = viewer?.querySelector<HTMLImageElement>('[data-viewer-active] img');
+    const thumbs = Array.from(
+      viewer?.querySelectorAll<HTMLButtonElement>('[data-gallery-thumb]') ?? [],
+    );
+    const counter = viewer?.querySelector<HTMLElement>('[data-gallery-counter]');
+    const prevButton = viewer?.querySelector<HTMLButtonElement>('.viewer__nav--prev');
+    const nextButton = viewer?.querySelector<HTMLButtonElement>('.viewer__nav--next');
+
+    if (viewer && activeImg && thumbs.length > 0) {
+      let current = 0;
+
+      const activate = (index: number, scrollThumb = true) => {
+        current = index;
+        const thumb = thumbs[index];
+        const img = thumb.querySelector('img');
+        if (!img) return;
+        activeImg.src = img.currentSrc || img.src;
+        activeImg.alt = thumb.dataset.alt ?? '';
+        thumbs.forEach((other, otherIndex) => {
+          if (otherIndex === index) other.setAttribute('aria-current', 'true');
+          else other.removeAttribute('aria-current');
+        });
+        if (counter) counter.textContent = `${index + 1} / ${thumbs.length}`;
+        // §17.2:679 — the active thumbnail scrolls into view on moves. The
+        // initial deep-link apply skips it so arrival never scrolls the page.
+        if (scrollThumb) thumb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        // §17.5 — the deep link stays in sync without growing history.
+        const url = new URL(window.location.href);
+        url.searchParams.set('foto', String(index + 1));
+        window.history.replaceState(null, '', url);
+      };
+
+      const step = (delta: number) =>
+        activate((current + delta + thumbs.length) % thumbs.length);
+
+      thumbs.forEach((thumb, index) => {
+        thumb.addEventListener('click', () => activate(index));
+      });
+      prevButton?.addEventListener('click', () => step(-1));
+      nextButton?.addEventListener('click', () => step(1));
+
+      // ←/→/Home/End drive the viewer from anywhere on the page (§17.5).
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          step(1);
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          step(-1);
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          activate(0);
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          activate(thumbs.length - 1);
+        }
+      });
+
+      // §17.5 — converges with the synchronous arrival script (same parse,
+      // same rules): only a plain 1-based integer in range is honoured;
+      // anything else keeps photo 1 (no URL rewrite, no swap).
+      const requested = new URLSearchParams(window.location.search).get('foto');
+      if (requested !== null && /^\d+$/.test(requested)) {
+        const index = Number.parseInt(requested, 10) - 1;
+        if (index >= 0 && index < thumbs.length) activate(index, false);
+      }
+    }
+  }
+</script>
+
+<style>
+  .gallery-page__inner {
+    padding-block: var(--space-8) var(--space-16);
+  }
+
+  .gallery-page__title {
+    margin-top: var(--space-2);
+    font-size: var(--text-display-lg);
+    line-height: var(--leading-display-lg);
+    letter-spacing: var(--tracking-display-lg);
+    color: var(--color-text-primary);
+  }
+
+  /* The viewer may shrink below its content; the rail scrolls instead of
+     forcing the page wider than the viewport (§10, §17.2:679). */
+  .viewer {
+    min-width: 0;
+    margin-top: var(--space-6);
+  }
+
+  /* Controls row, outside the photograph (§17.5). Wraps rather than
+     overflows at the narrowest viewport (§10). */
+  .viewer__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  /* Counter between the buttons: mono label-sm, secondary text (§17.5). */
+  .viewer__counter {
+    font-family: var(--font-mono);
+    font-size: var(--text-label-sm);
+    font-weight: 500;
+    line-height: var(--leading-label-sm);
+    letter-spacing: var(--tracking-label-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* ---- Thumbnail rail (§17.2, unchanged) -------------------------------- */
+  .gallery__rail {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .gallery__rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Inactive thumbnails are NOT dimmed; the active one takes the
+     interactive border (§17.2:677). 96×64 keeps the 44px touch minimum. */
+  .gallery__thumb {
+    flex: none;
+    width: 96px;
+    aspect-ratio: 3 / 2;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+  }
+
+  .gallery__thumb[aria-current='true'] {
+    border-color: var(--color-border-interactive);
+  }
+
+  .gallery__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* ---- Mobile layout (< 768px) ------------------------------------------- */
+  @media (max-width: 767.98px) {
+    /* §17.2:679 — the rail scrolls with mandatory x snap. */
+    .gallery__rail {
+      scroll-snap-type: x mandatory;
+    }
+
+    .gallery__thumb {
+      scroll-snap-align: start;
+    }
+  }
+
+  /* ---- Desktop layout (≥ 768px) ------------------------------------------ */
+  @media (min-width: 768px) {
+    .gallery-page__inner {
+      padding-block: var(--space-10) var(--section-y-tight);
+    }
+  }
+</style>

@@ -132,16 +132,35 @@ const houseGlyph = iconHouse
       </nav>
 
       {/* 1. Gallery (§17.2:675-681). Lead 3:2, eager + high priority; rail
-          and counter only exist when real photographs do (R4). */}
+          and counter only exist when real photographs do (R4). With photos
+          the lead is a real link to the full-page gallery (§17.5): it
+          navigates without JS, its accessible name carries the photo count,
+          its href carries the active photo (`?foto=N`, synced by the rail
+          script below),
+          and its frame is the ficha-side morph target (`propiedad-<slug>`).
+          With `fotos: []` the placeholder stays non-interactive — no link,
+          no transition name (§17.5). */}
       <section class="gallery" data-band="gallery" data-gallery aria-label="Galería de fotos de la propiedad">
         <div class="gallery__lead" data-gallery-lead>
-          <DameroPlaceholder
-            src={hasFotos ? fotos[0].src : undefined}
-            alt={hasFotos ? (fotos[0].titulo ?? '') : ''}
-            loading="eager"
-            fetchpriority="high"
-            transitionName={`propiedad-${slug}`}
-          />
+          {
+            hasFotos ? (
+              <a
+                class="gallery__lead-link"
+                href={`/propiedades/${slug}/galeria?foto=1`}
+                aria-label={`Ver galería de fotos (${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'})`}
+              >
+                <DameroPlaceholder
+                  src={fotos[0].src}
+                  alt={fotos[0].titulo ?? ''}
+                  loading="eager"
+                  fetchpriority="high"
+                  transitionName={`propiedad-${slug}`}
+                />
+              </a>
+            ) : (
+              <DameroPlaceholder alt="" loading="eager" fetchpriority="high" />
+            )
+          }
         </div>
         {
           hasFotos && (
@@ -309,6 +328,7 @@ const houseGlyph = iconHouse
     // ---- Gallery (inert with `fotos: []`, per R4) ----------------------
     const gallery = pageRoot.querySelector<HTMLElement>('[data-gallery]');
     const leadImg = gallery?.querySelector<HTMLImageElement>('.gallery__lead img');
+    const leadLink = gallery?.querySelector<HTMLAnchorElement>('.gallery__lead-link');
     const thumbs = Array.from(
       gallery?.querySelectorAll<HTMLButtonElement>('[data-gallery-thumb]') ?? [],
     );
@@ -326,6 +346,13 @@ const houseGlyph = iconHouse
           else other.removeAttribute('aria-current');
         });
         if (counter) counter.textContent = `${index + 1} / ${thumbs.length}`;
+        // §17.5 — the lead link follows the selection so the full-page
+        // gallery opens on the enlarged photo. The static href already
+        // carries `?foto=1` for the no-JS arrival.
+        if (leadLink) {
+          const base = leadLink.getAttribute('href')?.split('?')[0] ?? '';
+          if (base) leadLink.setAttribute('href', `${base}?foto=${index + 1}`);
+        }
         // §17.2:679 — the active thumbnail scrolls into view.
         thumb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       };
@@ -503,6 +530,15 @@ const houseGlyph = iconHouse
      (§17.2:679): it may shrink below its content and clips inside itself. */
   .gallery {
     min-width: 0;
+  }
+
+  /* §17.5 — the lead wraps the photo in a real link to the full-page
+     gallery. The focus ring follows the §7 frame's radius. */
+  .gallery__lead-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-md);
   }
 
   .gallery__rail {

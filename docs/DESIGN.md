@@ -446,12 +446,12 @@ Restrained, deliberate, and short. This is a catalogue: motion confirms a state 
 Navigating between a property card and its detail page morphs the photograph across documents via the CSS View Transitions API — no client-side router, no new JavaScript. The rendered effect is the browser default: a position/size morph plus a subtle cross-fade, with no authored keyframes, timing or easing overrides. It sits inside the restrained register above; nothing custom animates.
 
 - **Opt-in is global.** `@view-transition { navigation: auto; }` is declared once in `src/styles/global.css` and applies to every same-origin, user-initiated navigation (link activation, back/forward traverse) — there is no per-link scoping. All navigations gain the subtle default cross-fade where supported, not only the morphing ones.
-- **Naming convention.** One `view-transition-name` per property visual thread: `propiedad-<slug>`. The `propiedad-` prefix guarantees a valid `<custom-ident>` (never a leading digit). The same name is paired across the card image (home featured, listing) and the detail gallery's lead image, and extends to the future full-page gallery's active photo. One element, one name — a separate gallery-scoped name is never layered onto the same image.
-- **Uniqueness is a hard rule.** A `view-transition-name` must be unique within a document; a duplicate invalidates the whole transition. Only card images and the detail lead carry names. Gallery thumbnails and every other image stay unnamed.
+- **Naming convention.** One `view-transition-name` per property visual thread: `propiedad-<slug>`. The `propiedad-` prefix guarantees a valid `<custom-ident>` (never a leading digit). The same name is paired across the card media frame (home featured, listing), the detail gallery's lead frame and the full-page gallery's active frame (§17.5). One element, one name — a separate gallery-scoped name is never layered onto the same element.
+- **Uniqueness is a hard rule.** A `view-transition-name` must be unique within a document; a duplicate invalidates the whole transition. Only the card frames, the detail lead frame and the full-page gallery's active frame carry names. Gallery thumbnails and every `<img>` stay unnamed.
 - **Reduced motion.** `@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }`. The blanket duration neutralizer does not reach `::view-transition-*` pseudo-elements, so the opt-out is declared at the `navigation` level.
 - **Timings.** Browser defaults. No duration token and no `::view-transition-*` keyframes yet; introducing either is a future refinement, coordinated so card→detail and detail→gallery share one duration scale.
 - **Degradation.** Supported in Chromium/Edge 126+ and Safari 18.2+. Firefox does not support cross-document transitions yet and falls back to plain navigation — no JavaScript fallback, no client-side router. The deprecated `<meta name="view-transition">` tag is never used.
-- **Scope.** Only property card images and the detail lead morph. No other element carries a transition name.
+- **Scope.** Only property card frames, the detail lead frame and the full-page gallery's active frame morph. No other element carries a transition name.
 
 ---
 
@@ -771,6 +771,40 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 - The service copy and the legal block remain fixed (§16).
 
 **Open item carried into implementation.** The registered Stitch asset `assets/5c6d34089cb34b22ae8bfdaa315e2d5b` currently exposes `labelFont = PUBLIC_SANS`, which diverges from the mapping recorded in §15 (`JETBRAINS_MONO`). The Astro build must follow §3 and §14 — prices, counters and apparatus labels in JetBrains Mono with tabular figures — regardless of what the mockups render. Align the Stitch asset before the next design round so mockups and build stop diverging.
+
+### 17.5 Full-page gallery view (`/propiedades/<slug>/galeria`)
+
+The gallery that opens from the detail lead is a **dedicated page, not a modal** — §11 bans modals where an inline or full-page pattern works, and the §17.1 bottom sheet stays the only modal in the system. The view composes the §2–§4 tokens and the §17.2 gallery vocabulary; it introduces **no new colour, radius, shadow, typeface or motion primitive**.
+
+**Composition.** Top to bottom, on the content container (§5), left-aligned with a ragged right edge:
+
+1. **Back link** — text-link voice (§6), a real link to `/propiedades/<slug>`, 44px target.
+2. **`<h1>`** — the listing title in `--text-display-lg`, the page-head token every route uses.
+3. **Active photo** — the §7 frame: 3:2, `--radius-md`, `width`/`height` set, `loading="eager"` + `fetchpriority="high"`. It is the dominant band of the page.
+4. **Controls row, outside the photograph** — prev/next as real `<button>`s in the ghost voice (§6), ≥44px, with the counter between them in `--text-label-sm` mono, `--color-text-secondary`. **No arrows floating over the photo, no autoplay, no dot indicators** (§17.2). No text, badge or control is ever overlaid on the image (§7, §11).
+5. **Thumbnail rail** — the §17.2 rail unchanged: 3:2 thumbnails, `--space-2` gap, `1px solid --color-border-hairline`, active `1px solid --color-border-interactive`, never dimmed, scroll-snap on mobile.
+6. **With `fotos: []`** — the §7 brand tile alone: no controls, no counter, no rail, and no link to this route anywhere on the detail page. The back link stays.
+
+**Viewer copy (source of truth).** Neutral professional Spanish (§16); every label is functional, none decorative.
+
+| Slot | Text |
+|---|---|
+| Back link | `← Volver a la ficha` |
+| Detail lead link accessible name | `Ver galería de fotos (N fotos)` — `foto` singular when N = 1 |
+| Prev / next accessible names | `Foto anterior` / `Foto siguiente` (visible labels `← Anterior` / `Siguiente →`) |
+| Counter | `N / M` |
+| Page title | `<titulo> · Galería | Damero Propiedades` |
+
+**Interaction.** A plain page script, the same pattern as the §17.2 gallery: thumbnail click and prev/next swap the active photo, the counter and `aria-current`; `←` / `→` / `Home` / `End` keys do the same. The deep link `?foto=N` (1-based) arrives via the detail lead, which syncs its href with the enlarged photo: a synchronous inline script applies it during parsing — before first paint — and every move keeps it in sync with `history.replaceState` — an invalid or out-of-range value degrades to photo 1. Without JS the page renders photo 1, the rail is inert and the back link still navigates. **No Esc handling, no scroll-lock, no focus trap** — this is a page, not a dialog. The in-page swap stays instant: no same-document view transition.
+
+**Cross-document view transitions (ficha ↔ galería).**
+
+- **Global opt-in** in `global.css`: `@view-transition { navigation: auto; }`. The rule is global by platform design — a subtle cross-fade on every same-origin navigation where supported; the platform offers no per-link scoping. Approved by the stakeholder (2026-10-09).
+- **Unified name `propiedad-<slug>`** pairs the morph targets across documents under the §9 naming convention: the same media frame (the `DameroPlaceholder` element) carries it on the detail lead and on the gallery's active photo — never on the `<img>` itself. **Exactly one named element per page** — a duplicated name invalidates the transition, so thumbnails, every `<img>` and every other element stay unnamed. The `propiedad-` prefix keeps a valid `<custom-ident>` (it never starts with a digit).
+- **The morph is the same photograph.** The detail lead shows the enlarged photo and links here with `?foto=N` for it; a synchronous inline script applies the deep link during parsing — before first paint — so the entry snapshot already shows photo N. The morph is always selected → selected, never a cross-fade between different photos, and the rail order is never altered to achieve it.
+- **Reduced motion:** `@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }` — navigation degrades to a plain page load. The §9 blanket neutralizer does not reach the `::view-transition-*` pseudo-elements; the opt-out at the `navigation` level is the correct coverage (§9, §12).
+- **Degradation without JS fallback.** Cross-document transitions are pure CSS: where unsupported, navigation is a normal page load — no router, no animated fallback. Support: Chromium/Edge 126+, Opera 112+, Safari 18.2+; Firefox navigates normally (it ships same-document transitions only). The deprecated `<meta name="view-transition">` is **not** used.
+- **With `fotos: []`** nothing is named and nothing transitions — the placeholder is not interactive (§17.2, R4).
 
 ---
 
