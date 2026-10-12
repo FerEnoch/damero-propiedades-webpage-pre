@@ -1,6 +1,6 @@
 # Damero — Decouple e2e from business data
 
-**Status:** Planned (2026-10-12) on `fix/e2e-decouple-business-data` (base `d4bc2d0`, in sync with `origin/main`). Awaiting stakeholder approval of this plan before any spec edit.
+**Status:** In Progress (2026-10-12) on `fix/e2e-decouple-business-data` (base `d4bc2d0`, in sync with `origin/main`). Stakeholder authorized full completion 2026-10-12 ("hacé todo hasta finalizar").
 **Stakeholder decision:** PR #23 (`actualizacion-precio`, `410000 -> 500000` on `casa-2-dormitorios-zona-sur-santa-fe`) turned the acceptance gate red because specs duplicate business values instead of reading them.
 **Objective:** e2e asserts rendering contracts (format, presence, correspondence with the collection), never literal business values. Any legitimate content edit (price, title, listing add/remove, photo add/remove, moneda/operacion, expensas, characteristics, coords) passes without touching specs — or touches exactly one shared helper, never N spec files.
 **Problem:** the suite hardcodes the full 6-listing dataset: `prices` map (`detalle-content:149-161`), `TITLES` x3, `SLUGS` x5, `GALLERY`/`PHOTO_COUNTS` x3, currency/operation counts (`filtering`), price ranges, sort order, ficha rows, characteristics, coordinates, destacada/localidad assumptions, WhatsApp anchor. One commercial edit = 3-7 spec files (audit 2026-10-12).
@@ -17,7 +17,7 @@
 
 ## Tasks
 
-- [ ] **T1 — Price/currency contract.** Replace `prices` map in `e2e/propiedades-detalle-content.spec.ts:147-162` with format + correspondence assertions (currency code present, amount matches `es-AR` grouping of the collection value, or value read from the built JSON). **Route:** delegated direct (writer trigger: spec + helper = 2 non-trivial files). **Evidence:** RED = `precio: 500000` locally fails today; GREEN = same value passes with no spec edit.
+- [x] **T1 — Price/currency contract.** Replace `prices` map in `e2e/propiedades-detalle-content.spec.ts:147-162` with format + correspondence assertions (currency code present, amount matches `es-AR` grouping of the collection value, or value read from the built JSON). **Route:** delegated direct (writer trigger: spec + helper = 2 non-trivial files). **Evidence:** RED = `precio: 500000` locally fails today; GREEN = same value passes with no spec edit.
 - [ ] **T2 — Titles/slugs single source.** Deduplicate `TITLES` x3 (`detalle-structure:26-33`, `galeria-content:24-31`, `galeria-structure:26-33`) and `SLUGS` x5 into the shared helper or dynamic collection read; `view-transitions:137` derives from the same source. **Route:** delegated direct (writer trigger: 4+ specs). **Evidence:** title reword + new-listing dry run pass with zero spec edits.
 - [ ] **T3 — Gallery photo contracts.** Unify `GALLERY`/`PHOTO_COUNTS` x3 + alt/filename literals (`detalle-content:28-35,133`, `galeria-content:96-310`) behind the helper; assert lead/rail/counter/shape, not literal filenames beyond structural `slug/` prefix. **Route:** delegated direct (3 spec files). **Evidence:** add/remove one photo locally passes.
 - [ ] **T4 — Filtering derived counts/ranges/sort.** Derive `ARS/USD`, `alquiler/venta`, `total`, `precio_max`, sort-first expectations in `e2e/propiedades-filtering.spec.ts` (lines ~35-47, 98-107, 179-300, 304-401) from the collection instead of literals. **Route:** delegated direct (largest single spec). **Evidence:** moneda/operacion flip + price reorder pass.
@@ -50,7 +50,8 @@ Deterministic runner exists (Playwright e2e against `pnpm build + preview`). RED
 
 ## Progress, evidence and next step
 
-- Branch `fix/e2e-decouple-business-data` created from `d4bc2d0` (in sync with `origin/main`); plan doc is the first commit (pending).
+- Branch `fix/e2e-decouple-business-data` created from `d4bc2d0` (in sync with `origin/main`); plan doc is the first commit (`bad0b9e`).
 - Audit evidence: coupling inventory 2026-10-12 (A-O + Whatsapp/sitemap notes); PR #23 diff (`precio 410000->500000`, 1 file) vs `detalle-content:149` (`ARS 410.000`).
-- Work-unit commits: (none yet — recorded here as evidence per task).
-- Next step (needs stakeholder approval): approve this plan, then T1 via one bounded writer with `## Allowed edit surfaces` + `## Verification` + `## Key Learnings` closing block.
+- Work-unit commits:
+  - `8552eac` test(e2e): derive price expectations from collection (T1). RED/GREEN observed on focused price spec: old spec fails on `precio 500000`, derived contract passes with zero spec edits. 1 passed desktop-1280 both baselines.
+- Next step: T2 via one bounded writer (titles/slugs single source).
