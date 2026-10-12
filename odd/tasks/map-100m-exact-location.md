@@ -47,7 +47,7 @@
 - **Entregable:** `src/lib/map/detail-map.ts` con `ZONE_RADIUS_M = 100`, comentarios sin "privacy/offset" (decir exact location + 100m reference); `[slug].astro:297` caption `ZONA APROXIMADA · RADIO 100 M`.
 - **Criterio:** círculo de 100m centrado en `lat/lon` exactos; caption y `aria-label` consistentes; sin pin/dot/label.
 - **Ruta:** delegated direct (writer trigger: 2 ficheros no triviales + e2e asociado). **Checks:** `pnpm build` + `pnpm test:e2e`.
-- [x] hecho. Commit: `ed7467a`.
+- [x] hecho. Commit: `e8456da`.
 
 ### T2 — Contenido exacto sin offset
 - **Entregable:** `src/content.config.ts:44-46` y comentarios de los 6 `.md` reescritos a "exact property location"; `src/pages/propiedades/[slug].json.ts:4` sin "already offset ≥100m".
