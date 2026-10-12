@@ -23,9 +23,9 @@ fotos:
     titulo: "Vista sur"
   - src: "/propiedades/cayasta_7has/03-vista.webp"
     titulo: "Ubicacion"
-  - src: "/propiedades/cayasta_7has/04--vista.webp"
+  - src: "/propiedades/cayasta_7has/04-vista.webp"
     titulo: "destacado"
-  - src: "/propiedades/cayasta_7has/05--vista.webp"
+  - src: "/propiedades/cayasta_7has/05-vista.webp"
     titulo: "en plano"
 destacada: true
 ---
