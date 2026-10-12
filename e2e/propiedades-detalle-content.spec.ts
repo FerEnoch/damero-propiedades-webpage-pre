@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { expectedPhotosBySlug, expectedPricesBySlug } from './helpers/content-expectations';
+import {
+  expectedCharacteristicLabelsBySlug,
+  expectedFichaRowsBySlug,
+  expectedPhotosBySlug,
+  expectedPricesBySlug,
+  expectedWhatsAppHrefsBySlug,
+} from './helpers/content-expectations';
 
 /**
  * Detail page content rules (ODD §17 slice S3): R4's per-listing gallery
@@ -164,50 +170,12 @@ test('the price renders with the currency code always present (§17.2:690)', asy
 });
 
 test('R12: the ficha técnica rows degrade gracefully and never drop a row', async ({ page }) => {
-  const expectations: Record<string, Record<string, string>> = {
-    'casa-2-dormitorios-zona-sur-santa-fe': {
-      OPERACIÓN: 'Alquiler',
-      HABITACIONES: '2',
-      COCHERA: 'No',
-      MONEDA: 'ARS',
-      EXPENSAS: 'No aplica',
-    },
-    'casa-3-amb-guadalupe-santa-fe': {
-      OPERACIÓN: 'Venta',
-      HABITACIONES: '3',
-      COCHERA: 'Sí',
-      MONEDA: 'USD',
-      EXPENSAS: 'No aplica',
-    },
-    'departamento-1-amb-candioti-norte-santa-fe': {
-      OPERACIÓN: 'Alquiler',
-      HABITACIONES: '1',
-      COCHERA: 'No',
-      MONEDA: 'ARS',
-      EXPENSAS: '35.000',
-    },
-    'departamento-2-amb-centro-santa-fe': {
-      OPERACIÓN: 'Alquiler',
-      HABITACIONES: '2',
-      COCHERA: 'No',
-      MONEDA: 'ARS',
-      EXPENSAS: '52.000',
-    },
-    'departamento-3-amb-barrio-norte-santa-fe': {
-      OPERACIÓN: 'Venta',
-      HABITACIONES: '3',
-      COCHERA: 'No',
-      MONEDA: 'USD',
-      EXPENSAS: '38.000',
-    },
-    'lote-600-m2-candioti-santa-fe': {
-      OPERACIÓN: 'Venta',
-      HABITACIONES: '0',
-      COCHERA: 'No',
-      MONEDA: 'USD',
-      EXPENSAS: 'No aplica',
-    },
-  };
+  /*
+   * Rendering contract, not literal business values (plan T5): every row
+   * derives from the collection — the same source the build renders. An
+   * expensas/cochera/operacion edit passes with zero spec edits.
+   */
+  const expectations = expectedFichaRowsBySlug();
 
   for (const [slug, rows] of Object.entries(expectations)) {
     await page.goto(`/propiedades/${slug}`);
@@ -228,15 +196,13 @@ test('R12: the ficha técnica rows degrade gracefully and never drop a row', asy
 test('characteristics render the slugs as uppercase words, no dictionary (§17.2:686)', async ({
   page,
 }) => {
-  const expectations: Record<string, string[]> = {
-    'casa-2-dormitorios-zona-sur-santa-fe': ['PATIO'],
-    'casa-3-amb-guadalupe-santa-fe': ['PATIO', 'PARRILLA'],
-    'departamento-1-amb-candioti-norte-santa-fe': ['LUMINOSO'],
-    'departamento-2-amb-centro-santa-fe': ['BALCON'],
-    'departamento-3-amb-barrio-norte-santa-fe': ['BALCON', 'LUMINOSO'],
-    // The unknown `apto-credito` slug still renders — never dropped.
-    'lote-600-m2-candioti-santa-fe': ['APTO CREDITO'],
-  };
+  /*
+   * Rendering contract, not literal business values (plan T5): the labels
+   * derive from the collection's `caracteristicas` through the same
+   * slug-to-words rule the page uses. A characteristic add/remove passes
+   * with zero spec edits.
+   */
+  const expectations = expectedCharacteristicLabelsBySlug();
 
   for (const [slug, labels] of Object.entries(expectations)) {
     await page.goto(`/propiedades/${slug}`);
@@ -254,7 +220,12 @@ test('characteristics render the slugs as uppercase words, no dictionary (§17.2
 });
 
 test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, viewport }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  // Structural probe on one listing; the CTA href derives from the
+  // listing's `whatsapp` field (plan T5) — inert while pending, `wa.me`
+  // once the stakeholder supplies a real number.
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  const ctaHref = expectedWhatsAppHrefsBySlug()[slug];
+  await page.goto(`/propiedades/${slug}`);
 
   const inlineCta = page.locator('.price-panel__cta .whatsapp-cta');
   const stickyBar = page.locator('.whatsapp-sticky__link');
@@ -263,12 +234,12 @@ test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, 
     // Desktop: the CTA sits inside the price panel; no sticky bar exists.
     await expect(inlineCta).toBeVisible();
     await expect(stickyBar).toBeHidden();
-    await expect(inlineCta).toHaveAttribute('href', '#whatsapp-pendiente');
+    await expect(inlineCta).toHaveAttribute('href', ctaHref);
   } else {
     // Mobile: the sticky bar takes over; the in-flow CTA is omitted.
     await expect(inlineCta).toBeHidden();
     await expect(stickyBar).toBeVisible();
-    await expect(stickyBar).toHaveAttribute('href', '#whatsapp-pendiente');
+    await expect(stickyBar).toHaveAttribute('href', ctaHref);
   }
 });
 
