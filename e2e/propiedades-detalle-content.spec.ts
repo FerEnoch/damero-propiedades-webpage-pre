@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectedPricesBySlug } from './helpers/content-expectations';
+import { expectedPhotosBySlug, expectedPricesBySlug } from './helpers/content-expectations';
 
 /**
  * Detail page content rules (ODD §17 slice S3): R4's per-listing gallery
@@ -11,20 +11,25 @@ import { expectedPricesBySlug } from './helpers/content-expectations';
  * provider aborted, so no spec depends on live tiles.
  */
 
-/**
- * Per-listing gallery fixture: how many photos the listing ships and the
- * `titulo` of the cover photo (which feeds the lead `alt`, PRD §4/§7).
- * As of PD-02 all six listings ship photos, so the empty branch stays as
- * the R4 contract fallback; `leadAlt` is required whenever `count > 0`.
+/*
+ * Per-listing photos derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T3) — the same source the build
+ * renders, so adding/removing a photo needs no spec edit. As of PD-02 all
+ * six listings ship photos, so the empty branch stays as the R4 contract
+ * fallback; the cover `alt` mirrors the `?? ''` render contract.
  */
-const GALLERY: Record<string, { count: number; leadAlt?: string }> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': { count: 5, leadAlt: 'Fachada' },
-  'casa-3-amb-guadalupe-santa-fe': { count: 5, leadAlt: 'Fachada' },
-  'departamento-1-amb-candioti-norte-santa-fe': { count: 4, leadAlt: 'Frente del edificio' },
-  'departamento-2-amb-centro-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
-  'departamento-3-amb-barrio-norte-santa-fe': { count: 5, leadAlt: 'Frente del edificio' },
-  'lote-600-m2-candioti-santa-fe': { count: 4, leadAlt: 'Terreno' },
-};
+const PHOTOS = expectedPhotosBySlug();
+
+/*
+ * End-anchored `src` matcher from a collection-derived path. The initial
+ * render serves the frontmatter path verbatim, but the gallery script swaps
+ * via the resolved (absolute) URL — so post-swap attributes only assert the
+ * filename suffix (T3).
+ */
+function srcEnd(src: string): RegExp {
+  const base = src.split('/').pop() ?? src;
+  return new RegExp(`${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.route(/openfreemap/, (route) => route.abort());
@@ -33,13 +38,15 @@ test.beforeEach(async ({ page }) => {
 test('R4: each gallery matches its fotos contract — lead + rail + counter, or brand tile alone', async ({
   page,
 }) => {
-  for (const [slug, { count, leadAlt }] of Object.entries(GALLERY)) {
+  for (const [slug, photos] of Object.entries(PHOTOS)) {
+    const count = photos.length;
+    // The cover alt mirrors the `?? ''` render contract (T3 sync point).
+    const leadAlt = photos[0]?.titulo ?? '';
     await page.goto(`/propiedades/${slug}`);
 
     const leadImg = page.locator('.gallery__lead img');
 
     if (count > 0) {
-      if (!leadAlt) throw new Error(`${slug}: the fixture ships photos without a leadAlt`);
       // The cover photo renders from the listing's own folder (PRD §7) and
       // is the first `fotos` entry.
       await expect(leadImg).toBeVisible();
@@ -82,7 +89,8 @@ test('R4: each gallery matches its fotos contract — lead + rail + counter, or 
 test('the gallery lead links to the full-page gallery, with the photo count in its accessible name', async ({
   page,
 }) => {
-  for (const [slug, { count }] of Object.entries(GALLERY)) {
+  for (const [slug, photos] of Object.entries(PHOTOS)) {
+    const count = photos.length;
     await page.goto(`/propiedades/${slug}`);
 
     if (count > 0) {
@@ -107,30 +115,35 @@ test('the gallery lead links to the full-page gallery, with the photo count in i
 test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and counts 2 / N', async ({
   page,
 }) => {
+  // Structural probe on one listing; every asserted photo value derives
+  // from the collection (T3), never a literal copy of the business data.
   const slug = 'casa-3-amb-guadalupe-santa-fe';
+  const photos = PHOTOS[slug];
+  const count = photos.length;
+  const second = photos[1];
   await page.goto(`/propiedades/${slug}`);
 
   const thumbs = page.locator('[data-gallery-thumb]');
   const leadImg = page.locator('.gallery__lead img');
   const counter = page.locator('[data-gallery-counter]');
 
-  await expect(leadImg).toHaveAttribute('alt', 'Fachada');
-  await expect(counter).toHaveText('1 / 5');
+  await expect(leadImg).toHaveAttribute('alt', photos[0].titulo);
+  await expect(counter).toHaveText(`1 / ${count}`);
 
   // §17.2:680 — activating a thumbnail swaps the lead, its alt, the
   // `aria-current` marker and the counter.
   await thumbs.nth(1).click();
 
-  await expect(leadImg).toHaveAttribute('src', /02-living-comedor\.webp/);
-  await expect(leadImg).toHaveAttribute('alt', 'Living-comedor');
-  await expect(counter).toHaveText('2 / 5');
+  await expect(leadImg).toHaveAttribute('src', srcEnd(second.src));
+  await expect(leadImg).toHaveAttribute('alt', second.titulo);
+  await expect(counter).toHaveText(`2 / ${count}`);
   await expect(thumbs.nth(1)).toHaveAttribute('aria-current', 'true');
   await expect(thumbs.nth(0)).not.toHaveAttribute('aria-current', 'true');
 
   // §17.5: the lead link follows the selection — opening the gallery from
   // here lands on the enlarged photo instead of resetting to photo 1.
   const leadLink = page.getByRole('link', {
-    name: 'Ver galería de fotos (5 fotos)',
+    name: `Ver galería de fotos (${count} ${count === 1 ? 'foto' : 'fotos'})`,
     exact: true,
   });
   await expect(leadLink).toHaveAttribute('href', `/propiedades/${slug}/galeria?foto=2`);

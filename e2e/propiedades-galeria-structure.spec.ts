@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { expectedSlugs, expectedTitlesBySlug } from './helpers/content-expectations';
+import {
+  expectedPhotosBySlug,
+  expectedSlugs,
+  expectedTitlesBySlug,
+} from './helpers/content-expectations';
 
 /**
  * Full-page gallery structure and semantics (ODD damero-gallery-full-page,
@@ -16,23 +20,18 @@ import { expectedSlugs, expectedTitlesBySlug } from './helpers/content-expectati
  */
 
 /*
- * Slugs and titles derive from the collection (plan
- * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
- * renders, so a listing add/remove or a title reword needs no spec edit.
- * The photo-count fixture below stays literal until T3 unifies it.
+ * Slugs, titles, and photo counts derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2–T3) — the same source the build
+ * renders, so a listing add/remove, a title reword, or a photo add/remove
+ * needs no spec edit.
  */
 const SLUGS = expectedSlugs();
 const TITLES = expectedTitlesBySlug();
 
-/** Per-listing photo counts (PRD §7; the same fixtures as the detail specs). */
-const PHOTO_COUNTS: Record<(typeof SLUGS)[number], number> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 5,
-  'casa-3-amb-guadalupe-santa-fe': 5,
-  'departamento-1-amb-candioti-norte-santa-fe': 4,
-  'departamento-2-amb-centro-santa-fe': 5,
-  'departamento-3-amb-barrio-norte-santa-fe': 5,
-  'lote-600-m2-candioti-santa-fe': 4,
-};
+/** Per-listing photo counts derive from the collection (plan T3, PRD §7). */
+const PHOTO_COUNTS: Record<string, number> = Object.fromEntries(
+  Object.entries(expectedPhotosBySlug()).map(([slug, photos]) => [slug, photos.length]),
+);
 
 /**
  * Every element carrying an AUTHORED `view-transition-name`, browser-side.
@@ -89,7 +88,11 @@ test('header, main, footer landmarks and the gallery region are present', async 
 test('the active photo keeps the 3:2 frame with the controls outside the photograph', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  // Structural probe on one listing; the asserted count derives from the
+  // collection (T3), never a literal copy of the business data.
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  const count = PHOTO_COUNTS[slug];
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // §7: the frame holds 3:2 at every viewport (measured, not trusted).
   const ratio = await page.evaluate(() => {
@@ -104,7 +107,7 @@ test('the active photo keeps the 3:2 frame with the controls outside the photogr
   await expect(page.locator('[data-viewer-controls]')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Foto anterior', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Foto siguiente', exact: true })).toBeVisible();
-  await expect(page.locator('[data-gallery-counter]')).toHaveText('1 / 5');
+  await expect(page.locator('[data-gallery-counter]')).toHaveText(`1 / ${count}`);
   await expect(page.locator('[data-viewer-active] [data-viewer-controls]')).toHaveCount(0);
   await expect(page.locator('[data-viewer-active] button')).toHaveCount(0);
   await expect(page.locator('[data-viewer-active] a')).toHaveCount(0);

@@ -10,8 +10,8 @@
  * that does not match the exact authoring shape throws loudly instead of
  * silently dropping a listing (same failure style as `png-decode.ts`).
  *
- * T1: price/currency derivation. T2: slug/title derivation. T3–T5 extend
- * this module (gallery counts, ficha rows, filtering ranges).
+ * T1: price/currency derivation. T2: slug/title derivation. T3: photo
+ * derivation. T4–T5 extend this module (ficha rows, filtering ranges).
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -61,6 +61,17 @@ function readIntegerField(frontmatter: string, file: string, field: string): num
 }
 
 /**
+ * One photo of a listing, in authored order. `src` mirrors the frontmatter
+ * `src` verbatim — the pages render it unchanged (`src={fotos[N].src}`).
+ * `titulo` mirrors the `?? ''` render in `galeria.astro:72` and
+ * `[slug].astro:154`: a photo without a `titulo` line renders `alt=""`.
+ */
+export interface PhotoRecord {
+  src: string;
+  titulo: string;
+}
+
+/**
  * The frontmatter fields this module derives, per listing. The authoring
  * convention is the strict parser above; it is verified uniform across the
  * authored collection (2026-10-12), including `titulo` — every file quotes
@@ -71,6 +82,40 @@ interface ListingRecord {
   titulo: string;
   moneda: string;
   precio: number;
+  fotos: PhotoRecord[];
+}
+
+/*
+ * Every photo of a listing, in authored order. Authoring convention per
+ * `fotos` item: `  - src: "<path>"` followed by `    titulo: "<caption>"`.
+ * A `- ` item line that does not match the exact `src` shape throws loudly;
+ * a missing `titulo` line falls back to `''`, mirroring the `?? ''` render
+ * (see `PhotoRecord`). Verified uniform across the authored collection
+ * (2026-10-12): every photo quotes both lines. An empty `fotos` block (the
+ * R4 `fotos: []` contract) yields zero photos without throwing.
+ */
+function readFotos(frontmatter: string, file: string): PhotoRecord[] {
+  const photos: PhotoRecord[] = [];
+  const lines = frontmatter.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].replace(/\r$/, '');
+    if (!/^  - /.test(line)) continue;
+    const srcMatch = /^  - src: "([^"]+)"$/.exec(line);
+    if (!srcMatch) {
+      throw new Error(`content-expectations: ${file} has a malformed foto \`src\` line: ${line}`);
+    }
+    let titulo = '';
+    const next = (lines[i + 1] ?? '').replace(/\r$/, '');
+    if (/^    titulo: /.test(next)) {
+      const tituloMatch = /^    titulo: "([^"]*)"$/.exec(next);
+      if (!tituloMatch) {
+        throw new Error(`content-expectations: ${file} has a malformed foto \`titulo\` line: ${next}`);
+      }
+      titulo = tituloMatch[1];
+    }
+    photos.push({ src: srcMatch[1], titulo });
+  }
+  return photos;
 }
 
 /*
@@ -90,6 +135,7 @@ function readListings(): ListingRecord[] {
         titulo: readStringField(frontmatter, file, 'titulo'),
         moneda: readStringField(frontmatter, file, 'moneda'),
         precio: readIntegerField(frontmatter, file, 'precio'),
+        fotos: readFotos(frontmatter, file),
       };
     });
 }
@@ -110,6 +156,18 @@ export function expectedSlugs(): string[] {
 export function expectedTitlesBySlug(): Record<string, string> {
   const entries: Record<string, string> = {};
   for (const listing of readListings()) entries[listing.slug] = listing.titulo;
+  return entries;
+}
+
+/**
+ * Every listing photo, in authored order, keyed by `slug` — the gallery
+ * contract source (lead/rail/counter/shape). Adding or removing a photo
+ * requires no spec edit: counts, cover alt/src, and indexed photos derive
+ * from the same source the build renders.
+ */
+export function expectedPhotosBySlug(): Record<string, PhotoRecord[]> {
+  const entries: Record<string, PhotoRecord[]> = {};
+  for (const listing of readListings()) entries[listing.slug] = listing.fotos;
   return entries;
 }
 
