@@ -91,8 +91,8 @@ Para entender qué datos completar, es útil saber qué muestra cada lugar:
 - **En la página de detalle** (`/propiedades/<slug>`), se muestra en este orden:
   la galería de fotos, el título, el **resumen**, el bloque **DESCRIPCIÓN**, las
   **características**, el panel de **precio** (operación, habitaciones, cochera,
-  moneda y expensas), la **ubicación** (zona · localidad) y el mapa aproximado
-  de la zona.
+  moneda y expensas), la **ubicación** (zona · localidad) y el círculo de
+  referencia de 100 m sobre la ubicación exacta.
 
 ---
 

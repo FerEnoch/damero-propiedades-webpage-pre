@@ -292,7 +292,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
   await expect(retry).toBeVisible();
 
   // The caption stays in every state (§17.2:708).
-  await expect(page.getByText('ZONA APROXIMADA · RADIO 100 M')).toBeVisible();
+  await expect(page.getByText('REFERENCIA · RADIO 100 M')).toBeVisible();
 
   /*
    * Scroll the frame into view: the init runs, the coordinates arrive via
@@ -308,7 +308,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
 
   await expect(fallback).toBeVisible();
   await expect(canvas).not.toBeVisible();
-  await expect(page.getByText('ZONA APROXIMADA · RADIO 100 M')).toBeVisible();
+  await expect(page.getByText('REFERENCIA · RADIO 100 M')).toBeVisible();
 
   // `Reintentar` retries the init; with the style still aborted the
   // fallback simply persists.
@@ -327,7 +327,7 @@ test('the approximate-zone note is added on mobile only (§17.2:708)', async ({
 }) => {
   await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
 
-  const note = page.getByText('La zona se muestra como referencia aproximada.');
+  const note = page.getByText('La ubicación mostrada es exacta; el círculo es una referencia de 100 m.');
   if (viewport && viewport.width >= 768) {
     await expect(note).toBeHidden();
   } else {
@@ -343,6 +343,6 @@ test('the map container carries a meaningful accessible name (§12, §17.2:710)'
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute('role', 'region');
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute(
     'aria-label',
-    'Mapa de la zona aproximada',
+    'Mapa de la ubicación',
   );
 });
