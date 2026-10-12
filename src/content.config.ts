@@ -41,7 +41,7 @@ const propiedades = defineCollection({
       zona: z.string(),
       /** Structured locality, kept for filtering (PRD §4, §11). */
       localidad: z.string(),
-      /** Manual approximate zone centre with a deliberate offset; never rendered as a number (PRD §4, §6, §11). */
+      /** Exact property location (`map_lat`/`map_lon`); never rendered as a number in HTML (PRD §4, §6, §11). */
       map_lat: z.number(),
       map_lon: z.number(),
       /** Per-listing agent number, not hardcoded in code (PRD §4, §11). */

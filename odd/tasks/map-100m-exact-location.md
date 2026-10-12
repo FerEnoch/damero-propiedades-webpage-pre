@@ -53,7 +53,7 @@
 - **Entregable:** `src/content.config.ts:44-46` y comentarios de los 6 `.md` reescritos a "exact property location"; `src/pages/propiedades/[slug].json.ts:4` sin "already offset ≥100m".
 - **Criterio:** ningún comentario exige desfase; schema describe `map_lat`/`map_lon` como ubicación exacta nunca renderizada como número.
 - **Ruta:** delegated direct (6+1 ficheros, preparación lectora delegada). **Checks:** `pnpm build` + specs de estructura sin coordenadas en HTML.
-- [ ] hecho. Commit: _pendiente_.
+- [x] hecho. Commit: _pendiente_.
 
 ### T3 — Docs y e2e a 100m/exacto
 - **Entregable:** `DESIGN.md:738-739`, `PRD` (§50/93/127/134/141), `GUIA_CARGA` (§190/202/240) sin offset ni mitigación de privacidad; `e2e/propiedades-detalle-map.spec.ts`, `propiedades-detalle-content.spec.ts:293/309`, `propiedades-detalle-structure.spec.ts` esperan 100m/exacto.
