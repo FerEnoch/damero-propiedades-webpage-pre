@@ -59,7 +59,7 @@
 - **Entregable:** `DESIGN.md:738-739`, `PRD` (§50/93/127/134/141), `GUIA_CARGA` (§190/202/240) sin offset ni mitigación de privacidad; `e2e/propiedades-detalle-map.spec.ts`, `propiedades-detalle-content.spec.ts:293/309`, `propiedades-detalle-structure.spec.ts` esperan 100m/exacto.
 - **Criterio:** `pnpm test:e2e` verde en 3 viewports contra build de producción; `check:images` verde.
 - **Ruta:** delegated direct (docs + specs, research previo ya hecho por mapper). **Checks:** `pnpm test:e2e` completo.
-- [ ] hecho. Commit: _pendiente_.
+- [x] hecho. Commit: _pendiente_.
 
 ---
 

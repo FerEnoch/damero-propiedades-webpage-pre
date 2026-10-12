@@ -14,8 +14,8 @@ import { decodePng, meanPatchRgb } from './helpers/png-decode';
  *     fails the test. The overlay assertion is about painted pixels: the
  *     composited frame is screenshotted, the PNG is decoded in Node
  *     (`preserveDrawingBuffer: false` forbids reading the canvas back), and
- *     a patch at the frame centre — where the fixed 400 m zone circle sits
- *     at `zoom: 14.5` (≈70 px radius, viewport-independent) — is compared
+ *     a patch at the frame centre — where the fixed 100 m reference circle
+ *     sits at `zoom: 14.5` (≈17 px radius, viewport-independent) — is compared
  *     against a corner patch that must stay the stub's pure black.
  *
  * (b) `live smoke` runs against the real OpenFreeMap style with no

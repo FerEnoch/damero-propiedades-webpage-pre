@@ -292,7 +292,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
   await expect(retry).toBeVisible();
 
   // The caption stays in every state (§17.2:708).
-  await expect(page.getByText('ZONA APROXIMADA · RADIO 400 M')).toBeVisible();
+  await expect(page.getByText('ZONA APROXIMADA · RADIO 100 M')).toBeVisible();
 
   /*
    * Scroll the frame into view: the init runs, the coordinates arrive via
@@ -308,7 +308,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
 
   await expect(fallback).toBeVisible();
   await expect(canvas).not.toBeVisible();
-  await expect(page.getByText('ZONA APROXIMADA · RADIO 400 M')).toBeVisible();
+  await expect(page.getByText('ZONA APROXIMADA · RADIO 100 M')).toBeVisible();
 
   // `Reintentar` retries the init; with the style still aborted the
   // fallback simply persists.
