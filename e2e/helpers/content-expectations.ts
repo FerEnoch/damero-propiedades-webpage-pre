@@ -11,7 +11,8 @@
  * silently dropping a listing (same failure style as `png-decode.ts`).
  *
  * T1: price/currency derivation. T2: slug/title derivation. T3: photo
- * derivation. T4–T5 extend this module (ficha rows, filtering ranges).
+ * derivation. T4: filtering derivation. T5 extends this module (ficha rows,
+ * characteristics, coordinates).
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -83,6 +84,19 @@ interface ListingRecord {
   moneda: string;
   precio: number;
   fotos: PhotoRecord[];
+  operacion: string;
+  habitaciones: number;
+  cochera: boolean | number;
+  localidad: string;
+}
+
+/** Authoring convention: `key: true|false|<integer>`. Anything else fails loudly. */
+function readCocheraField(frontmatter: string, file: string): boolean | number {
+  const match = /^cochera: (true|false|\d+)$/m.exec(frontmatter);
+  if (!match) throw new Error(`content-expectations: ${file} is missing \`cochera: true|false|<integer>\``);
+  if (match[1] === 'true') return true;
+  if (match[1] === 'false') return false;
+  return Number(match[1]);
 }
 
 /*
@@ -136,6 +150,10 @@ function readListings(): ListingRecord[] {
         moneda: readStringField(frontmatter, file, 'moneda'),
         precio: readIntegerField(frontmatter, file, 'precio'),
         fotos: readFotos(frontmatter, file),
+        operacion: readStringField(frontmatter, file, 'operacion'),
+        habitaciones: readIntegerField(frontmatter, file, 'habitaciones'),
+        cochera: readCocheraField(frontmatter, file),
+        localidad: readStringField(frontmatter, file, 'localidad'),
       };
     });
 }
@@ -169,6 +187,44 @@ export function expectedPhotosBySlug(): Record<string, PhotoRecord[]> {
   const entries: Record<string, PhotoRecord[]> = {};
   for (const listing of readListings()) entries[listing.slug] = listing.fotos;
   return entries;
+}
+
+/**
+ * The filterable listing fields, in canonical (filename) order. Specs mirror
+ * the client-side `matches()` semantics in
+ * `src/pages/propiedades/index.astro` over this data (equality on
+ * `operacion`/`localidad`/`moneda`, minimum on `habitaciones`, truthy
+ * `cochera` per `hasCochera`, ranges within the selected currency, raw
+ * numeric price sorts). A `moneda`/`operacion` flip or a price reorder
+ * passes with zero spec edits.
+ */
+export interface ListingFilterRecord {
+  slug: string;
+  operacion: string;
+  moneda: string;
+  precio: number;
+  habitaciones: number;
+  cochera: boolean | number;
+  localidad: string;
+}
+
+/**
+ * Every listing's filterable fields — the filtering-contract source. Counts,
+ * sort-first slugs, and currency price domains derive from the same source
+ * the build renders.
+ */
+export function expectedListingFilters(): ListingFilterRecord[] {
+  return readListings().map(
+    ({ slug, operacion, moneda, precio, habitaciones, cochera, localidad }) => ({
+      slug,
+      operacion,
+      moneda,
+      precio,
+      habitaciones,
+      cochera,
+      localidad,
+    }),
+  );
 }
 
 /**
