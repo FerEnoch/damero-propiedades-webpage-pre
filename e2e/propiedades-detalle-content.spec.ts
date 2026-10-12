@@ -11,15 +11,6 @@ import { expectedPricesBySlug } from './helpers/content-expectations';
  * provider aborted, so no spec depends on live tiles.
  */
 
-const SLUGS = [
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-] as const;
-
 /**
  * Per-listing gallery fixture: how many photos the listing ships and the
  * `titulo` of the cover photo (which feeds the lead `alt`, PRD §4/§7).

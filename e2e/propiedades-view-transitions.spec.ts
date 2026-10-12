@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { expectedSlugs } from './helpers/content-expectations';
 
 /**
  * Cross-document view transitions on property imagery (docs/DESIGN.md §9 —
@@ -24,14 +25,13 @@ import { expect, test, type Page } from '@playwright/test';
  * real collection slugs — no invented data.
  */
 
-const KNOWN_SLUGS = new Set([
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-]);
+/*
+ * The known slugs derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so the membership cross-check and the card-count assertion
+ * below need no spec edit when a listing is added or removed.
+ */
+const KNOWN_SLUGS = new Set(expectedSlugs());
 
 const HOME_CARDS = '.featured a.card';
 const LISTING_CARDS = '[data-results-grid] a.card';

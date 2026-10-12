@@ -10,8 +10,8 @@
  * that does not match the exact authoring shape throws loudly instead of
  * silently dropping a listing (same failure style as `png-decode.ts`).
  *
- * T1 scope: price/currency derivation only. T2–T5 extend this module
- * (titles/slugs, gallery counts, ficha rows, filtering ranges).
+ * T1: price/currency derivation. T2: slug/title derivation. T3–T5 extend
+ * this module (gallery counts, ficha rows, filtering ranges).
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -61,6 +61,59 @@ function readIntegerField(frontmatter: string, file: string, field: string): num
 }
 
 /**
+ * The frontmatter fields this module derives, per listing. The authoring
+ * convention is the strict parser above; it is verified uniform across the
+ * authored collection (2026-10-12), including `titulo` — every file quotes
+ * it — and any deviation throws instead of silently dropping a listing.
+ */
+interface ListingRecord {
+  slug: string;
+  titulo: string;
+  moneda: string;
+  precio: number;
+}
+
+/*
+ * Every listing in the collection, in canonical order. R9 makes collection
+ * order — filename order — the rendered order, so filenames are sorted
+ * explicitly instead of trusting `readdirSync` ordering.
+ */
+function readListings(): ListingRecord[] {
+  return readdirSync(CONTENT_DIR)
+    .filter((name) => name.endsWith('.md'))
+    .sort()
+    .map((name) => {
+      const file = join(CONTENT_DIR, name);
+      const frontmatter = readFrontmatter(file);
+      return {
+        slug: readStringField(frontmatter, file, 'slug'),
+        titulo: readStringField(frontmatter, file, 'titulo'),
+        moneda: readStringField(frontmatter, file, 'moneda'),
+        precio: readIntegerField(frontmatter, file, 'precio'),
+      };
+    });
+}
+
+/**
+ * Every collection slug, in canonical (filename) order. An added/removed
+ * listing requires no spec edit: per-listing loops and count assertions
+ * derive from the same source the build renders.
+ */
+export function expectedSlugs(): string[] {
+  return readListings().map((listing) => listing.slug);
+}
+
+/**
+ * Expected `titulo` for every listing, keyed by `slug` — the rendered h1
+ * text and the `<title>` source. A title reword passes with zero spec edits.
+ */
+export function expectedTitlesBySlug(): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const listing of readListings()) entries[listing.slug] = listing.titulo;
+  return entries;
+}
+
+/**
  * Expected price rendering for every listing in the collection, keyed by
  * `slug`. A legitimate `precio`/`moneda` edit — or an added/removed listing —
  * requires no spec edit: the expectation derives from the same source the
@@ -68,14 +121,11 @@ function readIntegerField(frontmatter: string, file: string, field: string): num
  */
 export function expectedPricesBySlug(): Record<string, PriceExpectation> {
   const entries: Record<string, PriceExpectation> = {};
-  for (const name of readdirSync(CONTENT_DIR)) {
-    if (!name.endsWith('.md')) continue;
-    const file = join(CONTENT_DIR, name);
-    const frontmatter = readFrontmatter(file);
-    const slug = readStringField(frontmatter, file, 'slug');
-    const currency = readStringField(frontmatter, file, 'moneda');
-    const precio = readIntegerField(frontmatter, file, 'precio');
-    entries[slug] = { currency, amount: AMOUNT_FORMATTER.format(precio) };
+  for (const listing of readListings()) {
+    entries[listing.slug] = {
+      currency: listing.moneda,
+      amount: AMOUNT_FORMATTER.format(listing.precio),
+    };
   }
   return entries;
 }
