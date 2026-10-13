@@ -25,7 +25,8 @@
  *      unreferenced — an orphan file still ships and still bloats the repo.
  *
  * Exits non-zero on any violation, and also when it cannot read the listings
- * with confidence. It never passes silently.
+ * with confidence. An empty collection warns explicitly but remains valid;
+ * unreferenced photos are still inspected. It never passes silently.
  */
 
 import { existsSync } from 'node:fs';
@@ -279,7 +280,9 @@ async function checkReferencedPhotos() {
 
   const listingFiles = (await readdir(LISTINGS_DIR)).filter((name) => name.endsWith('.md')).sort();
   if (listingFiles.length === 0) {
-    throw new Error(`no listings found under ${path.relative(REPO_ROOT, LISTINGS_DIR)}`);
+    console.warn(
+      `WARNING: no listings found under ${path.relative(REPO_ROOT, LISTINGS_DIR)} — the property collection is empty.`,
+    );
   }
 
   let referenced = 0;

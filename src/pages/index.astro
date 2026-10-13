@@ -9,6 +9,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
 import PropertyCard from '../components/PropertyCard.astro';
+import DameroPlaceholder from '../components/DameroPlaceholder.astro';
 import ServiceIcon from '../components/ServiceIcon.astro';
 import { SITE_NAME } from '../data/site';
 import { FAQ_TEASER, FEATURED, HERO, SERVICES } from '../data/landing';
@@ -71,6 +72,13 @@ const compacts = [...featured.slice(1), ...others]
       </div>
 
       <div class="featured__grid">
+        {
+          !lead && (
+            <div class="featured__empty" aria-hidden="true">
+              <DameroPlaceholder />
+            </div>
+          )
+        }
         {
           lead && (
             <ul class="featured__lead" role="list">
@@ -261,6 +269,12 @@ const compacts = [...featured.slice(1), ...others]
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-8);
+  }
+
+  .featured__empty {
+    grid-column: 1 / -1;
+    max-width: calc(var(--space-12) * 5);
+    width: 100%;
   }
 
   /* ---- Servicios -------------------------------------------------------- */
