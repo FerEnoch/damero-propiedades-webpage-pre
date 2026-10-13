@@ -316,6 +316,19 @@ export function expectedListingFilters(): ListingFilterRecord[] {
   );
 }
 
+/** Mirrors the total-match label in src/pages/propiedades/index.astro:698-699. */
+export function expectedSheetCountLabel(total: number): string {
+  return `Ver ${total} ${total === 1 ? 'propiedad' : 'propiedades'}`;
+}
+
+/** Sync: src/pages/propiedades/index.astro:114,364,685 (collapsed fold). */
+export const FOLD_LIMIT = 6;
+
+/** Results and sheet labels use the total; only collapsed cards use this count. */
+export function expectedVisibleListingCount(total: number): number {
+  return Math.min(total, FOLD_LIMIT);
+}
+
 /**
  * Expected ficha técnica rows for every listing, keyed by `slug`. Mirrors
  * the render in `src/pages/propiedades/[slug].astro:80-88,235-255`:
@@ -411,11 +424,12 @@ export function expectedWhatsAppHrefsBySlug(): Record<string, string> {
 /**
  * The home featured lead slug: the first `destacada` listing in canonical
  * order, else the first listing. Mirrors `src/pages/index.astro:24-26`.
- * A `destacada` flip passes with zero spec edits.
+ * A `destacada` flip passes with zero spec edits. An empty collection has
+ * no lead; callers skip the missing shape explicitly.
  */
-export function expectedFeaturedLeadSlug(): string {
+export function expectedFeaturedLeadSlug(): string | undefined {
   const listings = readListings();
-  return (listings.find((listing) => listing.destacada) ?? listings[0]).slug;
+  return (listings.find((listing) => listing.destacada) ?? listings[0])?.slug;
 }
 
 /**
