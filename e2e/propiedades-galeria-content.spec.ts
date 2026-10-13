@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectedSlugs, expectedTitlesBySlug } from './helpers/content-expectations';
 
 /**
  * Full-page gallery content and interaction (ODD damero-gallery-full-page,
@@ -12,23 +13,14 @@ import { expect, test } from '@playwright/test';
  * link.
  */
 
-const SLUGS = [
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-] as const;
-
-const TITLES: Record<(typeof SLUGS)[number], string> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 'Casa 2 dormitorios en zona sur',
-  'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
-  'departamento-1-amb-candioti-norte-santa-fe': 'Departamento 1 ambiente en Candioti Norte',
-  'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
-  'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
-  'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
-};
+/*
+ * Slugs and titles derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so a listing add/remove or a title reword needs no spec edit.
+ * The gallery fixtures below stay literal until T3 unifies them.
+ */
+const SLUGS = expectedSlugs();
+const TITLES = expectedTitlesBySlug();
 
 /**
  * Per-listing fixture: photo count, the cover's `titulo` (the active alt)

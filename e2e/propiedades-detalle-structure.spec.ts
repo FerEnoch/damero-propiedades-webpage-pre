@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { expectedSlugs, expectedTitlesBySlug } from './helpers/content-expectations';
 
 /**
  * Detail page structure and semantics (ODD §17 slice S3). Mirrors the S2
@@ -14,23 +15,13 @@ import { readFileSync } from 'node:fs';
  * renders, every time.
  */
 
-const SLUGS = [
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-] as const;
-
-const TITLES: Record<(typeof SLUGS)[number], string> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 'Casa 2 dormitorios en zona sur',
-  'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
-  'departamento-1-amb-candioti-norte-santa-fe': 'Departamento 1 ambiente en Candioti Norte',
-  'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
-  'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
-  'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
-};
+/*
+ * Slugs and titles derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so a listing add/remove or a title reword needs no spec edit.
+ */
+const SLUGS = expectedSlugs();
+const TITLES = expectedTitlesBySlug();
 
 /** The test-listing coordinates plus the schema field names — banned from HTML. */
 const COORDINATE_MARKERS = [
@@ -129,7 +120,10 @@ test('no horizontal overflow', async ({ page }) => {
 test('breadcrumb ancestors are links and the current segment is not (§17.2:673)', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  // Structural probe on one listing; the asserted title derives from the
+  // collection (T2), never a literal copy of the business value.
+  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  await page.goto(`/propiedades/${slug}`);
 
   const breadcrumb = page.getByRole('navigation', { name: 'Miga de pan' });
   const links = breadcrumb.getByRole('link');
@@ -145,10 +139,11 @@ test('breadcrumb ancestors are links and the current segment is not (§17.2:673)
   await expect(links.nth(1)).toHaveText(/^santa fe$/i);
   await expect(links.nth(1)).toHaveAttribute('href', '/propiedades?localidad=Santa%20Fe');
 
-  // The current segment is plain text — never a link.
+  // The current segment is plain text — never a link. The asserted title
+  // derives from the collection (T2), never a literal copy.
   const current = breadcrumb.locator('.breadcrumb__current');
   await expect(current).toHaveCount(1);
-  await expect(current).toHaveText('Casa 3 ambientes con patio en Guadalupe');
+  await expect(current).toHaveText(TITLES[slug]);
   await expect(current).toHaveAttribute('aria-current', 'page');
   await expect(breadcrumb.locator('li:last-child a')).toHaveCount(0);
 });
@@ -235,8 +230,9 @@ test('the search cards resolve to the detail routes', async ({ page }) => {
   await page.goto('/propiedades');
 
   // R9: collection order is canonical, so the first card is the first record
-  // in filename order — currently the zona sur casa.
+  // in filename order — derived from the collection (T2), never a literal.
+  const first = SLUGS[0];
   await page.locator('.results-grid .card').first().click();
-  await expect(page).toHaveURL(/\/propiedades\/casa-2-dormitorios-zona-sur-santa-fe\/?$/);
-  await expect(page.locator('h1')).toHaveText('Casa 2 dormitorios en zona sur');
+  await expect(page).toHaveURL(new RegExp(`/propiedades/${first}/?$`));
+  await expect(page.locator('h1')).toHaveText(TITLES[first]);
 });
