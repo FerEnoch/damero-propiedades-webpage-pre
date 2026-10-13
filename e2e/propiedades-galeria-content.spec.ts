@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   expectedPhotosBySlug,
+  expectedProbeSlug,
   expectedSlugs,
   expectedTitlesBySlug,
 } from './helpers/content-expectations';
@@ -34,6 +35,15 @@ const TITLES = expectedTitlesBySlug();
  * Mirrors `propiedades-detalle-content.spec.ts`; no invented data (§11).
  */
 const PHOTOS = expectedPhotosBySlug();
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the viewer interactions
+ * below exercise photo 3 and a 2↔3 move, so the pick needs a listing with
+ * at least 3 photos. When none qualifies, each probing test skips with an
+ * explicit reason — never a fallback to a literal slug.
+ */
+const PROBE_SLUG = expectedProbeSlug(3);
 
 /*
  * End-anchored `src` matcher from a collection-derived path. The initial
@@ -94,7 +104,8 @@ test('each gallery page renders its listing contract', async ({ page }) => {
 test('thumbnail click swaps the active photo, aria-current and the counter', async ({ page }) => {
   // Structural probe on one listing; every asserted photo value derives
   // from the collection (T3). Indices are positions, never filenames.
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   await page.goto(`/propiedades/${slug}/galeria`);
@@ -116,7 +127,8 @@ test('thumbnail click swaps the active photo, aria-current and the counter', asy
 });
 
 test('prev and next buttons move the active photo with wrap-around', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   const last = photos[count - 1];
@@ -148,7 +160,8 @@ test('prev and next buttons move the active photo with wrap-around', async ({ pa
 });
 
 test('the arrow keys and Home/End drive the viewer', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const count = PHOTOS[slug].length;
   await page.goto(`/propiedades/${slug}/galeria`);
 
@@ -170,7 +183,8 @@ test('the arrow keys and Home/End drive the viewer', async ({ page }) => {
 });
 
 test('?foto=N opens the requested photo after load', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   const third = photos[2];
@@ -205,7 +219,8 @@ test('?foto=N arrives on the requested photo without the deferred viewer script'
     },
   );
 
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   const third = photos[2];
@@ -228,7 +243,8 @@ test('?foto=N arrives on the requested photo without the deferred viewer script'
 });
 
 test('opening the gallery from the detail lands on the selected photo', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   const third = photos[2];
@@ -254,7 +270,8 @@ test('opening the gallery from the detail lands on the selected photo', async ({
 });
 
 test('an invalid or out-of-range ?foto degrades to photo 1', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   for (const query of ['?foto=99', '?foto=0', '?foto=-2', '?foto=abc', '?foto=2.5']) {
@@ -272,7 +289,8 @@ test('an invalid or out-of-range ?foto degrades to photo 1', async ({ page }) =>
 });
 
 test('moving the viewer keeps the deep link in sync via replaceState', async ({ page }) => {
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+  const slug = PROBE_SLUG!;
   await page.goto(`/propiedades/${slug}/galeria`);
 
   await page.locator('[data-gallery-thumb]').nth(1).click();
@@ -294,7 +312,8 @@ test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
   test('the page renders photo 1 with an inert rail and a working back link', async ({ page }) => {
-    const slug = 'casa-3-amb-guadalupe-santa-fe';
+    test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+    const slug = PROBE_SLUG!;
     const photos = PHOTOS[slug];
     const count = photos.length;
     const cover = photos[0];
@@ -320,7 +339,8 @@ test.describe('without JavaScript', () => {
   test('a ?foto=N deep link still renders photo 1 (the document is static)', async ({ page }) => {
     // Without JS nothing applies the deep link before or after load: the
     // served document always carries photo 1 (§17.5).
-    const slug = 'casa-3-amb-guadalupe-santa-fe';
+    test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 3 photos');
+    const slug = PROBE_SLUG!;
     const photos = PHOTOS[slug];
     const count = photos.length;
     await page.goto(`/propiedades/${slug}/galeria?foto=3`);

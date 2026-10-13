@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { expectedProbeSlug } from './helpers/content-expectations';
 import { decodePng, meanPatchRgb } from './helpers/png-decode';
 
 /**
@@ -26,7 +27,14 @@ import { decodePng, meanPatchRgb } from './helpers/png-decode';
  * is an environment gap, not a product regression.
  */
 
-const SLUG = 'casa-3-amb-guadalupe-santa-fe';
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo — the render probes need a real
+ * detail route. Both tests below skip with an explicit reason when no
+ * listing qualifies, never fall back to a literal slug.
+ */
+const PROBE_SLUG = expectedProbeSlug();
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
 /*
@@ -58,6 +66,8 @@ async function webglAvailable(page: Page): Promise<boolean> {
 test('deterministic: the stub style renders the canvas, hides the fallback and paints the zone overlay', async ({
   page,
 }, testInfo) => {
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
   let styleRequestsServed = 0;
   await page.route(/tiles\.openfreemap\.org/, (route) => {
     const url = route.request().url();
@@ -77,7 +87,7 @@ test('deterministic: the stub style renders the canvas, hides the fallback and p
     return route.abort();
   });
 
-  await page.goto(`/propiedades/${SLUG}`);
+  await page.goto(`/propiedades/${slug}`);
   testInfo.skip(
     !(await webglAvailable(page)),
     'WebGL unavailable in this environment — map render test skipped (environment gap, not a product regression).',
@@ -131,7 +141,9 @@ test('deterministic: the stub style renders the canvas, hides the fallback and p
 test('live smoke: the real OpenFreeMap style renders the map (skips when offline)', async ({
   page,
 }, testInfo) => {
-  await page.goto(`/propiedades/${SLUG}`);
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   /*
    * Offline must skip, never fail the gate. The preflight runs INSIDE the

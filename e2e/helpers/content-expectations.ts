@@ -12,7 +12,9 @@
  *
  * T1: price/currency derivation. T2: slug/title derivation. T3: photo
  * derivation. T4: filtering derivation. T5: ficha/characteristics/coords/
- * localidad/WhatsApp/destacada derivation.
+ * localidad/WhatsApp/destacada derivation. Probe targets (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T1): single-listing picks by
+ * photo shape, undefined when nothing qualifies.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -261,6 +263,19 @@ export function expectedPhotosBySlug(): Record<string, PhotoRecord[]> {
   const entries: Record<string, PhotoRecord[]> = {};
   for (const listing of readListings()) entries[listing.slug] = listing.fotos;
   return entries;
+}
+
+/**
+ * The single-listing probe target for structural tests (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T1): the first listing in
+ * canonical (filename) order whose gallery carries at least `minPhotos`
+ * photos — the shape the probing test needs (viewer deep links, rail
+ * thumbnails, template invariants). `undefined` when no listing
+ * qualifies: callers skip with an explicit reason, never fall back to a
+ * literal slug.
+ */
+export function expectedProbeSlug(minPhotos = 1): string | undefined {
+  return readListings().find((listing) => listing.fotos.length >= minPhotos)?.slug;
 }
 
 /**

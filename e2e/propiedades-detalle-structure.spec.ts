@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import {
   expectedCoordinatesBySlug,
   expectedLocalidadesBySlug,
+  expectedProbeSlug,
   expectedSlugs,
   expectedTitlesBySlug,
   expectedWhatsAppHrefsBySlug,
@@ -28,6 +29,16 @@ import {
  */
 const SLUGS = expectedSlugs();
 const TITLES = expectedTitlesBySlug();
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo — the detail-template shape the
+ * structural probes below exercise. When none qualifies, each probing
+ * test skips with an explicit reason — never a fallback to a literal
+ * slug.
+ */
+const PROBE_SLUG = expectedProbeSlug();
 
 /*
  * The coordinate ban markers derive from the collection (plan
@@ -62,7 +73,9 @@ test('each detail route responds 200 with a title and exactly one h1', async ({ 
 });
 
 test('the §17.2 section order renders, with the documented CTA divergence', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   /*
    * §17.2:671 fixes gallery → title/description → characteristics → price →
@@ -80,7 +93,9 @@ test('the §17.2 section order renders, with the documented CTA divergence', asy
 });
 
 test('header, main, footer and breadcrumb landmarks are present', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -89,7 +104,9 @@ test('header, main, footer and breadcrumb landmarks are present', async ({ page 
 });
 
 test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const levels = await page.evaluate(() =>
     Array.from(document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6')).map(
@@ -108,7 +125,9 @@ test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
 });
 
 test('no horizontal overflow', async ({ page }) => {
-  await page.goto('/propiedades/lote-600-m2-candioti-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const metrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -126,7 +145,8 @@ test('breadcrumb ancestors are links and the current segment is not (§17.2:673)
   // Structural probe on one listing; the asserted title derives from the
   // collection (T2), never a literal copy of the business value. The
   // localidad segment derives too (T5): uppercase via CSS, value from data.
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
   const localidad = expectedLocalidadesBySlug()[slug];
   const localidadPattern = new RegExp(
     `^${localidad.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,

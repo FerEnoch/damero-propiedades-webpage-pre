@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectedFeaturedLeadSlug, expectedSlugs } from './helpers/content-expectations';
+import {
+  expectedFeaturedLeadSlug,
+  expectedProbeSlug,
+  expectedSlugs,
+} from './helpers/content-expectations';
 
 /**
  * Cross-document view transitions on property imagery (docs/DESIGN.md §9 —
@@ -42,7 +46,16 @@ const FEATURED_LEAD_SLUG = expectedFeaturedLeadSlug();
 
 const HOME_CARDS = '.featured a.card';
 const LISTING_CARDS = '[data-results-grid] a.card';
-const DETAIL_PATH = '/propiedades/casa-3-amb-guadalupe-santa-fe';
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo. DETAIL_PATH derives from it — no
+ * literal slug; the three transitioned-page tests below skip with an
+ * explicit reason when no listing qualifies.
+ */
+const PROBE_SLUG = expectedProbeSlug();
+const DETAIL_PATH = PROBE_SLUG !== undefined ? `/propiedades/${PROBE_SLUG}` : undefined;
 
 /**
  * slug → computed `view-transition-name` of the card's placeholder frame.
@@ -184,6 +197,8 @@ test('the detail lead frame pairs with the card of the same property on / and /p
 });
 
 test('transition names are unique within each transitioned page', async ({ page }) => {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
   const pages: Array<{ path: string; expectedCount: number }> = [];
 
   await page.goto('/');
@@ -194,7 +209,7 @@ test('transition names are unique within each transitioned page', async ({ page 
   const listingCount = await page.locator(LISTING_CARDS).count();
   pages.push({ path: '/propiedades', expectedCount: listingCount });
 
-  pages.push({ path: DETAIL_PATH, expectedCount: 1 });
+  pages.push({ path: detailPath, expectedCount: 1 });
 
   for (const { path, expectedCount } of pages) {
     await page.goto(path);
@@ -210,7 +225,9 @@ test('transition names are unique within each transitioned page', async ({ page 
 });
 
 test('gallery thumbnails and every other image element stay unnamed', async ({ page }) => {
-  for (const path of ['/', '/propiedades', DETAIL_PATH]) {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
+  for (const path of ['/', '/propiedades', detailPath]) {
     await page.goto(path);
 
     const imgNames = await collectNamesFor(page, 'img');
@@ -219,7 +236,7 @@ test('gallery thumbnails and every other image element stay unnamed', async ({ p
       expect(name, `${path}: no img carries a view-transition-name`).toBe('none');
     }
 
-    if (path === DETAIL_PATH) {
+    if (path === detailPath) {
       // The rail exists for listings with photographs; every thumbnail and
       // its image stay unnamed — only the lead frame is named.
       const thumbs = await collectNamesFor(page, '[data-gallery-thumb]');
@@ -232,7 +249,9 @@ test('gallery thumbnails and every other image element stay unnamed', async ({ p
 });
 
 test('no horizontal overflow on the transitioned pages', async ({ page }) => {
-  for (const path of ['/', '/propiedades', DETAIL_PATH]) {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
+  for (const path of ['/', '/propiedades', detailPath]) {
     await page.goto(path);
 
     const metrics = await page.evaluate(() => ({
