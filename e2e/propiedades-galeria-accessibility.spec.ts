@@ -6,6 +6,7 @@ import {
   runColorAudits,
   type MatrixProbe,
 } from './browser-audits';
+import { expectedProbeSlug } from './helpers/content-expectations';
 
 /**
  * Full-page gallery accessibility (ODD damero-gallery-full-page, T4;
@@ -33,7 +34,15 @@ const MATRIX_PROBES: MatrixProbe[] = [
   { name: 'on-forest-muted on forest-ink', selector: '.site-footer__legal p' },
 ];
 
-const GALLERY_URL = '/propiedades/casa-3-amb-guadalupe-santa-fe/galeria';
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo. GALLERY_URL derives from it — no
+ * literal slug; every audit below skips with an explicit reason when no
+ * listing qualifies.
+ */
+const PROBE_SLUG = expectedProbeSlug();
+const GALLERY_URL = PROBE_SLUG !== undefined ? `/propiedades/${PROBE_SLUG}/galeria` : undefined;
 
 /*
  * The audit-floor guard proves the scan actually ran. The gallery page is
@@ -45,7 +54,9 @@ const GALLERY_URL = '/propiedades/casa-3-amb-guadalupe-santa-fe/galeria';
 const MIN_TEXT_ELEMENTS_SCANNED = 10;
 
 test('no rendered text uses sage #7C916F', async ({ page }) => {
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   const audit = await page.evaluate(runColorAudits, []);
@@ -54,7 +65,9 @@ test('no rendered text uses sage #7C916F', async ({ page }) => {
 });
 
 test('every rendered text element meets its contrast threshold', async ({ page }) => {
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   const audit = await page.evaluate(runColorAudits, []);
@@ -63,7 +76,9 @@ test('every rendered text element meets its contrast threshold', async ({ page }
 });
 
 test('the DESIGN.md §2 contrast matrix holds on computed styles', async ({ page }) => {
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   const audit = await page.evaluate(runColorAudits, MATRIX_PROBES);
@@ -78,7 +93,9 @@ test('the DESIGN.md §2 contrast matrix holds on computed styles', async ({ page
 });
 
 test('no rendered text is smaller than 12px (§10)', async ({ page }) => {
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   const violations = await page.evaluate(() => {
@@ -109,7 +126,9 @@ test('no rendered text is smaller than 12px (§10)', async ({ page }) => {
 test('every interactive element is keyboard-reachable in DOM order with a visible focus ring', async ({
   page,
 }) => {
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   /*
@@ -146,7 +165,9 @@ test('every interactive element meets the 44px touch target', async ({
     'Touch targets are an inventory requirement at mobile widths (390/320).',
   );
 
-  const response = await page.goto(GALLERY_URL);
+  test.skip(!GALLERY_URL, 'no listing in the collection carries a photo');
+  const galleryUrl = GALLERY_URL!;
+  const response = await page.goto(galleryUrl);
   expect(response!.status()).toBe(200);
 
   const violations = await page.evaluate(auditTouchTargets, 44);

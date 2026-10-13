@@ -34,8 +34,10 @@ const ALLOWED_PARAMS = [
  * per `hasCochera` (index.astro:117-118), ranges clamped to the selected
  * currency's `[min, max]` domain (§17.1:633), and raw numeric price sorts
  * with collection-order tiebreaks (R9). A moneda/operacion flip or a price
- * reorder passes with zero spec edits. The filled `precio_min` input (50000)
- * stays literal: it is user input, not business data.
+ * reorder passes with zero spec edits. The narrowed `precio_min`
+ * (USD_NARROW_MIN) derives from the USD domain itself: the cutoff is a
+ * chosen user action, not business data, and the choice tracks the domain
+ * when content changes.
  */
 const LISTINGS = expectedListingFilters();
 const TOTAL = LISTINGS.length;
@@ -54,27 +56,65 @@ const HAB_MIN_ALQUILER = countWhere(
 const HAB_MIN_COCHERA = countWhere(
   (listing) => listing.habitaciones >= 3 && hasCochera(listing.cochera),
 );
+/*
+ * The LOCALIDAD probe mirrors the page's option domain (index.astro:60:
+ * the select offers exactly the collection's distinct localidades): the
+ * pick is the first distinct localidad in canonical order. The expected
+ * count after selecting it composes the same predicates the page
+ * composes — min habitaciones, truthy cochera, equality on localidad.
+ */
+const LOCALIDAD_PICK = [...new Set(LISTINGS.map((listing) => listing.localidad))][0];
+const HAB_MIN_COCHERA_LOCALIDAD = countWhere(
+  (listing) =>
+    listing.habitaciones >= 3 &&
+    hasCochera(listing.cochera) &&
+    listing.localidad === LOCALIDAD_PICK,
+);
 const ALQUILER_COCHERA = countWhere(
   (listing) => listing.operacion === 'alquiler' && hasCochera(listing.cochera),
 );
 /* Raw numeric sorts (never a currency conversion), ties keep collection order. */
 const SORT_ASC_FIRST = [...LISTINGS].sort((a, b) => a.precio - b.precio)[0].slug;
 const SORT_DESC_FIRST = [...LISTINGS].sort((a, b) => b.precio - a.precio)[0].slug;
-/* The USD price domain `[min, max]` (index.astro:82-89); filling min=50000
- * serialises `precio_max` as the domain max. */
+/*
+ * The USD price domain `[min, max]` (index.astro:82-89). The narrowing cutoff
+ * derives from the domain itself: the first step-aligned value above the
+ * domain min (PriceRange default step = 1000, PriceRange.astro:52) that drops
+ * at least one USD listing; `undefined` on a single-point domain, in which
+ * case the narrowing tests skip with an explicit reason instead of filling
+ * an out-of-domain value. Filling `min=C` serialises `precio_max` as the
+ * domain max.
+ */
 const USD_PRICES = LISTINGS.filter((listing) => listing.moneda === 'USD').map(
   (listing) => listing.precio,
 );
 const USD_MAX = Math.max(...USD_PRICES);
-const USD_IN_RANGE = countWhere(
-  (listing) => listing.moneda === 'USD' && listing.precio >= 50000 && listing.precio <= USD_MAX,
-);
+const USD_MIN = Math.min(...USD_PRICES);
+/* Mirrors the PriceRange default step (src/components/PriceRange.astro:52). */
+const RANGE_STEP = 1000;
+const USD_NARROW_MIN: number | undefined = (() => {
+  for (let cutoff = USD_MIN + RANGE_STEP; cutoff <= USD_MAX; cutoff += RANGE_STEP) {
+    if (USD_PRICES.some((price) => price < cutoff)) return cutoff;
+  }
+  if (USD_PRICES.some((price) => price < USD_MAX)) return USD_MAX;
+  return undefined;
+})();
+const USD_IN_RANGE =
+  USD_NARROW_MIN === undefined
+    ? 0
+    : countWhere(
+        (listing) =>
+          listing.moneda === 'USD' &&
+          listing.precio >= USD_NARROW_MIN &&
+          listing.precio <= USD_MAX,
+      );
 const AMOUNT_FORMAT = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 const escapeRegExp = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const RANGE_CHIP = new RegExp(
-  `USD ${escapeRegExp(AMOUNT_FORMAT.format(50000))}–${escapeRegExp(AMOUNT_FORMAT.format(USD_MAX))}`,
-);
+const rangeChip = (narrow: number): RegExp =>
+  new RegExp(
+    `USD ${escapeRegExp(AMOUNT_FORMAT.format(narrow))}–${escapeRegExp(AMOUNT_FORMAT.format(USD_MAX))}`,
+  );
 
 test('RESULTADOS · n is derived from the rendered set', async ({ page }) => {
   await page.goto('/propiedades');
@@ -215,7 +255,7 @@ test('an explicit moneda=Todas URL canonicalises to no moneda parameter', async 
 test('price bounds in a Todas URL never narrow the all-currency set', async ({ page }) => {
   // Stale bounds from an old link: no currency means no range applies, and
   // the params are rewritten away so the shared URL stays canonical (CF-01).
-  await page.goto('/propiedades?precio_min=50000&precio_max=60000');
+  await page.goto(`/propiedades?precio_min=${USD_MIN}&precio_max=${USD_MAX}`);
 
   await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
@@ -266,23 +306,29 @@ test('desktop bar: the price range filters within the selected currency only (§
   viewport,
 }, testInfo) => {
   testInfo.skip(!viewport || viewport.width < 768, 'The desktop filter bar exists only ≥ 768px.');
+  test.skip(
+    USD_NARROW_MIN === undefined,
+    'USD domain is a single point; the range cannot narrow',
+  );
+  const narrow = USD_NARROW_MIN!;
 
   // The range is only reachable inside a currency: pick USD first.
   await page.goto('/propiedades?moneda=USD');
   await expect(page.locator('[data-card]:visible')).toHaveCount(USD);
 
-  // Narrow the USD range to 50.000–<domain max>: the cheapest USD listing drops out.
+  // Narrow the USD range to <derived cutoff just above the domain min>–<domain max>:
+  // the cheapest USD listing drops out.
   await page
     .locator('[data-filters="desktop"] [data-price-pane="USD"] [data-price-range-min]')
-    .fill('50000');
+    .fill(String(narrow));
 
   await expect(page.locator('[data-card]:visible')).toHaveCount(USD_IN_RANGE);
   expect(page.url()).toContain('moneda=USD');
-  expect(page.url()).toContain('precio_min=50000');
+  expect(page.url()).toContain(`precio_min=${narrow}`);
   // The active range serialises both bounds (they round-trip to the same state).
   expect(page.url()).toContain(`precio_max=${USD_MAX}`);
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText('Moneda USD');
-  await expect(page.locator('.search-chips .filter-chip').nth(1)).toContainText(RANGE_CHIP);
+  await expect(page.locator('.search-chips .filter-chip').nth(1)).toContainText(rangeChip(narrow));
 
   // Switching MONEDA re-derives the range and drops the price params: a
   // carried-over range would imply a conversion (§17.1:633).
@@ -302,8 +348,13 @@ test('switching into Todas clears price bounds and the moneda parameter', async 
   viewport,
 }, testInfo) => {
   testInfo.skip(!viewport || viewport.width < 768, 'The desktop filter bar exists only ≥ 768px.');
+  test.skip(
+    USD_NARROW_MIN === undefined,
+    'USD domain is a single point; the range cannot narrow',
+  );
+  const narrow = USD_NARROW_MIN!;
 
-  await page.goto(`/propiedades?moneda=USD&precio_min=50000&precio_max=${USD_MAX}`);
+  await page.goto(`/propiedades?moneda=USD&precio_min=${narrow}&precio_max=${USD_MAX}`);
   await expect(page.locator('[data-card]:visible')).toHaveCount(USD_IN_RANGE);
 
   await page
@@ -329,7 +380,13 @@ test('switching into Todas clears price bounds and the moneda parameter', async 
 test('removing the currency chip returns to Todas and clears the price bounds', async ({
   page,
 }) => {
-  await page.goto(`/propiedades?moneda=USD&precio_min=50000&precio_max=${USD_MAX}`);
+  test.skip(
+    USD_NARROW_MIN === undefined,
+    'USD domain is a single point; the range cannot narrow',
+  );
+  const narrow = USD_NARROW_MIN!;
+
+  await page.goto(`/propiedades?moneda=USD&precio_min=${narrow}&precio_max=${USD_MAX}`);
   await expect(page.locator('.search-chips .filter-chip')).toHaveCount(2);
 
   // Chip order follows the control order: MONEDA first, PRECIO second.
@@ -379,10 +436,11 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   await expect(page.locator('[data-card]:visible')).toHaveCount(HAB_MIN_COCHERA);
   expect(page.url()).toContain('cochera=si');
 
-  // LOCALIDAD select (the whole portfolio is Santa Fe: the count holds).
-  await page.locator('#filter-localidad').selectOption('Santa Fe');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(HAB_MIN_COCHERA);
-  expect(page.url()).toContain('localidad=Santa+Fe');
+  // LOCALIDAD select — the pick is a collection localidad, so it is a real
+  // option; the URL carries it URLSearchParams-encoded.
+  await page.locator('#filter-localidad').selectOption(LOCALIDAD_PICK);
+  await expect(page.locator('[data-card]:visible')).toHaveCount(HAB_MIN_COCHERA_LOCALIDAD);
+  expect(new URL(page.url()).searchParams.get('localidad')).toBe(LOCALIDAD_PICK);
 
   // R2: only the eight canonical params ever appear.
   const keys = [...new URL(page.url()).searchParams.keys()];

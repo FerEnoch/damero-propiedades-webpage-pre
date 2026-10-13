@@ -4,6 +4,7 @@ import {
   expectedFichaRowsBySlug,
   expectedPhotosBySlug,
   expectedPricesBySlug,
+  expectedProbeSlug,
   expectedWhatsAppHrefsBySlug,
 } from './helpers/content-expectations';
 
@@ -25,6 +26,16 @@ import {
  * fallback; the cover `alt` mirrors the `?? ''` render contract.
  */
 const PHOTOS = expectedPhotosBySlug();
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the rail thumbnail-2
+ * interaction needs a listing with at least 2 photos, which also satisfies
+ * every template probe below (the JSON payload wait derives its pattern
+ * from the same pick). When none qualifies, each probing test skips with
+ * an explicit reason — never a fallback to a literal slug.
+ */
+const PROBE_SLUG = expectedProbeSlug(2);
 
 /*
  * End-anchored `src` matcher from a collection-derived path. The initial
@@ -123,7 +134,8 @@ test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and count
 }) => {
   // Structural probe on one listing; every asserted photo value derives
   // from the collection (T3), never a literal copy of the business data.
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 2 photos');
+  const slug = PROBE_SLUG!;
   const photos = PHOTOS[slug];
   const count = photos.length;
   const second = photos[1];
@@ -223,7 +235,8 @@ test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, 
   // Structural probe on one listing; the CTA href derives from the
   // listing's `whatsapp` field (plan T5) — inert while pending, `wa.me`
   // once the stakeholder supplies a real number.
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 2 photos');
+  const slug = PROBE_SLUG!;
   const ctaHref = expectedWhatsAppHrefsBySlug()[slug];
   await page.goto(`/propiedades/${slug}`);
 
@@ -246,7 +259,9 @@ test('exactly one primary action per viewport (§17.2:697-699)', async ({ page, 
 test('the map fallback keeps the frame, caption and role=status with the style aborted', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 2 photos');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const frame = page.locator('.map-frame');
   const fallback = page.locator('[data-map-fallback]');
@@ -273,7 +288,7 @@ test('the map fallback keeps the frame, caption and role=status with the style a
    * fallback must persist. It is not an error dialog and never names the
    * tile provider (§17.2:709-710).
    */
-  const payloadResponse = page.waitForResponse(/\/propiedades\/casa-3-amb-guadalupe-santa-fe\.json/);
+  const payloadResponse = page.waitForResponse(new RegExp(`/propiedades/${slug}\\.json`));
   await frame.scrollIntoViewIfNeeded();
   await payloadResponse;
   await page.waitForRequest(/openfreemap/).catch(() => null);
@@ -298,7 +313,9 @@ test('the approximate-zone note is added on mobile only (§17.2:708)', async ({
   page,
   viewport,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 2 photos');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const note = page.getByText('La ubicación mostrada es exacta; el círculo es una referencia de 100 m.');
   if (viewport && viewport.width >= 768) {
@@ -311,7 +328,9 @@ test('the approximate-zone note is added on mobile only (§17.2:708)', async ({
 test('the map container carries a meaningful accessible name (§12, §17.2:710)', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries at least 2 photos');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute('role', 'region');
   await expect(page.locator('[data-map-canvas]')).toHaveAttribute(

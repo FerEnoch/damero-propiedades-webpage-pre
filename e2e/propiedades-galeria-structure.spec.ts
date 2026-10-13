@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   expectedPhotosBySlug,
+  expectedProbeSlug,
   expectedSlugs,
   expectedTitlesBySlug,
 } from './helpers/content-expectations';
@@ -32,6 +33,15 @@ const TITLES = expectedTitlesBySlug();
 const PHOTO_COUNTS: Record<string, number> = Object.fromEntries(
   Object.entries(expectedPhotosBySlug()).map(([slug, photos]) => [slug, photos.length]),
 );
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo — the gallery shape the structural
+ * probes below exercise. When none qualifies, each probing test skips
+ * with an explicit reason — never a fallback to a literal slug.
+ */
+const PROBE_SLUG = expectedProbeSlug();
 
 /**
  * Every element carrying an AUTHORED `view-transition-name`, browser-side.
@@ -75,7 +85,9 @@ test('each gallery route responds 200 with the title convention and exactly one 
 });
 
 test('header, main, footer landmarks and the gallery region are present', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -90,7 +102,8 @@ test('the active photo keeps the 3:2 frame with the controls outside the photogr
 }) => {
   // Structural probe on one listing; the asserted count derives from the
   // collection (T3), never a literal copy of the business data.
-  const slug = 'casa-3-amb-guadalupe-santa-fe';
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
   const count = PHOTO_COUNTS[slug];
   await page.goto(`/propiedades/${slug}/galeria`);
 
@@ -114,7 +127,9 @@ test('the active photo keeps the 3:2 frame with the controls outside the photogr
 });
 
 test('no overlay chrome sits on top of the active photograph', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // §17.2:680 — nothing floats over the photo: no absolute/fixed element
   // inside the frame (the frame itself is position:relative, its img static).
@@ -179,7 +194,9 @@ test('the morph endpoints carry propiedad-<slug> — exactly one named element p
 test('the served CSS opts in to cross-document view transitions with the reduced-motion opt-out', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // Fetch every stylesheet the page actually ships — the assertion is over
   // the SERVED css, not the source (the minifier lowercases; match loosely).
@@ -211,7 +228,9 @@ test('the served CSS opts in to cross-document view transitions with the reduced
 });
 
 test('no horizontal overflow', async ({ page }) => {
-  await page.goto('/propiedades/lote-600-m2-candioti-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   const metrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
