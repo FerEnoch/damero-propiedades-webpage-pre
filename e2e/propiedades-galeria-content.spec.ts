@@ -80,6 +80,18 @@ test('each gallery page renders its listing contract', async ({ page }) => {
     // The active photo is the cover (`fotos[0]`, PRD §7), served from the
     // listing's own folder, eager + high priority, with layout reserved.
     const active = page.locator('[data-viewer-active] img');
+    if (count === 0) {
+      // R4 sync: [slug]/galeria.astro:53-55,69-72 omits photographic chrome.
+      const frame = page.locator('[data-viewer-active] .damero-placeholder');
+      await expect(frame, `${slug} brand tile`).toBeVisible();
+      await expect(frame).toHaveCSS('view-transition-name', 'none');
+      await expect(active).toHaveCount(0);
+      await expect(page.locator('[data-viewer-controls]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-thumb]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+      continue;
+    }
     await expect(active, `${slug} active`).toBeVisible();
     await expect(active).toHaveAttribute('src', srcEnd(cover.src));
     await expect(active).toHaveAttribute('alt', cover.titulo);

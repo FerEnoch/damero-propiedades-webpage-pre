@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { expectedSlugs } from './helpers/content-expectations';
+import { expectedSlugs, FOLD_LIMIT } from './helpers/content-expectations';
 
 /**
  * Search page structure and semantics (ODD §17 slice S2). Mirrors the landing
  * structure spec: route health, the §17.1 band order, landmarks, heading
- * levels, horizontal overflow, the never-2-up grid, R10's omitted `Ver más`,
+ * levels, horizontal overflow, the never-2-up grid, R10's conditional `Ver más`,
  * and the PRD §9 coordinate ban. Selectors derive from the real markup:
  * top-level bands carry `data-band`, the grid carries `data-results-grid`.
  */
@@ -91,12 +91,14 @@ test('the results grid is 3 columns ≥ md, 1 below — never 2-up (§17.1:623)'
   }
 });
 
-test('R10: `Ver más propiedades` is omitted with ≤ 6 results', async ({ page }) => {
+test('R10: `Ver más propiedades` exists only when results exceed the fold', async ({ page }) => {
   await page.goto('/propiedades');
 
-  // A pagination promise with no page behind it is fabricated data: with the
-  // current 6 records the button must not exist in the DOM at all.
-  await expect(page.getByRole('button', { name: 'Ver más propiedades' })).toHaveCount(0);
+  // Sync: index.astro:114-115,280-283 derives markup presence from collection size.
+  const hasMore = expectedSlugs().length > FOLD_LIMIT;
+  const more = page.getByRole('button', { name: 'Ver más propiedades', exact: true });
+  await expect(more).toHaveCount(hasMore ? 1 : 0);
+  if (hasMore) await expect(more).toBeVisible();
   await expect(page.getByRole('link', { name: 'Ver más propiedades' })).toHaveCount(0);
 });
 
