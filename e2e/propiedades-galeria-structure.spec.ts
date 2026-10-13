@@ -28,6 +28,9 @@ import {
  */
 const SLUGS = expectedSlugs();
 const TITLES = expectedTitlesBySlug();
+test.beforeEach(() => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; gallery route probes require a listing.');
+});
 
 /** Per-listing photo counts derive from the collection (plan T3, PRD §7). */
 const PHOTO_COUNTS: Record<string, number> = Object.fromEntries(
@@ -146,9 +149,17 @@ test('no overlay chrome sits on top of the active photograph', async ({ page }) 
   expect(overlaid).toEqual([]);
 });
 
-test('the rail renders one thumbnail per photo with the honest counter', async ({ page }) => {
+test('the rail and counter follow the photo contract, including an empty gallery', async ({ page }) => {
   for (const slug of SLUGS) {
     await page.goto(`/propiedades/${slug}/galeria`);
+    if (PHOTO_COUNTS[slug] === 0) {
+      // R4 sync: [slug]/galeria.astro:53-55,69-72 renders only the brand tile.
+      await expect(page.locator('[data-viewer-active] .damero-placeholder')).toBeVisible();
+      await expect(page.locator('[data-gallery-rail]'), `${slug} empty rail`).toHaveCount(0);
+      await expect(page.locator('[data-gallery-thumb]'), `${slug} empty thumbs`).toHaveCount(0);
+      await expect(page.locator('[data-gallery-counter]'), `${slug} empty counter`).toHaveCount(0);
+      continue;
+    }
     await expect(page.locator('[data-gallery-rail]'), `${slug} rail`).toBeVisible();
     await expect(page.locator('[data-gallery-thumb]'), `${slug} thumbs`).toHaveCount(
       PHOTO_COUNTS[slug],
@@ -159,25 +170,32 @@ test('the rail renders one thumbnail per photo with the honest counter', async (
   }
 });
 
-test('the morph endpoints carry propiedad-<slug> — exactly one named element per page', async ({
+test('the morph endpoints pair photos and leave empty brand tiles unnamed', async ({
   page,
 }) => {
   for (const slug of SLUGS) {
+    // Empty-photo endpoints stay unnamed ([slug].astro:160-162;
+    // [slug]/galeria.astro:69-72), rather than fabricating a photo morph.
+    const hasPhotos = PHOTO_COUNTS[slug] > 0;
     // §9/§17.5: the ficha lead frame is the only named element on the detail.
     await page.goto(`/propiedades/${slug}`);
     const detailNamed = await page.evaluate(readNamedElements);
-    expect(detailNamed, `${slug} detail named elements`).toEqual([
-      { name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: false },
-    ]);
+    expect(detailNamed, `${slug} detail named elements`).toEqual(
+      hasPhotos
+        ? [{ name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: false }]
+        : [],
+    );
 
     // The gallery active frame is the only named element on the gallery —
     // it sits inside the active photo, never on a thumbnail. The `<img>`
     // elements stay unnamed, matching the §9 rule.
     await page.goto(`/propiedades/${slug}/galeria`);
     const galleryNamed = await page.evaluate(readNamedElements);
-    expect(galleryNamed, `${slug} gallery named elements`).toEqual([
-      { name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: true },
-    ]);
+    expect(galleryNamed, `${slug} gallery named elements`).toEqual(
+      hasPhotos
+        ? [{ name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: true }]
+        : [],
+    );
 
     const imgNames = await page.evaluate(() =>
       Array.from(document.querySelectorAll('img')).map((el) =>
