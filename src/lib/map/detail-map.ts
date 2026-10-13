@@ -10,9 +10,9 @@
  *  - Basemap: OpenFreeMap style URL (§17.2:703). The `positron` variant is
  *    the lowest-chroma OpenFreeMap style — the quietest field for the single
  *    brand overlay. No API key is required by the provider.
- *  - Exactly one overlay: a translucent circle of FIXED 400 m radius centred
- *    on the offset zone centre. No pin, no marker, no dot, no label
- *    (§17.2:704-705).
+ *  - Exactly one overlay: a translucent circle of FIXED 100 m radius centred
+ *    on the exact property location, drawn as a reference circle. No pin, no
+ *    marker, no dot, no label (§17.2:704-705).
  *  - Interaction: `scrollZoom: false`, `dragRotate: false`,
  *    `touchZoomRotate` enabled, `cooperativeGestures` on desktop so the page
  *    still scrolls (§17.2:706).
@@ -56,12 +56,12 @@ function ensureMapStyles(): void {
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
-/** Fixed privacy radius in meters (§17.2:704) — never rendered as text. */
-const ZONE_RADIUS_M = 400;
+/** Fixed reference radius in meters (§17.2:704) — never rendered as text. */
+const ZONE_RADIUS_M = 100;
 
 /**
  * Meter-true circle as a GeoJSON polygon ring. MapLibre's native `circle`
- * layer is pixel-sized, so the 400 m radius is projected with the spherical
+ * layer is pixel-sized, so the 100 m radius is projected with the spherical
  * destination formula instead (64 vertices read as a circle at map scale).
  */
 function zoneRing(lon: number, lat: number, radiusM: number, steps = 64): number[][] {
@@ -90,7 +90,7 @@ function zoneRing(lon: number, lat: number, radiusM: number, steps = 64): number
 export interface DetailMapOptions {
   /** Positioned container inside the §17.2:702 frame (absolute, inset 0). */
   container: HTMLElement;
-  /** Zone centre from the build-emitted JSON payload — never from the HTML. */
+  /** Exact property location from the build-emitted JSON payload — never from the HTML. */
   lat: number;
   lon: number;
   /** The style loaded and the overlay is drawn — reveal the canvas. */
