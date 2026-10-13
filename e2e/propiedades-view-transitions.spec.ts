@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { expectedFeaturedLeadSlug, expectedSlugs } from './helpers/content-expectations';
 
 /**
  * Cross-document view transitions on property imagery (docs/DESIGN.md §9 —
@@ -24,14 +25,20 @@ import { expect, test, type Page } from '@playwright/test';
  * real collection slugs — no invented data.
  */
 
-const KNOWN_SLUGS = new Set([
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-]);
+/*
+ * The known slugs derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so the membership cross-check and the card-count assertion
+ * below need no spec edit when a listing is added or removed.
+ */
+const KNOWN_SLUGS = new Set(expectedSlugs());
+
+/*
+ * The home featured lead derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T5): the first `destacada` listing in
+ * canonical order. A `destacada` flip passes with zero spec edits.
+ */
+const FEATURED_LEAD_SLUG = expectedFeaturedLeadSlug();
 
 const HOME_CARDS = '.featured a.card';
 const LISTING_CARDS = '[data-results-grid] a.card';
@@ -118,6 +125,12 @@ test('the served stylesheet ships the @view-transition opt-in and the reduced-mo
 
 test('home featured card frames carry the paired propiedad-<slug> name', async ({ page }) => {
   await page.goto('/');
+
+  // The lead card is the featured (`destacada`) listing (index.astro:24-26).
+  await expect(page.locator('.featured__lead a.card')).toHaveAttribute(
+    'href',
+    `/propiedades/${FEATURED_LEAD_SLUG}`,
+  );
 
   const names = await collectCardNames(page, HOME_CARDS);
   const slugs = Object.keys(names);
