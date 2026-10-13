@@ -91,8 +91,8 @@ Para entender qué datos completar, es útil saber qué muestra cada lugar:
 - **En la página de detalle** (`/propiedades/<slug>`), se muestra en este orden:
   la galería de fotos, el título, el **resumen**, el bloque **DESCRIPCIÓN**, las
   **características**, el panel de **precio** (operación, habitaciones, cochera,
-  moneda y expensas), la **ubicación** (zona · localidad) y el mapa aproximado
-  de la zona.
+  moneda y expensas), la **ubicación** (zona · localidad) y el círculo de
+  referencia de 100 m sobre la ubicación exacta.
 
 ---
 
@@ -187,8 +187,8 @@ Todos los campos son **obligatorios**, salvo los dos que dicen "(opcional)".
 | `caracteristicas` | Lista de características. | Lista entre corchetes, con palabras con guiones. Ej.: `["patio", "parrilla"]`. |
 | `zona` | La zona, escrita como texto libre. | Texto entre comillas. Ej.: `"Zona quintas, camino rural km 12"`. |
 | `localidad` | La localidad. | Texto entre comillas. Ej.: `"Luján"`. |
-| `map_lat` | Latitud del centro **aproximado** de la zona. | Número. Ver la nota del mapa. |
-| `map_lon` | Longitud del centro **aproximado** de la zona. | Número. Ver la nota del mapa. |
+| `map_lat` | Latitud de la **ubicación exacta** de la propiedad. | Número. Ver la nota del mapa. |
+| `map_lon` | Longitud de la **ubicación exacta** de la propiedad. | Número. Ver la nota del mapa. |
 | `whatsapp` | El número de WhatsApp del agente para esta propiedad. | Texto entre comillas. No inventes un número (ver abajo). |
 | `fotos` | La lista de fotos (ver Parte 3). | Lista. Puede quedar vacía: `[]`. |
 | `expensas` | **(opcional)** Expensas mensuales, solo si aplica. | Número. Si no aplica, se **omite** el campo. |
@@ -199,9 +199,9 @@ Notas importantes:
 - **No agregues campos que no estén en esta lista.** El archivo solo admite
   exactamente estos campos; un campo de más (o mal escrito) hace fallar la
   publicación.
-- **`map_lat` y `map_lon` son un centro aproximado, con desfase a propósito.**
-  No se muestran nunca como números: solo se usan para dibujar un círculo
-  aproximado de la zona. Nunca pongas la ubicación exacta de la propiedad.
+- **`map_lat` y `map_lon` son la ubicación exacta de la propiedad.**
+  No se muestran nunca como números: solo se usan para dibujar el círculo
+  de referencia de 100 m de la zona.
 - **`whatsapp`**: mientras el responsable no entregue el número real, dejá el
   mismo valor de relleno que usan las propiedades existentes
   (`"+54 9 2304 000000"`). No inventes un número real.
@@ -237,7 +237,7 @@ cochera: true
 caracteristicas: ["patio", "parrilla"]
 zona: "Guadalupe"
 localidad: "Santa Fe"
-# Centro aproximado de la zona, con un desfase a propósito. Nunca se muestran como números.
+# Ubicación exacta de la propiedad. Nunca se muestran como números.
 map_lat: -31.6375
 map_lon: -60.6873
 # Número de WhatsApp de relleno mientras no exista el real. No inventes uno.

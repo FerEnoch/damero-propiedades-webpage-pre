@@ -286,7 +286,7 @@ const houseGlyph = iconHouse
               class="map-canvas"
               data-map-canvas
               role="region"
-              aria-label="Mapa de la zona aproximada"
+              aria-label="Mapa de la ubicación"
             ></div>
             <div class="map-fallback" data-map-fallback role="status">
               <Fragment set:html={houseGlyph} />
@@ -294,8 +294,8 @@ const houseGlyph = iconHouse
               <Button variant="ghost" class="map-fallback__retry">Reintentar</Button>
             </div>
           </div>
-          <p class="map-caption">ZONA APROXIMADA · RADIO 400 M</p>
-          <p class="map-note">La zona se muestra como referencia aproximada.</p>
+          <p class="map-caption">REFERENCIA · RADIO 100 M</p>
+          <p class="map-note">La ubicación mostrada es exacta; el círculo es una referencia de 100 m.</p>
         </div>
       </section>
 

@@ -11,7 +11,7 @@ cochera: true
 caracteristicas: ["patio", "parrilla"]
 zona: "Guadalupe"
 localidad: "Santa Fe"
-# Approximate zone centre with the deliberate PRD §11 offset. Never rendered as numbers.
+# Exact property location. Never rendered as numbers.
 map_lat: -31.6375
 map_lon: -60.6873
 # Pending stakeholder value, mirrored from WHATSAPP_NUMBER_PENDING in src/data/site.ts. Not a real number.

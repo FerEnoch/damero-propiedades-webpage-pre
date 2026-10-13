@@ -47,7 +47,7 @@ Content Collection: `src/content/propiedades/*.md` (one file per listing).
 | `caracteristicas` | string[] | Yes | Slugs, e.g. `pileta`, `parrilla` |
 | `zona` | string | Yes | Free-text, rural-aware (e.g. "Colonia rural, km 12") |
 | `localidad` | string | Yes | — |
-| `map_lat` / `map_lon` | number | Yes | Manual approximate center **with offset**; never rendered as numbers |
+| `map_lat` / `map_lon` | number | Yes | Exact property location; never rendered as numbers |
 | `whatsapp` | string | Yes | Dynamic per listing (agent number) |
 | `fotos` | object[] | Yes | See §7; each `{ src, titulo?, descripcion? }`. The cover is always the first entry |
 | `destacada` | boolean | No | Defaults `false`; feeds landing featured block |
@@ -90,7 +90,7 @@ fotos:
 
 - Sections: gallery, titulo/descripcion, caracteristicas (slugs), precio + moneda + expensas (if set), zona + localidad, map, WhatsApp CTA.
 - Gallery entry/exit: the detail's lead photo is a real link to the full-page gallery (`/propiedades/<slug>/galeria`), accessible name `Ver galería de fotos (N fotos)` (`foto` singular for 1); with `fotos: []` the placeholder stays non-interactive and no gallery link renders. The gallery page renders the active photo, prev/next + counter, thumbnail rail and a back link to the detail (DESIGN.md §17.5).
-- Map: OpenFreeMap embed, **circle only** with fixed radius set in code; center = manual approximate `map_lat`/`map_lon` (with offset). Never display numeric coordinates.
+- Map: OpenFreeMap embed, **circle only** with a fixed 100 m reference radius set in code; center = the exact `map_lat`/`map_lon` property location. Never display numeric coordinates.
 - WhatsApp CTA format (prefilled title + slug, no forms):
 
 ```text
@@ -138,7 +138,6 @@ https://wa.me/<whatsapp>?text=Hola%20Damero%2C%20me%20interesa%20%3Ctitulo%3E%20
 
 | Risk / assumption | Mitigation |
 |-------------------|------------|
-| Manual `map_lat`/`map_lon` offset is forgotten → real location exposed | Review checklist: center must be visibly offset; CI check #4 guards numeric leak |
 | `zona` free-text inconsistent (rural areas) | Accept free-text by design; localidad stays structured for filtering |
 | 10 adds/mo in markdown scales poorly later | Accepted for 15–30 listings; CMS deferred (§12) |
 | Photographer delivers oversize/non-WebP files | CI check #3 fails the build; documented limits in §7 |
