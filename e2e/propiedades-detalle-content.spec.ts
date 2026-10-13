@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectedPricesBySlug } from './helpers/content-expectations';
 
 /**
  * Detail page content rules (ODD §17 slice S3): R4's per-listing gallery
@@ -145,16 +146,13 @@ test('rail interaction: thumbnail 2 swaps the lead, moves aria-current and count
 });
 
 test('the price renders with the currency code always present (§17.2:690)', async ({ page }) => {
-  const prices: Record<string, { currency: string; amount: string }> = {
-    'casa-2-dormitorios-zona-sur-santa-fe': { currency: 'ARS', amount: '410.000' },
-    'casa-3-amb-guadalupe-santa-fe': { currency: 'USD', amount: '118.000' },
-    'departamento-1-amb-candioti-norte-santa-fe': { currency: 'ARS', amount: '320.000' },
-    'departamento-2-amb-centro-santa-fe': { currency: 'ARS', amount: '480.000' },
-    'departamento-3-amb-barrio-norte-santa-fe': { currency: 'USD', amount: '92.000' },
-    'lote-600-m2-candioti-santa-fe': { currency: 'USD', amount: '30.000' },
-  };
-
-  for (const [slug, expected] of Object.entries(prices)) {
+  /*
+   * Rendering contract, not literal business values (plan T1): the currency
+   * code is the listing's `moneda` and the amount is `precio` grouped
+   * `es-AR`, both derived from the collection — the same source the build
+   * renders. A legitimate price edit passes with zero spec edits.
+   */
+  for (const [slug, expected] of Object.entries(expectedPricesBySlug())) {
     await page.goto(`/propiedades/${slug}`);
     await expect(page.locator('.price-panel__currency')).toHaveText(expected.currency);
     await expect(page.locator('.price-panel__value')).toHaveText(expected.amount);
