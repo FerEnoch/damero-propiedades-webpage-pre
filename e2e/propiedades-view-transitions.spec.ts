@@ -137,6 +137,7 @@ test('the served stylesheet ships the @view-transition opt-in and the reduced-mo
 });
 
 test('home featured card frames carry the paired propiedad-<slug> name', async ({ page }) => {
+  test.skip(FEATURED_LEAD_SLUG === undefined, 'The collection is empty; no home featured card exists.');
   await page.goto('/');
 
   // The lead card is the featured (`destacada`) listing (index.astro:24-26).
@@ -173,6 +174,7 @@ test('listing card frames carry the paired propiedad-<slug> name', async ({ page
 test('the detail lead frame pairs with the card of the same property on / and /propiedades', async ({
   page,
 }) => {
+  test.skip(KNOWN_SLUGS.size === 0, 'The collection is empty; no detail/card pair exists.');
   await page.goto('/');
   const homeNames = await collectCardNames(page, HOME_CARDS);
 

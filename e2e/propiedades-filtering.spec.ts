@@ -41,6 +41,9 @@ const ALLOWED_PARAMS = [
  */
 const LISTINGS = expectedListingFilters();
 const TOTAL = LISTINGS.length;
+test.beforeEach(() => {
+  test.skip(TOTAL === 0, 'The collection is empty; filtering probes require a listing.');
+});
 const countWhere = (pred: (listing: ListingFilterRecord) => boolean): number =>
   LISTINGS.filter(pred).length;
 /** Mirrors `hasCochera` in `src/pages/propiedades/index.astro:117-118`. */
@@ -74,8 +77,8 @@ const ALQUILER_COCHERA = countWhere(
   (listing) => listing.operacion === 'alquiler' && hasCochera(listing.cochera),
 );
 /* Raw numeric sorts (never a currency conversion), ties keep collection order. */
-const SORT_ASC_FIRST = [...LISTINGS].sort((a, b) => a.precio - b.precio)[0].slug;
-const SORT_DESC_FIRST = [...LISTINGS].sort((a, b) => b.precio - a.precio)[0].slug;
+const SORT_ASC_FIRST = [...LISTINGS].sort((a, b) => a.precio - b.precio)[0]?.slug;
+const SORT_DESC_FIRST = [...LISTINGS].sort((a, b) => b.precio - a.precio)[0]?.slug;
 /*
  * The USD price domain `[min, max]` (index.astro:82-89). The narrowing cutoff
  * derives from the domain itself: the first step-aligned value above the

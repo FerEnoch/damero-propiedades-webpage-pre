@@ -49,6 +49,10 @@ function srcEnd(src: string): RegExp {
 }
 
 test.beforeEach(async ({ page }) => {
+  test.skip(
+    Object.keys(PHOTOS).length === 0,
+    'The collection is empty; detail probes require a listing.',
+  );
   await page.route(/openfreemap/, (route) => route.abort());
 });
 

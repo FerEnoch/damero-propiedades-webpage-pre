@@ -8,11 +8,52 @@
  * @see https://docs.astro.build/en/guides/content-collections/
  */
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, type Loader } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { existsSync } from 'node:fs';
+import { relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const propertyFiles = glob({ base: './src/content/propiedades', pattern: '**/*.md' });
+const uniquePropertySlugs: Loader = {
+  name: propertyFiles.name,
+  async load(context) {
+    const filesById = new Map<string, string>();
+    const root = fileURLToPath(context.config.root);
+    await propertyFiles.load({
+      ...context,
+      store: {
+        ...context.store,
+        // Always validate file ownership, even for identical cached Markdown.
+        get<TData extends Record<string, unknown>>(id: string) {
+          const cached = context.store.get<TData>(id);
+          return cached && { ...cached, digest: undefined };
+        },
+      },
+      parseData(options) {
+        const { id, filePath } = options;
+        if (filePath) {
+          const previous = filesById.get(id);
+          if (previous && previous !== filePath && existsSync(previous)) {
+            throw new Error(
+              `Duplicate property slug "${id}": ${relative(root, previous)} and ${relative(root, filePath)}.`,
+            );
+          }
+          // Release a file's old ID when its slug changes during development.
+          for (const [claimedId, claimedFile] of filesById) {
+            if (claimedFile === filePath && claimedId !== id) filesById.delete(claimedId);
+          }
+          // Reserve before awaiting schema parsing: glob loads files concurrently.
+          filesById.set(id, filePath);
+        }
+        return context.parseData(options);
+      },
+    });
+  },
+};
 
 const propiedades = defineCollection({
-  loader: glob({ base: './src/content/propiedades', pattern: '**/*.md' }),
+  loader: uniquePropertySlugs,
   schema: z
     .object({
       /** Listing headline (PRD §4). */

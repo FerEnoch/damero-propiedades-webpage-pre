@@ -411,11 +411,11 @@ export function expectedWhatsAppHrefsBySlug(): Record<string, string> {
 /**
  * The home featured lead slug: the first `destacada` listing in canonical
  * order, else the first listing. Mirrors `src/pages/index.astro:24-26`.
- * A `destacada` flip passes with zero spec edits.
+ * A `destacada` flip passes with zero spec edits. An empty collection has no lead.
  */
-export function expectedFeaturedLeadSlug(): string {
+export function expectedFeaturedLeadSlug(): string | undefined {
   const listings = readListings();
-  return (listings.find((listing) => listing.destacada) ?? listings[0]).slug;
+  return (listings.find((listing) => listing.destacada) ?? listings[0])?.slug;
 }
 
 /**

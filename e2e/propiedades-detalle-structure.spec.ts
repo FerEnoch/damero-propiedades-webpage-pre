@@ -60,6 +60,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('each detail route responds 200 with a title and exactly one h1', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no detail routes exist.');
   for (const slug of SLUGS) {
     const response = await page.goto(`/propiedades/${slug}`);
     expect(response).not.toBeNull();
@@ -181,6 +182,7 @@ test('breadcrumb ancestors are links and the current segment is not (§17.2:673)
 });
 
 test('no numeric coordinate renders in the detail HTML (§17.2:705, PRD §9)', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no detail HTML exists.');
   for (const slug of SLUGS) {
     await page.goto(`/propiedades/${slug}`);
     const rendered = await page.content();
@@ -197,6 +199,7 @@ test('no numeric coordinate renders in the detail HTML (§17.2:705, PRD §9)', a
 });
 
 test('the build emits the per-listing map payload as a separate asset', async () => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no per-listing map payloads exist.');
   /*
    * The coordinate pipeline (§17.2:705): the numbers live ONLY in these
    * build-emitted JSON assets, fetched at map init — never in the HTML.
@@ -238,6 +241,7 @@ test('the initial HTML of every route references no map chunk', async () => {
 test('R11: the WhatsApp CTAs carry the derived href — inert while pending, wa.me once real', async ({
   page,
 }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no per-listing WhatsApp CTAs exist.');
   /*
    * R11 derives from each listing's `whatsapp` field (plan T5): the inert
    * anchor while the number is pending, the `wa.me` deep link once the
@@ -260,6 +264,7 @@ test('R11: the WhatsApp CTAs carry the derived href — inert while pending, wa.
 });
 
 test('the search cards resolve to the detail routes', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no search cards exist.');
   await page.goto('/propiedades');
 
   // R9: collection order is canonical, so the first card is the first record

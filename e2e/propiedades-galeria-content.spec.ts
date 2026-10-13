@@ -26,6 +26,9 @@ import {
  */
 const SLUGS = expectedSlugs();
 const TITLES = expectedTitlesBySlug();
+test.beforeEach(() => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; gallery route probes require a listing.');
+});
 
 /**
  * Per-listing photos derive from the collection (plan

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectedSlugs } from './helpers/content-expectations';
 
 /**
  * Search page structure and semantics (ODD §17 slice S2). Mirrors the landing
@@ -73,6 +74,7 @@ test('the results grid is 3 columns ≥ md, 1 below — never 2-up (§17.1:623)'
   page,
   viewport,
 }) => {
+  test.skip(expectedSlugs().length === 0, 'The collection is empty; no visible results grid exists.');
   await page.goto('/propiedades');
 
   const columns = await page.evaluate(() => {

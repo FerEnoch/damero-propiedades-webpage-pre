@@ -28,6 +28,9 @@ import {
  */
 const SLUGS = expectedSlugs();
 const TITLES = expectedTitlesBySlug();
+test.beforeEach(() => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; gallery route probes require a listing.');
+});
 
 /** Per-listing photo counts derive from the collection (plan T3, PRD §7). */
 const PHOTO_COUNTS: Record<string, number> = Object.fromEntries(
