@@ -11,8 +11,8 @@
  * silently dropping a listing (same failure style as `png-decode.ts`).
  *
  * T1: price/currency derivation. T2: slug/title derivation. T3: photo
- * derivation. T4: filtering derivation. T5 extends this module (ficha rows,
- * characteristics, coordinates).
+ * derivation. T4: filtering derivation. T5: ficha/characteristics/coords/
+ * localidad/WhatsApp/destacada derivation.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -88,6 +88,74 @@ interface ListingRecord {
   habitaciones: number;
   cochera: boolean | number;
   localidad: string;
+  expensas: number | null;
+  caracteristicas: string[];
+  mapLat: number;
+  mapLon: number;
+  whatsapp: string | undefined;
+  destacada: boolean;
+}
+
+/** Authoring convention: `key: true|false`. Anything else fails loudly. */
+function readBooleanField(frontmatter: string, file: string, field: string): boolean {
+  const match = new RegExp(`^${field}: (true|false)$`, 'm').exec(frontmatter);
+  if (!match) throw new Error(`content-expectations: ${file} is missing \`${field}: true|false\``);
+  return match[1] === 'true';
+}
+
+/** Authoring convention: `key: <float>` (signed). Anything else fails loudly. */
+function readFloatField(frontmatter: string, file: string, field: string): number {
+  const match = new RegExp(`^${field}: (-?\\d+(\\.\\d+)?)$`, 'm').exec(frontmatter);
+  if (!match) throw new Error(`content-expectations: ${file} is missing \`${field}: <float>\``);
+  return Number(match[1]);
+}
+
+/*
+ * Authoring convention: `expensas: <integer>`, or the line absent (a
+ * legitimate null per the schema — the ficha renders `No aplica`, never a
+ * dropped row). A present-but-malformed line throws loudly.
+ */
+function readExpensasField(frontmatter: string, file: string): number | null {
+  const match = /^expensas: (.*)$/m.exec(frontmatter);
+  if (!match) return null;
+  if (!/^\d+$/.test(match[1].trim())) {
+    throw new Error(`content-expectations: ${file} has a malformed \`expensas\` line: ${match[1]}`);
+  }
+  return Number(match[1].trim());
+}
+
+/*
+ * Authoring convention: `caracteristicas: ["slug", ...]` (inline flow list).
+ * Verified uniform across the authored collection (2026-10-12); any item
+ * that is not a quoted string throws loudly.
+ */
+function readStringListField(frontmatter: string, file: string, field: string): string[] {
+  const match = new RegExp(`^${field}: \\[(.*)\\]$`, 'm').exec(frontmatter);
+  if (!match) throw new Error(`content-expectations: ${file} is missing \`${field}: [...]\``);
+  const inner = match[1].trim();
+  if (inner === '') return [];
+  return inner.split(',').map((item) => {
+    const itemMatch = /^"([^"]*)"$/.exec(item.trim());
+    if (!itemMatch) {
+      throw new Error(`content-expectations: ${file} has a malformed \`${field}\` item: ${item}`);
+    }
+    return itemMatch[1];
+  });
+}
+
+/*
+ * The per-listing agent number. Optional to mirror the render tolerance:
+ * `resolveWhatsAppHref` treats an absent number as pending (inert anchor).
+ * A present-but-unquoted line throws loudly.
+ */
+function readWhatsAppField(frontmatter: string, file: string): string | undefined {
+  const match = /^whatsapp: (.*)$/m.exec(frontmatter);
+  if (!match) return undefined;
+  const valueMatch = /^"([^"]+)"$/.exec(match[1].trim());
+  if (!valueMatch) {
+    throw new Error(`content-expectations: ${file} has a malformed \`whatsapp\` line: ${match[1]}`);
+  }
+  return valueMatch[1];
 }
 
 /** Authoring convention: `key: true|false|<integer>`. Anything else fails loudly. */
@@ -154,6 +222,12 @@ function readListings(): ListingRecord[] {
         habitaciones: readIntegerField(frontmatter, file, 'habitaciones'),
         cochera: readCocheraField(frontmatter, file),
         localidad: readStringField(frontmatter, file, 'localidad'),
+        expensas: readExpensasField(frontmatter, file),
+        caracteristicas: readStringListField(frontmatter, file, 'caracteristicas'),
+        mapLat: readFloatField(frontmatter, file, 'map_lat'),
+        mapLon: readFloatField(frontmatter, file, 'map_lon'),
+        whatsapp: readWhatsAppField(frontmatter, file),
+        destacada: readBooleanField(frontmatter, file, 'destacada'),
       };
     });
 }
@@ -225,6 +299,108 @@ export function expectedListingFilters(): ListingFilterRecord[] {
       localidad,
     }),
   );
+}
+
+/**
+ * Expected ficha técnica rows for every listing, keyed by `slug`. Mirrors
+ * the render in `src/pages/propiedades/[slug].astro:80-88,235-255`:
+ * `venta` → `Venta` (anything else → `Alquiler`), raw `habitaciones`,
+ * `Sí` for `true`/positive counts (numeric counts never promise the exact
+ * number), verbatim `moneda`, and `No aplica` for null/absent `expensas`
+ * (the row is never dropped — R12).
+ */
+export function expectedFichaRowsBySlug(): Record<string, Record<string, string>> {
+  const entries: Record<string, Record<string, string>> = {};
+  for (const listing of readListings()) {
+    entries[listing.slug] = {
+      OPERACIÓN: listing.operacion === 'venta' ? 'Venta' : 'Alquiler',
+      HABITACIONES: String(listing.habitaciones),
+      COCHERA:
+        listing.cochera === true || (typeof listing.cochera === 'number' && listing.cochera > 0)
+          ? 'Sí'
+          : 'No',
+      MONEDA: listing.moneda,
+      EXPENSAS:
+        listing.expensas === null ? 'No aplica' : AMOUNT_FORMATTER.format(listing.expensas),
+    };
+  }
+  return entries;
+}
+
+/**
+ * Expected characteristic labels for every listing, keyed by `slug`. Mirrors
+ * `characteristicLabel` in `src/pages/propiedades/[slug].astro:91`: slugs
+ * become words, uppercased, with no dictionary.
+ */
+export function expectedCharacteristicLabelsBySlug(): Record<string, string[]> {
+  const entries: Record<string, string[]> = {};
+  for (const listing of readListings()) {
+    entries[listing.slug] = listing.caracteristicas.map((value) =>
+      value.replace(/-/g, ' ').toUpperCase(),
+    );
+  }
+  return entries;
+}
+
+/**
+ * Every listing's map coordinates, keyed by `slug` — the numbers that live
+ * ONLY in the build-emitted per-listing JSON payloads, never in the HTML
+ * (§17.2:705). Deriving them here keeps the coordinate ban and the payload
+ * assertions exact when coordinates move, instead of going stale.
+ */
+export function expectedCoordinatesBySlug(): Record<string, { lat: number; lon: number }> {
+  const entries: Record<string, { lat: number; lon: number }> = {};
+  for (const listing of readListings()) {
+    entries[listing.slug] = { lat: listing.mapLat, lon: listing.mapLon };
+  }
+  return entries;
+}
+
+/** Expected `localidad` for every listing, keyed by `slug`. */
+export function expectedLocalidadesBySlug(): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const listing of readListings()) entries[listing.slug] = listing.localidad;
+  return entries;
+}
+
+/*
+ * Sync points with `src/data/site.ts:36,46` and `src/lib/whatsapp.ts`: the
+ * stakeholder pending placeholder (digits-normalised the same way real
+ * numbers are) and the inert anchor it resolves to. A `wa.me` URL never
+ * ships pointing at the placeholder (R11).
+ */
+const PENDING_WHATSAPP_DIGITS = '5492304000000';
+const WHATSAPP_URL_PENDING = '#whatsapp-pendiente';
+
+/**
+ * Expected WhatsApp CTA href for every listing, keyed by `slug`. Mirrors
+ * `resolveWhatsAppHref` in `src/lib/whatsapp.ts`: the inert pending anchor
+ * while the number is absent or still the placeholder, otherwise the
+ * `wa.me` deep link carrying the listing title and slug. Activating a CTA
+ * is then a content change, not a spec change.
+ */
+export function expectedWhatsAppHrefsBySlug(): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const listing of readListings()) {
+    const digits = (listing.whatsapp ?? '').replace(/\D/g, '');
+    if (digits === '' || digits === PENDING_WHATSAPP_DIGITS) {
+      entries[listing.slug] = WHATSAPP_URL_PENDING;
+    } else {
+      const text = encodeURIComponent(`Hola Damero, me interesa ${listing.titulo} (${listing.slug})`);
+      entries[listing.slug] = `https://wa.me/${digits}?text=${text}`;
+    }
+  }
+  return entries;
+}
+
+/**
+ * The home featured lead slug: the first `destacada` listing in canonical
+ * order, else the first listing. Mirrors `src/pages/index.astro:24-26`.
+ * A `destacada` flip passes with zero spec edits.
+ */
+export function expectedFeaturedLeadSlug(): string {
+  const listings = readListings();
+  return (listings.find((listing) => listing.destacada) ?? listings[0]).slug;
 }
 
 /**
