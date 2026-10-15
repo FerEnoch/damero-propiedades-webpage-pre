@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import {
+  expectedCoordinatesBySlug,
+  expectedLocalidadesBySlug,
+  expectedProbeSlug,
+  expectedSlugs,
+  expectedTitlesBySlug,
+  expectedWhatsAppHrefsBySlug,
+} from './helpers/content-expectations';
 
 /**
  * Detail page structure and semantics (ODD §17 slice S3). Mirrors the S2
@@ -14,38 +22,35 @@ import { readFileSync } from 'node:fs';
  * renders, every time.
  */
 
-const SLUGS = [
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-] as const;
+/*
+ * Slugs and titles derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so a listing add/remove or a title reword needs no spec edit.
+ */
+const SLUGS = expectedSlugs();
+const TITLES = expectedTitlesBySlug();
 
-const TITLES: Record<(typeof SLUGS)[number], string> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 'Casa 2 dormitorios en zona sur',
-  'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
-  'departamento-1-amb-candioti-norte-santa-fe': 'Departamento 1 ambiente en Candioti Norte',
-  'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
-  'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
-  'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
-};
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo — the detail-template shape the
+ * structural probes below exercise. When none qualifies, each probing
+ * test skips with an explicit reason — never a fallback to a literal
+ * slug.
+ */
+const PROBE_SLUG = expectedProbeSlug();
 
+/*
+ * The coordinate ban markers derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T5): every listing's `map_lat`/`map_lon`
+ * plus the schema field names. A coordinate move stays exact instead of
+ * going stale — a hardcoded marker would keep passing after the numbers
+ * moved. The field names are schema-owned and stable.
+ */
+const COORDINATES = expectedCoordinatesBySlug();
 /** The test-listing coordinates plus the schema field names — banned from HTML. */
 const COORDINATE_MARKERS = [
-  '-31.679',
-  '-60.706',
-  '-31.6375',
-  '-60.6873',
-  '-31.664',
-  '-60.7015',
-  '-31.6572',
-  '-60.7005',
-  '-31.6243',
-  '-60.6855',
-  '-31.6724',
-  '-60.7028',
+  ...Object.values(COORDINATES).flatMap(({ lat, lon }) => [String(lat), String(lon)]),
   'map_lat',
   'map_lon',
 ];
@@ -55,6 +60,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('each detail route responds 200 with a title and exactly one h1', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no detail routes exist.');
   for (const slug of SLUGS) {
     const response = await page.goto(`/propiedades/${slug}`);
     expect(response).not.toBeNull();
@@ -68,7 +74,9 @@ test('each detail route responds 200 with a title and exactly one h1', async ({ 
 });
 
 test('the §17.2 section order renders, with the documented CTA divergence', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   /*
    * §17.2:671 fixes gallery → title/description → characteristics → price →
@@ -86,7 +94,9 @@ test('the §17.2 section order renders, with the documented CTA divergence', asy
 });
 
 test('header, main, footer and breadcrumb landmarks are present', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -95,7 +105,9 @@ test('header, main, footer and breadcrumb landmarks are present', async ({ page 
 });
 
 test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const levels = await page.evaluate(() =>
     Array.from(document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6')).map(
@@ -114,7 +126,9 @@ test('heading levels never skip (h1 to h2 to h3)', async ({ page }) => {
 });
 
 test('no horizontal overflow', async ({ page }) => {
-  await page.goto('/propiedades/lote-600-m2-candioti-santa-fe');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}`);
 
   const metrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -129,7 +143,17 @@ test('no horizontal overflow', async ({ page }) => {
 test('breadcrumb ancestors are links and the current segment is not (§17.2:673)', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe');
+  // Structural probe on one listing; the asserted title derives from the
+  // collection (T2), never a literal copy of the business value. The
+  // localidad segment derives too (T5): uppercase via CSS, value from data.
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  const localidad = expectedLocalidadesBySlug()[slug];
+  const localidadPattern = new RegExp(
+    `^${localidad.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+    'i',
+  );
+  await page.goto(`/propiedades/${slug}`);
 
   const breadcrumb = page.getByRole('navigation', { name: 'Miga de pan' });
   const links = breadcrumb.getByRole('link');
@@ -142,18 +166,23 @@ test('breadcrumb ancestors are links and the current segment is not (§17.2:673)
   await expect(breadcrumb.locator('.breadcrumb__list')).toHaveCSS('text-transform', 'uppercase');
   await expect(links.nth(0)).toHaveText(/^propiedades$/i);
   await expect(links.nth(0)).toHaveAttribute('href', '/propiedades');
-  await expect(links.nth(1)).toHaveText(/^santa fe$/i);
-  await expect(links.nth(1)).toHaveAttribute('href', '/propiedades?localidad=Santa%20Fe');
+  await expect(links.nth(1)).toHaveText(localidadPattern);
+  await expect(links.nth(1)).toHaveAttribute(
+    'href',
+    `/propiedades?localidad=${encodeURIComponent(localidad)}`,
+  );
 
-  // The current segment is plain text — never a link.
+  // The current segment is plain text — never a link. The asserted title
+  // derives from the collection (T2), never a literal copy.
   const current = breadcrumb.locator('.breadcrumb__current');
   await expect(current).toHaveCount(1);
-  await expect(current).toHaveText('Casa 3 ambientes con patio en Guadalupe');
+  await expect(current).toHaveText(TITLES[slug]);
   await expect(current).toHaveAttribute('aria-current', 'page');
   await expect(breadcrumb.locator('li:last-child a')).toHaveCount(0);
 });
 
 test('no numeric coordinate renders in the detail HTML (§17.2:705, PRD §9)', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no detail HTML exists.');
   for (const slug of SLUGS) {
     await page.goto(`/propiedades/${slug}`);
     const rendered = await page.content();
@@ -170,19 +199,14 @@ test('no numeric coordinate renders in the detail HTML (§17.2:705, PRD §9)', a
 });
 
 test('the build emits the per-listing map payload as a separate asset', async () => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no per-listing map payloads exist.');
   /*
    * The coordinate pipeline (§17.2:705): the numbers live ONLY in these
    * build-emitted JSON assets, fetched at map init — never in the HTML.
+   * The payloads derive from the collection (T5), so a coordinate move
+   * passes with zero spec edits.
    */
-  const payloads: Record<string, { lat: number; lon: number }> = {
-    'casa-2-dormitorios-zona-sur-santa-fe': { lat: -31.679, lon: -60.706 },
-    'casa-3-amb-guadalupe-santa-fe': { lat: -31.6375, lon: -60.6873 },
-    'departamento-1-amb-candioti-norte-santa-fe': { lat: -31.664, lon: -60.7015 },
-    'departamento-2-amb-centro-santa-fe': { lat: -31.6572, lon: -60.7005 },
-    'departamento-3-amb-barrio-norte-santa-fe': { lat: -31.6243, lon: -60.6855 },
-    'lote-600-m2-candioti-santa-fe': { lat: -31.6724, lon: -60.7028 },
-  };
-  for (const [slug, expected] of Object.entries(payloads)) {
+  for (const [slug, expected] of Object.entries(COORDINATES)) {
     const raw = readFileSync(`dist/propiedades/${slug}.json`, 'utf8');
     expect(JSON.parse(raw), `${slug}.json payload`).toEqual(expected);
   }
@@ -214,29 +238,39 @@ test('the initial HTML of every route references no map chunk', async () => {
   }
 });
 
-test('R11: every WhatsApp CTA is the inert pending anchor — no wa.me ships', async ({ page }) => {
+test('R11: the WhatsApp CTAs carry the derived href — inert while pending, wa.me once real', async ({
+  page,
+}) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no per-listing WhatsApp CTAs exist.');
+  /*
+   * R11 derives from each listing's `whatsapp` field (plan T5): the inert
+   * anchor while the number is pending, the `wa.me` deep link once the
+   * stakeholder supplies a real number. Activating a CTA is a content
+   * change, not a spec change — `wa.me` ships if and only if the derived
+   * href carries it.
+   */
+  const hrefs = expectedWhatsAppHrefsBySlug();
   for (const slug of SLUGS) {
+    const href = hrefs[slug];
     await page.goto(`/propiedades/${slug}`);
     const html = await page.content();
-    expect(html.includes('wa.me'), `${slug} ships a wa.me link`).toBe(false);
+    expect(html.includes('wa.me'), `${slug} ships a wa.me link`).toBe(
+      href.startsWith('https://wa.me'),
+    );
 
-    await expect(page.locator('.price-panel__cta .whatsapp-cta')).toHaveAttribute(
-      'href',
-      '#whatsapp-pendiente',
-    );
-    await expect(page.locator('.whatsapp-sticky__link')).toHaveAttribute(
-      'href',
-      '#whatsapp-pendiente',
-    );
+    await expect(page.locator('.price-panel__cta .whatsapp-cta')).toHaveAttribute('href', href);
+    await expect(page.locator('.whatsapp-sticky__link')).toHaveAttribute('href', href);
   }
 });
 
 test('the search cards resolve to the detail routes', async ({ page }) => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; no search cards exist.');
   await page.goto('/propiedades');
 
   // R9: collection order is canonical, so the first card is the first record
-  // in filename order — currently the zona sur casa.
+  // in filename order — derived from the collection (T2), never a literal.
+  const first = SLUGS[0];
   await page.locator('.results-grid .card').first().click();
-  await expect(page).toHaveURL(/\/propiedades\/casa-2-dormitorios-zona-sur-santa-fe\/?$/);
-  await expect(page.locator('h1')).toHaveText('Casa 2 dormitorios en zona sur');
+  await expect(page).toHaveURL(new RegExp(`/propiedades/${first}/?$`));
+  await expect(page.locator('h1')).toHaveText(TITLES[first]);
 });

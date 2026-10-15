@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectedSlugs } from './helpers/content-expectations';
 import {
   auditTouchTargets,
   prepareKeyboardAudit,
@@ -51,6 +52,10 @@ test('every rendered text element meets its contrast threshold', async ({ page }
 });
 
 test('the DESIGN.md §2 contrast matrix holds on computed styles', async ({ page }) => {
+  test.skip(
+    expectedSlugs().length === 0,
+    'The collection is empty; the matrix requires property cards.',
+  );
   await page.goto('/propiedades');
 
   const audit = await page.evaluate(runColorAudits, MATRIX_PROBES);

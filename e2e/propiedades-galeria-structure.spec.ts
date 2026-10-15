@@ -1,4 +1,10 @@
 import { expect, test } from '@playwright/test';
+import {
+  expectedPhotosBySlug,
+  expectedProbeSlug,
+  expectedSlugs,
+  expectedTitlesBySlug,
+} from './helpers/content-expectations';
 
 /**
  * Full-page gallery structure and semantics (ODD damero-gallery-full-page,
@@ -14,33 +20,31 @@ import { expect, test } from '@playwright/test';
  * gallery page renders no map.
  */
 
-const SLUGS = [
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-] as const;
+/*
+ * Slugs, titles, and photo counts derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2–T3) — the same source the build
+ * renders, so a listing add/remove, a title reword, or a photo add/remove
+ * needs no spec edit.
+ */
+const SLUGS = expectedSlugs();
+const TITLES = expectedTitlesBySlug();
+test.beforeEach(() => {
+  test.skip(SLUGS.length === 0, 'The collection is empty; gallery route probes require a listing.');
+});
 
-const TITLES: Record<(typeof SLUGS)[number], string> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 'Casa 2 dormitorios en zona sur',
-  'casa-3-amb-guadalupe-santa-fe': 'Casa 3 ambientes con patio en Guadalupe',
-  'departamento-1-amb-candioti-norte-santa-fe': 'Departamento 1 ambiente en Candioti Norte',
-  'departamento-2-amb-centro-santa-fe': 'Departamento 2 ambientes en el centro',
-  'departamento-3-amb-barrio-norte-santa-fe': 'Departamento 3 ambientes en Barrio Norte',
-  'lote-600-m2-candioti-santa-fe': 'Lote 600 m² apto crédito en Candioti',
-};
+/** Per-listing photo counts derive from the collection (plan T3, PRD §7). */
+const PHOTO_COUNTS: Record<string, number> = Object.fromEntries(
+  Object.entries(expectedPhotosBySlug()).map(([slug, photos]) => [slug, photos.length]),
+);
 
-/** Per-listing photo counts (PRD §7; the same fixtures as the detail specs). */
-const PHOTO_COUNTS: Record<(typeof SLUGS)[number], number> = {
-  'casa-2-dormitorios-zona-sur-santa-fe': 5,
-  'casa-3-amb-guadalupe-santa-fe': 5,
-  'departamento-1-amb-candioti-norte-santa-fe': 4,
-  'departamento-2-amb-centro-santa-fe': 5,
-  'departamento-3-amb-barrio-norte-santa-fe': 5,
-  'lote-600-m2-candioti-santa-fe': 4,
-};
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo — the gallery shape the structural
+ * probes below exercise. When none qualifies, each probing test skips
+ * with an explicit reason — never a fallback to a literal slug.
+ */
+const PROBE_SLUG = expectedProbeSlug();
 
 /**
  * Every element carrying an AUTHORED `view-transition-name`, browser-side.
@@ -84,7 +88,9 @@ test('each gallery route responds 200 with the title convention and exactly one 
 });
 
 test('header, main, footer landmarks and the gallery region are present', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -97,7 +103,12 @@ test('header, main, footer landmarks and the gallery region are present', async 
 test('the active photo keeps the 3:2 frame with the controls outside the photograph', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  // Structural probe on one listing; the asserted count derives from the
+  // collection (T3), never a literal copy of the business data.
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  const count = PHOTO_COUNTS[slug];
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // §7: the frame holds 3:2 at every viewport (measured, not trusted).
   const ratio = await page.evaluate(() => {
@@ -112,14 +123,16 @@ test('the active photo keeps the 3:2 frame with the controls outside the photogr
   await expect(page.locator('[data-viewer-controls]')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Foto anterior', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Foto siguiente', exact: true })).toBeVisible();
-  await expect(page.locator('[data-gallery-counter]')).toHaveText('1 / 5');
+  await expect(page.locator('[data-gallery-counter]')).toHaveText(`1 / ${count}`);
   await expect(page.locator('[data-viewer-active] [data-viewer-controls]')).toHaveCount(0);
   await expect(page.locator('[data-viewer-active] button')).toHaveCount(0);
   await expect(page.locator('[data-viewer-active] a')).toHaveCount(0);
 });
 
 test('no overlay chrome sits on top of the active photograph', async ({ page }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // §17.2:680 — nothing floats over the photo: no absolute/fixed element
   // inside the frame (the frame itself is position:relative, its img static).
@@ -136,9 +149,17 @@ test('no overlay chrome sits on top of the active photograph', async ({ page }) 
   expect(overlaid).toEqual([]);
 });
 
-test('the rail renders one thumbnail per photo with the honest counter', async ({ page }) => {
+test('the rail and counter follow the photo contract, including an empty gallery', async ({ page }) => {
   for (const slug of SLUGS) {
     await page.goto(`/propiedades/${slug}/galeria`);
+    if (PHOTO_COUNTS[slug] === 0) {
+      // R4 sync: [slug]/galeria.astro:53-55,69-72 renders only the brand tile.
+      await expect(page.locator('[data-viewer-active] .damero-placeholder')).toBeVisible();
+      await expect(page.locator('[data-gallery-rail]'), `${slug} empty rail`).toHaveCount(0);
+      await expect(page.locator('[data-gallery-thumb]'), `${slug} empty thumbs`).toHaveCount(0);
+      await expect(page.locator('[data-gallery-counter]'), `${slug} empty counter`).toHaveCount(0);
+      continue;
+    }
     await expect(page.locator('[data-gallery-rail]'), `${slug} rail`).toBeVisible();
     await expect(page.locator('[data-gallery-thumb]'), `${slug} thumbs`).toHaveCount(
       PHOTO_COUNTS[slug],
@@ -149,25 +170,32 @@ test('the rail renders one thumbnail per photo with the honest counter', async (
   }
 });
 
-test('the morph endpoints carry propiedad-<slug> — exactly one named element per page', async ({
+test('the morph endpoints pair photos and leave empty brand tiles unnamed', async ({
   page,
 }) => {
   for (const slug of SLUGS) {
+    // Empty-photo endpoints stay unnamed ([slug].astro:160-162;
+    // [slug]/galeria.astro:69-72), rather than fabricating a photo morph.
+    const hasPhotos = PHOTO_COUNTS[slug] > 0;
     // §9/§17.5: the ficha lead frame is the only named element on the detail.
     await page.goto(`/propiedades/${slug}`);
     const detailNamed = await page.evaluate(readNamedElements);
-    expect(detailNamed, `${slug} detail named elements`).toEqual([
-      { name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: false },
-    ]);
+    expect(detailNamed, `${slug} detail named elements`).toEqual(
+      hasPhotos
+        ? [{ name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: false }]
+        : [],
+    );
 
     // The gallery active frame is the only named element on the gallery —
     // it sits inside the active photo, never on a thumbnail. The `<img>`
     // elements stay unnamed, matching the §9 rule.
     await page.goto(`/propiedades/${slug}/galeria`);
     const galleryNamed = await page.evaluate(readNamedElements);
-    expect(galleryNamed, `${slug} gallery named elements`).toEqual([
-      { name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: true },
-    ]);
+    expect(galleryNamed, `${slug} gallery named elements`).toEqual(
+      hasPhotos
+        ? [{ name: `propiedad-${slug}`, tag: 'div', isFrame: true, insideActive: true }]
+        : [],
+    );
 
     const imgNames = await page.evaluate(() =>
       Array.from(document.querySelectorAll('img')).map((el) =>
@@ -184,7 +212,9 @@ test('the morph endpoints carry propiedad-<slug> — exactly one named element p
 test('the served CSS opts in to cross-document view transitions with the reduced-motion opt-out', async ({
   page,
 }) => {
-  await page.goto('/propiedades/casa-3-amb-guadalupe-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   // Fetch every stylesheet the page actually ships — the assertion is over
   // the SERVED css, not the source (the minifier lowercases; match loosely).
@@ -216,7 +246,9 @@ test('the served CSS opts in to cross-document view transitions with the reduced
 });
 
 test('no horizontal overflow', async ({ page }) => {
-  await page.goto('/propiedades/lote-600-m2-candioti-santa-fe/galeria');
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.goto(`/propiedades/${slug}/galeria`);
 
   const metrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,

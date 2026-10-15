@@ -1,4 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  expectedFeaturedLeadSlug,
+  expectedPhotosBySlug,
+  expectedProbeSlug,
+  expectedSlugs,
+} from './helpers/content-expectations';
 
 /**
  * Cross-document view transitions on property imagery (docs/DESIGN.md §9 —
@@ -13,7 +19,7 @@ import { expect, test, type Page } from '@playwright/test';
  *  2. home featured card frames carry `view-transition-name:
  *     propiedad-<slug>` (computed);
  *  3. listing card frames carry the same convention;
- *  4. the detail gallery lead frame carries `propiedad-<slug>`, paired with
+ *  4. a photographic detail gallery lead carries `propiedad-<slug>`, paired with
  *     the card of the same property on `/` and `/propiedades`;
  *  5. names are unique within each document (a duplicate invalidates the
  *     whole transition);
@@ -24,18 +30,34 @@ import { expect, test, type Page } from '@playwright/test';
  * real collection slugs — no invented data.
  */
 
-const KNOWN_SLUGS = new Set([
-  'casa-2-dormitorios-zona-sur-santa-fe',
-  'casa-3-amb-guadalupe-santa-fe',
-  'departamento-1-amb-candioti-norte-santa-fe',
-  'departamento-2-amb-centro-santa-fe',
-  'departamento-3-amb-barrio-norte-santa-fe',
-  'lote-600-m2-candioti-santa-fe',
-]);
+/*
+ * The known slugs derive from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T2) — the same source the build
+ * renders, so the membership cross-check and the card-count assertion
+ * below need no spec edit when a listing is added or removed.
+ */
+const KNOWN_SLUGS = new Set(expectedSlugs());
+
+/*
+ * The home featured lead derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple.md`, T5): the first `destacada` listing in
+ * canonical order. A `destacada` flip passes with zero spec edits.
+ */
+const FEATURED_LEAD_SLUG = expectedFeaturedLeadSlug();
+const PHOTOS = expectedPhotosBySlug();
 
 const HOME_CARDS = '.featured a.card';
 const LISTING_CARDS = '[data-results-grid] a.card';
-const DETAIL_PATH = '/propiedades/casa-3-amb-guadalupe-santa-fe';
+
+/*
+ * The single-listing probe target derives from the collection (plan
+ * `odd/tasks/damero-e2e-decouple-probes.md`, T2): the first listing in
+ * canonical order carrying a photo. DETAIL_PATH derives from it — no
+ * literal slug; the three transitioned-page tests below skip with an
+ * explicit reason when no listing qualifies.
+ */
+const PROBE_SLUG = expectedProbeSlug();
+const DETAIL_PATH = PROBE_SLUG !== undefined ? `/propiedades/${PROBE_SLUG}` : undefined;
 
 /**
  * slug → computed `view-transition-name` of the card's placeholder frame.
@@ -117,7 +139,14 @@ test('the served stylesheet ships the @view-transition opt-in and the reduced-mo
 });
 
 test('home featured card frames carry the paired propiedad-<slug> name', async ({ page }) => {
+  test.skip(!FEATURED_LEAD_SLUG, 'The collection is empty; no home featured lead exists.');
   await page.goto('/');
+
+  // The lead card is the featured (`destacada`) listing (index.astro:24-26).
+  await expect(page.locator('.featured__lead a.card')).toHaveAttribute(
+    'href',
+    `/propiedades/${FEATURED_LEAD_SLUG}`,
+  );
 
   const names = await collectCardNames(page, HOME_CARDS);
   const slugs = Object.keys(names);
@@ -147,6 +176,7 @@ test('listing card frames carry the paired propiedad-<slug> name', async ({ page
 test('the detail lead frame pairs with the card of the same property on / and /propiedades', async ({
   page,
 }) => {
+  test.skip(KNOWN_SLUGS.size === 0, 'The collection is empty; no detail-card pair exists.');
   await page.goto('/');
   const homeNames = await collectCardNames(page, HOME_CARDS);
 
@@ -162,6 +192,16 @@ test('the detail lead frame pairs with the card of the same property on / and /p
         : '';
     });
 
+    if (PHOTOS[slug].length === 0) {
+      // R4 sync: [slug].astro:95-96,160-162 has no photo link or morph.
+      expect(leadName, `${slug} empty lead stays unnamed`).toBe('none');
+      await expect(page.locator('.gallery__lead .damero-placeholder')).toBeVisible();
+      await expect(page.locator('.gallery__lead img')).toHaveCount(0);
+      await expect(page.locator('.gallery__lead a')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-rail]')).toHaveCount(0);
+      await expect(page.locator('[data-gallery-counter]')).toHaveCount(0);
+      continue;
+    }
     expect(leadName, `detail lead frame for ${slug}`).toBe(`propiedad-${slug}`);
     expect(leadName, `detail lead pairs with the listing card for ${slug}`).toBe(listingName);
     if (slug in homeNames) {
@@ -171,6 +211,8 @@ test('the detail lead frame pairs with the card of the same property on / and /p
 });
 
 test('transition names are unique within each transitioned page', async ({ page }) => {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
   const pages: Array<{ path: string; expectedCount: number }> = [];
 
   await page.goto('/');
@@ -181,7 +223,7 @@ test('transition names are unique within each transitioned page', async ({ page 
   const listingCount = await page.locator(LISTING_CARDS).count();
   pages.push({ path: '/propiedades', expectedCount: listingCount });
 
-  pages.push({ path: DETAIL_PATH, expectedCount: 1 });
+  pages.push({ path: detailPath, expectedCount: 1 });
 
   for (const { path, expectedCount } of pages) {
     await page.goto(path);
@@ -197,7 +239,9 @@ test('transition names are unique within each transitioned page', async ({ page 
 });
 
 test('gallery thumbnails and every other image element stay unnamed', async ({ page }) => {
-  for (const path of ['/', '/propiedades', DETAIL_PATH]) {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
+  for (const path of ['/', '/propiedades', detailPath]) {
     await page.goto(path);
 
     const imgNames = await collectNamesFor(page, 'img');
@@ -206,7 +250,7 @@ test('gallery thumbnails and every other image element stay unnamed', async ({ p
       expect(name, `${path}: no img carries a view-transition-name`).toBe('none');
     }
 
-    if (path === DETAIL_PATH) {
+    if (path === detailPath) {
       // The rail exists for listings with photographs; every thumbnail and
       // its image stay unnamed — only the lead frame is named.
       const thumbs = await collectNamesFor(page, '[data-gallery-thumb]');
@@ -219,7 +263,9 @@ test('gallery thumbnails and every other image element stay unnamed', async ({ p
 });
 
 test('no horizontal overflow on the transitioned pages', async ({ page }) => {
-  for (const path of ['/', '/propiedades', DETAIL_PATH]) {
+  test.skip(!DETAIL_PATH, 'no listing in the collection carries a photo');
+  const detailPath = DETAIL_PATH!;
+  for (const path of ['/', '/propiedades', detailPath]) {
     await page.goto(path);
 
     const metrics = await page.evaluate(() => ({

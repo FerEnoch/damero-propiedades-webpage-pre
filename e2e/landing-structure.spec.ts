@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectedSlugs } from './helpers/content-expectations';
 
 /**
  * Landing structure and semantics — rows 1, 2, 4 and 5 of the T7 inventory
@@ -30,6 +31,24 @@ test('row 2: main sections render in the DESIGN.md §5 order', async ({ page }) 
   // Every aria-labelledby hook resolves to exactly one real heading.
   for (const id of ['hero-title', 'featured-title', 'services-title', 'faq-title']) {
     await expect(page.locator(`#${id}`)).toHaveCount(1);
+  }
+
+  const featured = page.getByRole('region', { name: 'Propiedades destacadas' });
+  const empty = featured.locator('.featured__empty');
+  if (expectedSlugs().length === 0) {
+    await expect(featured.locator('a.card')).toHaveCount(0);
+    await expect(empty).toHaveCount(1);
+    await expect(empty).toBeVisible();
+    await expect(empty.locator('.damero-placeholder__pattern')).toBeVisible();
+    await expect(empty.locator('.damero-placeholder__mark')).toBeVisible();
+    await expect(empty.locator('img, a')).toHaveCount(0);
+    expect(await empty.innerText()).toBe('');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      await page.evaluate(() => window.innerWidth),
+    );
+  } else {
+    await expect(empty).toHaveCount(0);
+    expect(await featured.locator('a.card').count()).toBeGreaterThan(0);
   }
 });
 
