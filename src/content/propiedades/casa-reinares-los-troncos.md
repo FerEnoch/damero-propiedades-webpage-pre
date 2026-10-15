@@ -14,7 +14,6 @@ localidad: "Santa Fe"
 # Centro aproximado de la zona, con un desfase a propósito. Nunca se muestran como números.
 map_lat: -31.5812
 map_lon: -60.741
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 342 4727748"
 fotos:
   - src: "/propiedades/casa-reinares-los-troncos/01-fachada.webp"
