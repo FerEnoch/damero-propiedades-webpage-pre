@@ -652,7 +652,7 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 
 ### 17.1 Search page (`/propiedades`)
 
-**Results grid.** 3 columns ≥ `md`, 1 column below. Never a 2-up grid on mobile (§10). The compact card variant from §6 is used (`card-title-sm` + `price-md`, body padding `--space-4`). Maximum **6 cards** before a band change (§5, principle 9); a `Ver más propiedades` secondary button follows the sixth.
+**Results grid.** 3 columns ≥ `md`, 1 column below. Never a 2-up grid on mobile (§10). The compact card variant from §6 is used (`card-title-sm` + `price-md`, body padding `--space-4`). Every matching card renders on entry, with no fold, pagination, or expansion button. Native image lazy loading and `content-visibility: auto` with intrinsic size reservation defer off-screen work for the fewer-than-20-listing portfolio.
 
 **Results header.** A single line above the grid: `RESULTADOS · <n>` in `--text-label-md` mono uppercase, `--color-text-secondary`, left-aligned; a compact `Ordenar:` select right-aligned. `<n>` is **derived from the rendered set** — it is never a hard-coded claim about the size of the portfolio (§11, fabricated data).
 

@@ -321,14 +321,6 @@ export function expectedSheetCountLabel(total: number): string {
   return `Ver ${total} ${total === 1 ? 'propiedad' : 'propiedades'}`;
 }
 
-/** Sync: src/pages/propiedades/index.astro:114,364,685 (collapsed fold). */
-export const FOLD_LIMIT = 6;
-
-/** Results and sheet labels use the total; only collapsed cards use this count. */
-export function expectedVisibleListingCount(total: number): number {
-  return Math.min(total, FOLD_LIMIT);
-}
-
 /**
  * Expected ficha técnica rows for every listing, keyed by `slug`. Mirrors
  * the render in `src/pages/propiedades/[slug].astro:80-88,235-255`:

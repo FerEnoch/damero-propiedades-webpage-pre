@@ -2,8 +2,6 @@ import { expect, test } from '@playwright/test';
 import {
   expectedListingFilters,
   expectedSheetCountLabel,
-  expectedVisibleListingCount,
-  FOLD_LIMIT,
   type ListingFilterRecord,
 } from './helpers/content-expectations';
 
@@ -80,8 +78,10 @@ const ALQUILER_COCHERA = countWhere(
   (listing) => listing.operacion === 'alquiler' && hasCochera(listing.cochera),
 );
 /* Raw numeric sorts (never a currency conversion), ties keep collection order. */
-const SORT_ASC_FIRST = [...LISTINGS].sort((a, b) => a.precio - b.precio)[0]?.slug;
-const SORT_DESC_FIRST = [...LISTINGS].sort((a, b) => b.precio - a.precio)[0]?.slug;
+const SORT_ASC = [...LISTINGS].sort((a, b) => a.precio - b.precio);
+const SORT_DESC = [...LISTINGS].sort((a, b) => b.precio - a.precio);
+const listingHrefs = (listings: ListingFilterRecord[]) =>
+  listings.map((listing) => `/propiedades/${listing.slug}`);
 /*
  * The USD price domain `[min, max]` (index.astro:82-89). The narrowing cutoff
  * derives from the domain itself: the first step-aligned value above the
@@ -122,20 +122,17 @@ const rangeChip = (narrow: number): RegExp =>
     `USD ${escapeRegExp(AMOUNT_FORMAT.format(narrow))}–${escapeRegExp(AMOUNT_FORMAT.format(USD_MAX))}`,
   );
 
-test('RESULTADOS · n counts all matches while the collapsed grid respects the fold', async ({ page }) => {
+test('RESULTADOS · n counts every matching card, all visible on entry', async ({ page }) => {
   await page.goto('/propiedades');
 
-  // Sync: index.astro:685 limits visible cards; :691 reports every match.
   await expect(page.locator('[data-card]')).toHaveCount(TOTAL);
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
+  await expect(page.locator('[data-card][hidden]')).toHaveCount(0);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
-
-  if (TOTAL > FOLD_LIMIT) {
-    await page.getByRole('button', { name: 'Ver más propiedades', exact: true }).click();
-    await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
-    await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
-    await expect(page.locator('[data-results-more]')).toBeHidden();
-  }
+  await expect(page.locator('[data-results-status]')).toHaveText(
+    `${TOTAL} ${TOTAL === 1 ? 'propiedad' : 'propiedades'}`,
+  );
+  await expect(page.getByRole('button', { name: 'Ver más propiedades', exact: true })).toHaveCount(0);
 });
 
 test('a shared URL loads its filter state on first paint (R2)', async ({ page }) => {
@@ -143,7 +140,7 @@ test('a shared URL loads its filter state on first paint (R2)', async ({ page })
 
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${ALQUILER}`);
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(ALQUILER),
+    ALQUILER,
   );
   await expect(page.locator('.filter-chip:visible').first()).toContainText(/alquiler/i);
 });
@@ -151,12 +148,12 @@ test('a shared URL loads its filter state on first paint (R2)', async ({ page })
 test('removing a chip re-runs the filter and rewrites the URL (§17.1:641)', async ({ page }) => {
   await page.goto('/propiedades?operacion=alquiler');
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(ALQUILER),
+    ALQUILER,
   );
 
   await page.locator('.filter-chip:visible').first().click();
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
   expect(page.url()).not.toContain('operacion=');
 });
@@ -207,22 +204,29 @@ test('the copy action writes the live URL to the clipboard', async ({ page, cont
   await expect(page.locator('[data-share-status]')).toHaveText('Enlace copiado al portapapeles');
 });
 
-test('Ordenar reorders the grid and is never written to the URL (R2/R9)', async ({ page }) => {
+test('Ordenar reorders every match and is never written to the URL (R2/R9)', async ({ page }) => {
   await page.goto('/propiedades');
 
+  const visibleHrefs = () =>
+    page.locator('[data-card]:not([hidden]) .card').evaluateAll((cards) =>
+      cards.map((card) => card.getAttribute('href')),
+    );
   await page.locator('#ordenar').selectOption('precio-asc');
-  await expect(page.locator('[data-card]:visible .card').first()).toHaveAttribute(
-    'href',
-    `/propiedades/${SORT_ASC_FIRST}`,
-  );
-
+  await expect.poll(visibleHrefs).toEqual(listingHrefs(SORT_ASC));
   await page.locator('#ordenar').selectOption('precio-desc');
-  await expect(page.locator('[data-card]:visible .card').first()).toHaveAttribute(
-    'href',
-    `/propiedades/${SORT_DESC_FIRST}`,
-  );
+  await expect.poll(visibleHrefs).toEqual(listingHrefs(SORT_DESC));
+  await page.locator('#ordenar').selectOption('recientes');
+  await expect.poll(visibleHrefs).toEqual(listingHrefs(LISTINGS));
+  expect(new URL(page.url()).search).toBe('');
 
-  expect(page.url()).not.toContain('orden');
+  // A pre-existing filter survives sorting, including the canonical URL.
+  await page.goto('/propiedades?operacion=alquiler');
+  const search = new URL(page.url()).search;
+  await page.locator('#ordenar').selectOption('precio-asc');
+  await expect.poll(visibleHrefs).toEqual(
+    listingHrefs(SORT_ASC.filter((listing) => listing.operacion === 'alquiler')),
+  );
+  expect(new URL(page.url()).search).toBe(search);
 });
 
 test('Todas is the default currency: every listing, inert range, no currency chip', async ({
@@ -235,7 +239,7 @@ test('Todas is the default currency: every listing, inert range, no currency chi
   await expect(
     page.locator('[data-filters="desktop"] [data-filter-key="moneda"] input[value=""]'),
   ).toBeChecked();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
 
   // The price range is inert under Todas: one pane only, USD stand-in disabled.
@@ -266,7 +270,7 @@ test('desktop bar: the stand-in range is visible but disabled under Todas', asyn
 test('an explicit moneda=Todas URL canonicalises to no moneda parameter', async ({ page }) => {
   await page.goto('/propiedades?moneda=Todas');
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   expect(new URL(page.url()).searchParams.has('moneda')).toBe(false);
   await expect(
     page.locator('[data-filters="desktop"] [data-filter-key="moneda"] input[value=""]'),
@@ -278,7 +282,7 @@ test('price bounds in a Todas URL never narrow the all-currency set', async ({ p
   // the params are rewritten away so the shared URL stays canonical (CF-01).
   await page.goto(`/propiedades?precio_min=${USD_MIN}&precio_max=${USD_MAX}`);
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
   const params = new URL(page.url()).searchParams;
   expect(params.has('precio_min')).toBe(false);
@@ -292,7 +296,7 @@ test('explicit currency URLs filter the set and survive a reload', async ({ page
   await page.goto('/propiedades?moneda=ARS');
 
   // The ARS listings only; the currency counts as an active filter.
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(ARS));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(ARS);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${ARS}`);
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText('Moneda ARS');
   expect(new URL(page.url()).searchParams.get('moneda')).toBe('ARS');
@@ -310,14 +314,14 @@ test('explicit currency URLs filter the set and survive a reload', async ({ page
 
   // Reload restores the same state (R2: the URL is the source of truth).
   await page.reload();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(ARS));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(ARS);
   await expect(
     page.locator('[data-filters="desktop"] [data-filter-key="moneda"] input[value="ARS"]'),
   ).toBeChecked();
   expect(new URL(page.url()).searchParams.get('moneda')).toBe('ARS');
 
   await page.goto('/propiedades?moneda=USD');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(USD));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(USD);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${USD}`);
   await expect(page.locator('.search-chips .filter-chip').first()).toContainText('Moneda USD');
 });
@@ -335,7 +339,7 @@ test('desktop bar: the price range filters within the selected currency only (§
 
   // The range is only reachable inside a currency: pick USD first.
   await page.goto('/propiedades?moneda=USD');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(USD));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(USD);
 
   // Narrow the USD range to <derived cutoff just above the domain min>–<domain max>:
   // the cheapest USD listing drops out.
@@ -344,7 +348,7 @@ test('desktop bar: the price range filters within the selected currency only (§
     .fill(String(narrow));
 
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(USD_IN_RANGE),
+    USD_IN_RANGE,
   );
   expect(page.url()).toContain('moneda=USD');
   expect(page.url()).toContain(`precio_min=${narrow}`);
@@ -363,7 +367,7 @@ test('desktop bar: the price range filters within the selected currency only (§
   expect(page.url()).toContain('moneda=ARS');
   expect(page.url()).not.toContain('precio_min=');
   // A currency filters the set by itself (CF-01).
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(ARS));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(ARS);
 });
 
 test('switching into Todas clears price bounds and the moneda parameter', async ({
@@ -379,7 +383,7 @@ test('switching into Todas clears price bounds and the moneda parameter', async 
 
   await page.goto(`/propiedades?moneda=USD&precio_min=${narrow}&precio_max=${USD_MAX}`);
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(USD_IN_RANGE),
+    USD_IN_RANGE,
   );
 
   await page
@@ -389,7 +393,7 @@ test('switching into Todas clears price bounds and the moneda parameter', async 
     .click();
 
   // Stale bounds cannot narrow the all-currency set: both are gone.
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   const params = new URL(page.url()).searchParams;
   expect(params.has('moneda')).toBe(false);
   expect(params.has('precio_min')).toBe(false);
@@ -417,7 +421,7 @@ test('removing the currency chip returns to Todas and clears the price bounds', 
   // Chip order follows the control order: MONEDA first, PRECIO second.
   await page.locator('.filter-chip:visible').first().click();
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   const params = new URL(page.url()).searchParams;
   expect(params.has('moneda')).toBe(false);
   expect(params.has('precio_min')).toBe(false);
@@ -432,12 +436,12 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   testInfo.skip(!viewport || viewport.width < 768, 'The desktop filter bar exists only ≥ 768px.');
 
   await page.goto('/propiedades');
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
 
   // OPERACIÓN segmented → Alquiler (scoped: MONEDA also offers `Todas`).
   await page.locator('[data-filters="desktop"] .segmented__segment', { hasText: 'Alquiler' }).click();
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(ALQUILER),
+    ALQUILER,
   );
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${ALQUILER}`);
   expect(page.url()).toContain('operacion=alquiler');
@@ -447,7 +451,7 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   // venta make the alquiler intersection derive to its collection count).
   await page.locator('#filter-habitaciones').selectOption('3');
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(HAB_MIN_ALQUILER),
+    HAB_MIN_ALQUILER,
   );
   expect(page.url()).toContain('habitaciones=3');
 
@@ -458,14 +462,14 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
     })
     .click();
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(HAB_MIN),
+    HAB_MIN,
   );
   expect(page.url()).not.toContain('operacion=');
 
   // COCHERA checkbox (of the 3+ listings only the cochera ones remain).
   await page.locator('[data-filters="desktop"]').getByText('Con cochera').click();
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(HAB_MIN_COCHERA),
+    HAB_MIN_COCHERA,
   );
   expect(page.url()).toContain('cochera=si');
 
@@ -473,7 +477,7 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
   // option; the URL carries it URLSearchParams-encoded.
   await page.locator('#filter-localidad').selectOption(LOCALIDAD_PICK);
   await expect(page.locator('[data-card]:visible')).toHaveCount(
-    expectedVisibleListingCount(HAB_MIN_COCHERA_LOCALIDAD),
+    HAB_MIN_COCHERA_LOCALIDAD,
   );
   expect(new URL(page.url()).searchParams.get('localidad')).toBe(LOCALIDAD_PICK);
 
@@ -485,7 +489,7 @@ test('desktop bar: filtering reduces the set and rewrites the URL (R1/R2)', asyn
 
   // Limpiar filtros resets everything.
   await page.locator('.filter-bar__clear').click();
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${TOTAL}`);
   expect(new URL(page.url()).search).toBe('');
 });
@@ -563,7 +567,7 @@ test('mobile sheet: currency filter and its disabled range stay coherent', async
     })
     .click();
 
-  await expect(page.locator('[data-card]:visible')).toHaveCount(expectedVisibleListingCount(TOTAL));
+  await expect(page.locator('[data-card]:visible')).toHaveCount(TOTAL);
   await expect(page.locator('[data-filter-count-badge]')).toBeHidden();
   expect(new URL(page.url()).searchParams.has('moneda')).toBe(false);
   await expect(page.locator('.mobile-bar__rail .filter-chip')).toHaveCount(0);
