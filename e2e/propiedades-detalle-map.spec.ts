@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectedProbeSlug } from './helpers/content-expectations';
+import { expectedCoordinatesBySlug, expectedProbeSlug } from './helpers/content-expectations';
 import { decodePng, meanPatchRgb } from './helpers/png-decode';
 
 /**
@@ -35,7 +35,98 @@ import { decodePng, meanPatchRgb } from './helpers/png-decode';
  * listing qualifies, never fall back to a literal slug.
  */
 const PROBE_SLUG = expectedProbeSlug();
+const COORDINATES = expectedCoordinatesBySlug();
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+
+test('external map link waits for the existing payload and opens the exact Google Maps location', async ({
+  page,
+}) => {
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  const { lat, lon } = COORDINATES[slug];
+  let payloadRequests = 0;
+  let releasePayload!: () => void;
+  const pendingPayload = new Promise<void>((resolve) => {
+    releasePayload = resolve;
+  });
+  await page.route(/openfreemap/, (route) => route.abort());
+  await page.route(`**/propiedades/${slug}.json`, async (route) => {
+    payloadRequests += 1;
+    await pendingPayload;
+    await route.continue();
+  });
+
+  await page.goto(`/propiedades/${slug}`);
+  const link = page.locator('[data-map-external-link]');
+  await expect(link).toHaveCount(1);
+  const requested = page.waitForRequest(`**/propiedades/${slug}.json`);
+  await page.locator('[data-map-frame]').scrollIntoViewIfNeeded();
+  await requested;
+  await expect(link).toHaveJSProperty('hidden', true);
+  await expect(link).toBeHidden();
+  await expect(link).not.toHaveAttribute('href');
+
+  releasePayload();
+  await expect(link).toBeVisible();
+  await expect(link).toHaveJSProperty('hidden', false);
+  await expect(link).toHaveText('Ver en Google Maps');
+  await expect(link).toHaveAttribute(
+    'href',
+    `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
+  );
+  await expect(link).toHaveAttribute('target', '_blank');
+  await expect(link).toHaveAttribute('rel', 'noopener');
+  expect(await link.evaluate((el) => el.previousElementSibling?.className)).toBe('map-note');
+  expect(payloadRequests, 'the link must reuse the map payload request').toBe(1);
+});
+
+test('external map link stays hidden after a payload failure and appears after retry succeeds', async ({
+  page,
+}) => {
+  test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+  const slug = PROBE_SLUG!;
+  await page.route(/openfreemap/, (route) => route.abort());
+  await page.route(`**/propiedades/${slug}.json`, (route) => route.fulfill({ status: 503 }));
+  await page.goto(`/propiedades/${slug}`);
+  const failedPayload = page.waitForResponse(`**/propiedades/${slug}.json`);
+  await page.locator('[data-map-frame]').scrollIntoViewIfNeeded();
+  expect((await failedPayload).status()).toBe(503);
+
+  const link = page.locator('[data-map-external-link]');
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveJSProperty('hidden', true);
+  await expect(link).toBeHidden();
+  await expect(link).not.toHaveAttribute('href');
+  await expect(page.locator('[data-map-fallback]')).toBeVisible();
+  await page.unroute(`**/propiedades/${slug}.json`);
+  await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
+  const { lat, lon } = COORDINATES[slug];
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute(
+    'href',
+    `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
+  );
+});
+
+test.describe('static external map link', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('HTML contains no coordinates, Google URL or query and the no-JS link stays hidden', async ({ page }) => {
+    test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
+    const slug = PROBE_SLUG!;
+    const response = await page.goto(`/propiedades/${slug}`);
+    const html = await response!.text();
+    const { lat, lon } = COORDINATES[slug];
+    expect(html).not.toContain(String(lat));
+    expect(html).not.toContain(String(lon));
+    expect(html).not.toMatch(/map_lat|map_lon|google\.com\/maps|api=1|query=/);
+    const link = page.locator('[data-map-external-link]');
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('hidden', '');
+    await expect(link).toBeHidden();
+    await expect(link).not.toHaveAttribute('href');
+  });
+});
 
 /*
  * A valid MapLibre style with a single opaque black background. No glyphs,

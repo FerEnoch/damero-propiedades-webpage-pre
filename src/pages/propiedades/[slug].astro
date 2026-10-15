@@ -296,6 +296,9 @@ const houseGlyph = iconHouse
           </div>
           <p class="map-caption">REFERENCIA · RADIO 100 M</p>
           <p class="map-note">La ubicación mostrada es exacta; el círculo es una referencia de 100 m.</p>
+          <a class="map-external-link" data-map-external-link target="_blank" rel="noopener" hidden>
+            Ver en Google Maps
+          </a>
         </div>
       </section>
 
@@ -383,6 +386,7 @@ const houseGlyph = iconHouse
     const canvas = pageRoot.querySelector<HTMLElement>('[data-map-canvas]');
     const fallback = pageRoot.querySelector<HTMLElement>('[data-map-fallback]');
     const retry = pageRoot.querySelector<HTMLElement>('.map-fallback__retry');
+    const externalMapLink = pageRoot.querySelector<HTMLAnchorElement>('[data-map-external-link]');
 
     if (frame && canvas && fallback) {
       let mapStarted = false;
@@ -390,6 +394,10 @@ const houseGlyph = iconHouse
       const initMap = async () => {
         if (mapStarted) return;
         mapStarted = true;
+        if (externalMapLink) {
+          externalMapLink.hidden = true;
+          externalMapLink.removeAttribute('href');
+        }
         try {
           // The coordinates come from the build-emitted JSON asset, never
           // from the markup (§17.2:705).
@@ -400,6 +408,11 @@ const houseGlyph = iconHouse
           const { lat, lon } = (payload ?? {}) as { lat?: unknown; lon?: unknown };
           if (typeof lat !== 'number' || typeof lon !== 'number') {
             throw new Error('map payload: unexpected shape');
+          }
+
+          if (externalMapLink) {
+            externalMapLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+            externalMapLink.hidden = false;
           }
 
           const { initDetailMap } = await import('../../lib/map/detail-map');
@@ -830,6 +843,20 @@ const houseGlyph = iconHouse
   /* §17.2:708 — the muted note is added on mobile only. */
   .map-note {
     display: none;
+  }
+
+  .map-external-link {
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+    text-underline-offset: 3px;
+  }
+
+  .map-external-link:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: var(--space-2);
   }
 
   /*
