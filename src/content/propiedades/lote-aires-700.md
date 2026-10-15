@@ -14,7 +14,6 @@ localidad: "Santa Fe"
 # Centro aproximado de la zona, con un desfase a propósito. Nunca se muestran como números.
 map_lat: -31.6202
 map_lon: -60.7898
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 342 4727748"
 fotos:
   - src: "/propiedades/lote-aires-700/01-vista.webp"

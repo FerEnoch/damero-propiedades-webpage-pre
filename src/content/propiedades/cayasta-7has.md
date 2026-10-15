@@ -1,7 +1,7 @@
 ---
 titulo: "Terreno 7has lindante al río"
 descripcion: "Gran terreno en zona turística de 7has lindante al río"
-slug: "cayasta_7has"
+slug: "cayasta-7has"
 operacion: "venta"
 tipo: "terreno"
 precio: 520000
@@ -14,18 +14,17 @@ localidad: "Cayastá"
 # Centro aproximado de la zona, con un desfase a propósito. Nunca se muestran como números.
 map_lat: -31.1821
 map_lon: -60.1434
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 342 4727748"
 fotos:
-  - src: "/propiedades/cayasta_7has/01-vista.webp"
+  - src: "/propiedades/cayasta-7has/01-vista.webp"
     titulo: "Vista Norte"
-  - src: "/propiedades/cayasta_7has/02-vista.webp"
+  - src: "/propiedades/cayasta-7has/02-vista.webp"
     titulo: "Vista sur"
-  - src: "/propiedades/cayasta_7has/03-vista.webp"
+  - src: "/propiedades/cayasta-7has/03-vista.webp"
     titulo: "Ubicacion"
-  - src: "/propiedades/cayasta_7has/04-vista.webp"
+  - src: "/propiedades/cayasta-7has/04-vista.webp"
     titulo: "destacado"
-  - src: "/propiedades/cayasta_7has/05-vista.webp"
+  - src: "/propiedades/cayasta-7has/05-vista.webp"
     titulo: "en plano"
 destacada: true
 ---
