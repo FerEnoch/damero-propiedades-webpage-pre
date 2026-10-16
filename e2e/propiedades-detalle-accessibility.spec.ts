@@ -123,7 +123,25 @@ test('every interactive element is keyboard-reachable in DOM order with a visibl
 }) => {
   test.skip(!PROBE_SLUG, 'no listing in the collection carries a photo');
   const slug = PROBE_SLUG!;
+
+  /*
+   * Settle the lazy map before snapshotting tab stops. The map inits on
+   * intersection and the external Google Maps link becomes a tab stop only
+   * once its JSON payload resolves (href set + unhidden) — and Tabbing
+   * scrolls the frame into view, so the link can otherwise appear mid-walk
+   * and fail the DOM-order assertion with index -1. After the payload
+   * responds the link is either shown (stable: later inits no-op) or hidden
+   * for good (later inits fail identically), so the tab order is frozen.
+   * Same `waitForResponse` idiom as propiedades-detalle-map.spec.ts. The
+   * waiter registers before goto so a load-time fetch can never slip past it.
+   */
+  const mapPayload = page.waitForResponse(`**/propiedades/${slug}.json`);
   await page.goto(`/propiedades/${slug}`);
+  const mapFrame = page.locator('[data-map-frame]');
+  if ((await mapFrame.count()) > 0) {
+    await mapFrame.first().scrollIntoViewIfNeeded();
+    await mapPayload;
+  }
 
   /*
    * The detail page renders no radio groups, so — unlike the S2 spec — the
