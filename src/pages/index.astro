@@ -33,7 +33,18 @@ const compacts = [...featured.slice(1), ...others]
 <BaseLayout title={SITE_NAME}>
   <!-- HERO -->
   <section class="hero" aria-labelledby="hero-title">
-    <div class="hero__band" aria-hidden="true"></div>
+    <div class="hero__band" aria-hidden="true">
+      <div class="hero__cluster hero__cluster--left">
+        <span class="hero__tile hero__tile--ink"></span>
+        <span class="hero__tile hero__tile--sage"></span>
+        <span class="hero__tile hero__tile--outline"></span>
+      </div>
+      <div class="hero__cluster hero__cluster--right">
+        <span class="hero__tile hero__tile--ink"></span>
+        <span class="hero__tile hero__tile--sage"></span>
+        <span class="hero__tile hero__tile--outline"></span>
+      </div>
+    </div>
 
     <div class="hero__type">
       <div class="container hero__grid">
@@ -206,19 +217,83 @@ const compacts = [...featured.slice(1), ...others]
     background-color: var(--color-bg-page);
   }
 
-  /* Full-bleed damero band, §5/§10. The tile is the same brand geometry the
-     placeholder uses (one geometry, repeated); no transform-based pattern.
-     The band runs the tile at 160px (40px cells) to match the density of the
-     validated screens; the photo placeholder keeps §7's 56px grid. */
+  /* Large, cropped squares replace the placeholder tile. Two edge clusters
+     leave a quiet canvas between them; §5 keeps type in its own zone below. */
   .hero__band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     max-width: var(--container-bleed);
     height: clamp(112px, 15vw, 200px);
     margin-inline: auto;
     background-color: var(--color-bg-page);
-    background-image: var(--pattern-damero-tile);
-    background-repeat: repeat;
-    background-size: 160px 160px;
     border-bottom: 1px solid var(--color-border-decorative);
+  }
+
+  .hero__cluster {
+    --tile-size: clamp(100px, 18vw, 260px);
+    position: absolute;
+    inset-block: 0;
+    width: var(--tile-size);
+    pointer-events: none;
+  }
+
+  .hero__cluster--left {
+    left: 0;
+  }
+
+  .hero__cluster--right {
+    right: 0;
+    transform: rotate(180deg);
+  }
+
+  .hero__tile {
+    position: absolute;
+    width: var(--tile-size);
+    aspect-ratio: 1;
+    transform: rotate(45deg);
+  }
+
+  .hero__tile--ink {
+    top: -65%;
+    left: -34%;
+    background-color: var(--color-bg-inverse);
+    opacity: 0.24;
+  }
+
+  .hero__tile--sage {
+    top: 26%;
+    left: 58%;
+    background-color: var(--color-graphic-accent);
+    opacity: 0.32;
+  }
+
+  .hero__tile--outline {
+    top: 70%;
+    left: -8%;
+    width: calc(var(--tile-size) * 0.42);
+    border: var(--space-1) solid var(--color-graphic-accent);
+    opacity: 0.48;
+  }
+
+  /* Opposite corners, not a mirrored ornament: the right cluster is quieter
+     and more open, echoing the empty five-column side of the type grid. */
+  .hero__cluster--right .hero__tile--ink {
+    top: -38%;
+    left: -58%;
+    background-color: var(--color-bg-subtle);
+    opacity: 1;
+  }
+
+  .hero__cluster--right .hero__tile--sage {
+    top: 46%;
+    left: 44%;
+  }
+
+  .hero__cluster--right .hero__tile--outline {
+    top: 10%;
+    left: 80%;
+    border-width: 1px;
   }
 
   .hero__type {

@@ -77,8 +77,15 @@ function isActive(href: string): boolean {
     </nav>
 
     <div class="site-header__actions">
+      {/*
+        Responsive label: the full screens-verbatim label fits down to 390px,
+        but wraps at 320px. Below 375px only `WhatsApp` shows (same href,
+        `display:none` keeps exactly one accessible name). Full text is
+        untouched everywhere else (DESIGN §16 verbatim).
+      */}
       <a class="site-header__whatsapp" href={WHATSAPP_URL_PENDING}>
-        Consultar por WhatsApp
+        <span class="site-header__whatsapp-full">Consultar por WhatsApp</span>
+        <span class="site-header__whatsapp-short">WhatsApp</span>
       </a>
 
       <button
@@ -235,6 +242,29 @@ function isActive(href: string): boolean {
 
   .site-header__whatsapp:hover {
     text-decoration-color: var(--color-text-accent);
+  }
+
+  /* Compact label, hidden except on narrow viewports (see below). */
+  .site-header__whatsapp-short {
+    display: none;
+    white-space: nowrap;
+  }
+
+  /*
+   * Below 375px the full label wraps to two lines in the 64px header and the
+   * shrunk-font alternative bottoms out at the §10 12px floor, so only the
+   * compact label shows. 375px is the cutoff because the full label still
+   * fits on one line at 376–389px. Hiding behind the menu is banned (§10),
+   * hence a shorter visible label instead of a removed one.
+   */
+  @media (max-width: 23.4375rem) {
+    .site-header__whatsapp-full {
+      display: none;
+    }
+
+    .site-header__whatsapp-short {
+      display: inline;
+    }
   }
 
   .site-nav {
