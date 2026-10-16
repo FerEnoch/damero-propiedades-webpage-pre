@@ -1,7 +1,7 @@
 ---
 /**
  * Search page `/propiedades` — docs/DESIGN.md §17.1, ODD §17 rulings
- * R1/R2/R9/R10/R14.
+ * R1/R2/R9/R14; all-visible listing update (2026-10-15).
  *
  * R1 — filtering is client-side over the DOM: every listing renders at build
  * and a plain script (no framework, no `client:*` directive) hides the
@@ -30,9 +30,9 @@
  * collection order (same criterion as index.astro). Price sorts are raw
  * numeric orderings of the rendered set — never a currency conversion.
  *
- * R10 — `Ver más propiedades` renders only when the collection has more than
- * 6 entries; with the current 4 listings it is omitted (a pagination promise
- * with no page behind it is fabricated data).
+ * Every matching listing is available immediately, with no fold or pagination.
+ * Native image lazy loading and CSS content visibility defer off-screen work
+ * without removing cards from the DOM or requiring JavaScript to reveal them.
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -109,10 +109,6 @@ const habitacionesOptions = habitacionesValues.map((n) => ({
 const monedaOptions = CURRENCIES.filter((currency) => priceDomains[currency] !== null).map(
   (currency) => ({ value: currency, label: currency }),
 );
-
-/** §17.1:623 — the first band shows at most 6 cards. */
-const FOLD_LIMIT = 6;
-const hasMore = entries.length > FOLD_LIMIT;
 
 const hasCochera = (cochera: boolean | number) =>
   cochera === true || (typeof cochera === 'number' && cochera > 0);
@@ -273,18 +269,6 @@ const hasCochera = (cochera: boolean | number) =>
             ))
           }
         </ul>
-
-        {
-          /* R10: rendered only when there are more than 6 results — with the
-             current 4 listings it is omitted entirely. */
-          hasMore && (
-            <div class="results-more" data-results-more hidden>
-              <Button variant="secondary" class="results-more__button">
-                Ver más propiedades
-              </Button>
-            </div>
-          )
-        }
       </div>
     </section>
 
@@ -361,7 +345,6 @@ const hasCochera = (cochera: boolean | number) =>
   const pageRoot = document.querySelector<HTMLElement>('[data-search-page]');
 
   if (pageRoot) {
-    const FOLD_LIMIT = 6;
     const domains = JSON.parse(pageRoot.dataset.priceDomains ?? '{}') as Record<
       string,
       [number, number] | null
@@ -375,7 +358,6 @@ const hasCochera = (cochera: boolean | number) =>
     const grid = document.querySelector<HTMLElement>('[data-results-grid]');
     const countEl = document.querySelector<HTMLElement>('[data-results-count]');
     const statusEl = document.querySelector<HTMLElement>('[data-results-status]');
-    const moreWrap = document.querySelector<HTMLElement>('[data-results-more]');
     const emptyWrap = document.querySelector<HTMLElement>('[data-empty-wrap]');
     const shareField = document.querySelector<HTMLElement>('[data-share-field]');
     const shareQuery = document.querySelector<HTMLElement>('[data-share-query]');
@@ -406,7 +388,6 @@ const hasCochera = (cochera: boolean | number) =>
       precioMax: number | null;
     }
 
-    let expanded = false;
     /** Guards against re-entrancy when control sync dispatches input events. */
     let syncing = false;
 
@@ -682,8 +663,7 @@ const hasCochera = (cochera: boolean | number) =>
       // DOM order follows visual order (§12).
       sorted.forEach((card) => grid?.appendChild(card));
 
-      const visible = expanded ? sorted : sorted.slice(0, FOLD_LIMIT);
-      const visibleSet = new Set(visible);
+      const visibleSet = new Set(sorted);
       cards.forEach((card) => {
         card.hidden = !visibleSet.has(card);
       });
@@ -703,7 +683,6 @@ const hasCochera = (cochera: boolean | number) =>
       const isEmpty = matching.length === 0;
       if (grid) grid.hidden = isEmpty;
       if (emptyWrap) emptyWrap.hidden = !isEmpty;
-      if (moreWrap) moreWrap.hidden = isEmpty || expanded || matching.length <= FOLD_LIMIT;
 
       renderChips(state);
       updateBadge(state);
@@ -751,7 +730,6 @@ const hasCochera = (cochera: boolean | number) =>
         } else {
           return;
         }
-        expanded = false;
         sync(state);
       });
 
@@ -776,7 +754,6 @@ const hasCochera = (cochera: boolean | number) =>
           state.precioMin = lo;
           state.precioMax = hi;
         }
-        expanded = false;
         sync(state);
       });
     }
@@ -803,7 +780,6 @@ const hasCochera = (cochera: boolean | number) =>
           state.precioMin = null;
           state.precioMax = null;
         } else return;
-        expanded = false;
         sync(state);
       });
     }
@@ -814,14 +790,8 @@ const hasCochera = (cochera: boolean | number) =>
       clear.addEventListener('click', (event) => {
         event.preventDefault();
         state = defaultState();
-        expanded = false;
         sync(state);
       });
-    });
-
-    document.querySelector('.results-more__button')?.addEventListener('click', () => {
-      expanded = true;
-      render(state);
     });
 
     // `Ordenar` is UI state, never a URL param (R2 lists exactly eight).
@@ -1129,12 +1099,13 @@ const hasCochera = (cochera: boolean | number) =>
     gap: var(--space-8);
   }
 
-  .results-more {
-    margin-top: var(--space-8);
-  }
-
-  .results-more :global(.results-more__button) {
-    width: 100%;
+  .results-grid__item {
+    content-visibility: auto;
+    /* Reserve only height; an inline fallback would widen the mobile grid.
+       auto remembers the measured compact-card height after first render. */
+    contain-intrinsic-size: auto none auto 28rem;
+    /* Keep card hover shadows and focus outlines outside the containment edge. */
+    overflow-clip-margin: var(--space-2);
   }
 
   /* ---- 8. Bottom sheet + scrim (§17.1:655-662) --------------------------- */
@@ -1324,10 +1295,6 @@ const hasCochera = (cochera: boolean | number) =>
 
     .results-grid {
       grid-template-columns: repeat(3, 1fr);
-    }
-
-    .results-more :global(.results-more__button) {
-      width: auto;
     }
   }
 

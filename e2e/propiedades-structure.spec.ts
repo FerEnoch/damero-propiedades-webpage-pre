@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { expectedSlugs, FOLD_LIMIT } from './helpers/content-expectations';
+import { expectedSlugs } from './helpers/content-expectations';
 
 /**
  * Search page structure and semantics (ODD §17 slice S2). Mirrors the landing
  * structure spec: route health, the §17.1 band order, landmarks, heading
- * levels, horizontal overflow, the never-2-up grid, R10's conditional `Ver más`,
+ * levels, horizontal overflow, the never-2-up grid, all-visible results,
  * and the PRD §9 coordinate ban. Selectors derive from the real markup:
  * top-level bands carry `data-band`, the grid carries `data-results-grid`.
  */
@@ -91,15 +91,85 @@ test('the results grid is 3 columns ≥ md, 1 below — never 2-up (§17.1:623)'
   }
 });
 
-test('R10: `Ver más propiedades` exists only when results exceed the fold', async ({ page }) => {
+test('every listing is available on entry without an expansion control', async ({ page }) => {
   await page.goto('/propiedades');
 
-  // Sync: index.astro:114-115,280-283 derives markup presence from collection size.
-  const hasMore = expectedSlugs().length > FOLD_LIMIT;
-  const more = page.getByRole('button', { name: 'Ver más propiedades', exact: true });
-  await expect(more).toHaveCount(hasMore ? 1 : 0);
-  if (hasMore) await expect(more).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Ver más propiedades' })).toHaveCount(0);
+  await expect(page.locator('[data-card]:not([hidden])')).toHaveCount(expectedSlugs().length);
+  await expect(page.getByRole('button', { name: 'Ver más propiedades', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Ver más propiedades', exact: true })).toHaveCount(0);
+  await expect(page.locator('[data-results-more]')).toHaveCount(0);
+});
+
+test('results defer off-screen rendering and retain native image lazy loading', async ({ page }) => {
+  test.skip(expectedSlugs().length === 0, 'The collection is empty; no card can be inspected.');
+  await page.goto('/propiedades');
+
+  const styles = await page.locator('[data-card]').evaluateAll((cards) =>
+    cards.map((card) => {
+      const style = getComputedStyle(card);
+      return {
+        visibility: style.contentVisibility,
+        intrinsicSize: style.containIntrinsicBlockSize,
+        intrinsicInlineSize: style.containIntrinsicInlineSize,
+      };
+    }),
+  );
+  for (const style of styles) {
+    expect(style.visibility).toBe('auto');
+    expect(style.intrinsicInlineSize).toBe('auto none');
+    expect(style.intrinsicSize).toMatch(/^auto (?!0px$)\d/);
+  }
+
+  const images = page.locator('[data-card] img');
+  for (const image of await images.all()) {
+    await expect(image).toHaveAttribute('loading', 'lazy');
+    await expect(image).toHaveAttribute('decoding', 'async');
+    expect(Number(await image.getAttribute('width'))).toBeGreaterThan(0);
+    expect(Number(await image.getAttribute('height'))).toBeGreaterThan(0);
+  }
+});
+
+test('revealing results while scrolling does not shift the visible layout', async ({ page }) => {
+  test.skip(expectedSlugs().length === 0, 'The collection is empty; no card can be revealed.');
+  await page.goto('/propiedades');
+
+  const shift = await page.evaluate(async () => {
+    await document.fonts.ready;
+    let total = 0;
+    const collect = (entries: PerformanceEntry[]) => {
+      for (const entry of entries) {
+        const shift = entry as PerformanceEntry & { hadRecentInput: boolean; value: number };
+        if (!shift.hadRecentInput) total += shift.value;
+      }
+    };
+    const observer = new PerformanceObserver((list) => collect(list.getEntries()));
+    observer.observe({ type: 'layout-shift' });
+    for (const card of document.querySelectorAll('[data-card]')) {
+      card.scrollIntoView({ block: 'center', behavior: 'instant' });
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+    }
+    collect(observer.takeRecords());
+    observer.disconnect();
+    return total;
+  });
+  expect(shift).toBe(0);
+});
+
+test.describe('without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('all listings remain available even with a filter URL', async ({ page }) => {
+    await page.goto('/propiedades?operacion=alquiler');
+
+    const total = expectedSlugs().length;
+    await expect(page.locator('[data-card]')).toHaveCount(total);
+    await expect(page.locator('[data-card]:visible')).toHaveCount(total);
+    await expect(page.locator('[data-results-count]')).toHaveText(`RESULTADOS · ${total}`);
+    await expect(page.getByRole('button', { name: 'Ver más propiedades', exact: true })).toHaveCount(0);
+    await expect(page.locator('[data-results-more]')).toHaveCount(0);
+  });
 });
 
 test('no numeric map coordinates render anywhere in the page (PRD §9)', async ({ page }) => {
