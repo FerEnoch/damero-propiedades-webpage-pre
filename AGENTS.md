@@ -5,14 +5,14 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
 
 ## Stack
 
-- **Astro 7.3.5** (sitio estático). **Sin framework de UI**: nada de React, Vue ni Svelte.
+- **Astro 7.4.0** (sitio estático). **Sin framework de UI**: nada de React, Vue ni Svelte.
   Los componentes son `.astro`; el JavaScript de cliente es la excepción, no la regla.
 - **CSS plano con tokens.** El único punto de verdad visual es `src/styles/tokens.css`,
   consumido por `global.css`. Nada de Tailwind ni de utilidades.
 - **Contenido**: Content Layer (`src/content.config.ts`) + colecciones en `src/content/propiedades/`.
   Los campos del schema están **en español** (`titulo`, `operacion`, `precio`, `moneda`, `zona`).
 - **TypeScript strict**: `astro/tsconfigs/strict`.
-- Node >= 22.12.0 · pnpm 12.4.2 · repo **single-package** (el sitio vive en la raíz).
+- Node >= 22.22.0 · pnpm 12.4.2 · repo **single-package** (el sitio vive en la raíz).
 
 ## Comandos
 
@@ -37,7 +37,7 @@ Un subagente **no hereda** la conversación del orquestador: si algo no está ac
    la descarga del browser la hace `playwright install`, no un postinstall.
 3. `minimumReleaseAge: 4320` (3 días) bloquea versiones recién publicadas.
    Sin excepciones activas: la autorizada el 2026-09-18 para `astro@7.3.3` se retiró
-   el 2026-09-30 (el pin es `astro@7.3.5`, publicado 2026-09-24, ya fuera de la cuarentena).
+   el 2026-09-30 (en esa fecha el pin era `astro@7.3.5`, publicado 2026-09-24, ya fuera de la cuarentena).
    Ojo: `pnpm view <pkg> version time.modified` **no** es la fecha de publicación.
    Usá `pnpm view <pkg>@<version> time --json` y leé el mapa por versión.
 4. `engineStrict: true` convierte `engines` en error de instalación.
