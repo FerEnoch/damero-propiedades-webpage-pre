@@ -9,7 +9,7 @@ moneda: "USD"
 habitaciones: 2
 cochera: false
 caracteristicas: ["terraza", "calefaccion", "patio"]
-zona: "Guadalupe"
+zona: "Barranquitas"
 localidad: "Santa Fe"
 # Ubicación exacta de la propiedad. Nunca se muestran como números.
 map_lat: -31.6278

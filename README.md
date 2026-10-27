@@ -59,6 +59,10 @@ decision).
 - The suite runs **against the production build**, never the dev server:
   `playwright.config.ts` declares `pnpm build && pnpm preview --port 4321` as
   its `webServer`, so the build is part of the acceptance gate.
+- Filtering probes derive selectable currencies and room thresholds from the
+  collection. Removing a currency's last listing must not require restoring
+  sample data: its shared URL still produces an empty state, while its control
+  and price pane are absent.
 - The browser is Playwright's bundled Chromium. Install it once with:
   `pnpm exec playwright install chromium`. On a clean Linux machine add
   `--with-deps`, otherwise Chromium's system libraries are missing at first
