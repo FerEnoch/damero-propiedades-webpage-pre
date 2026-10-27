@@ -26,7 +26,7 @@ fotos:
     titulo: "destacado"
   - src: "/propiedades/cayasta-7has/05-vista.webp"
     titulo: "en plano"
-destacada: true
+destacada: false
 ---
 
 Una oportunidad para invertir y desarrollar
