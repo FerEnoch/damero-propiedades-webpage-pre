@@ -26,7 +26,7 @@ fotos:
     titulo: "vista2-lote"
   - src: "/propiedades/lote-aires-700/05-vista.webp"
     titulo: "localizacion"
-destacada: true
+destacada: false
 ---
 
 Nuevos Aires Country Club | Lote perimetral de 700 m²
