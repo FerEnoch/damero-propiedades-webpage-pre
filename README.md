@@ -21,7 +21,7 @@ The site never fabricates content: any value that is still pending renders as
 
 ## Stack
 
-- **Astro 7.3.5**, static output. **No UI framework**: components are `.astro`
+- **Astro 7.4.0**, static output. **No UI framework**: components are `.astro`
   files and client-side JavaScript is the exception, not the rule.
 - **Plain CSS driven by design tokens** — the single source of visual truth is
   `src/styles/tokens.css`, consumed by `src/styles/global.css`. No Tailwind,
@@ -34,7 +34,8 @@ The site never fabricates content: any value that is still pending renders as
 
 ## Requirements
 
-- **Node `>=22.12.0`** (declared in `engines` and enforced at install time).
+- **Node `>=22.22.0`** (required by Astro 7.4, declared in `engines`, and
+  enforced at install time).
 - **pnpm** — the repo pins `packageManager: pnpm@12.4.2` in `package.json`.
   **Never use npm, never use yarn.**
 
