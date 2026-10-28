@@ -43,6 +43,7 @@ destacada: true
 
 Una casa interna con espacios funcionales y el plus de una amplia terraza, ideal para quienes buscan una propiedad con ambientes aprovechables y posibilidades de disfrutar el exterior.
 La propiedad cuenta con:
+
 - 2 habitaciones
 - 1 baño
 - Cocina/comedor equipada con campana y cocina
@@ -50,6 +51,7 @@ La propiedad cuenta con:
 - Ambiente adicional en planta alta
 - Amplia terraza
 - Aire acondicionado, calefacción y calefón
+
 La terraza y el ambiente en planta alta ofrecen un espacio extra con múltiples posibilidades de uso, ya sea como lugar de descanso, trabajo, guardado o para adaptar según las necesidades de cada familia. 
 Sucesorio en trámite - Se entrega con boleto compra venta y 60/70% del pago.   
 
