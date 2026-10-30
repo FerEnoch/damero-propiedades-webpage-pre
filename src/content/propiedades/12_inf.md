@@ -1,7 +1,7 @@
 ---
 titulo: "Casa en Guadalupe de 3 habitaciones"
 descripcion: "Casa de amplias dimensiones en Guadalupe Este"
-slug: "12_inf"
+slug: "casa-3-hab-guadalupe"
 operacion: "venta"
 tipo: "casa"
 precio: 160000
@@ -17,19 +17,19 @@ map_lon: -60.6662
 # Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 3424 727748"
 fotos:
-  - src: "/propiedades/12_inf/11.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/11.webp"
     titulo: "Fachada"
-  - src: "/propiedades/12_inf/12.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/12.webp"
     titulo: "Living_comedor"
-  - src: "/propiedades/12_inf/13.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/13.webp"
     titulo: "Cocina"
-  - src: "/propiedades/12_inf/14.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/14.webp"
     titulo: "Distribuidor_Baño"
-  - src: "/propiedades/12_inf/15.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/15.webp"
     titulo: "dormitorios"
-  - src: "/propiedades/12_inf/16.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/16.webp"
     titulo: "Cochera_galeria"
-  - src: "/propiedades/12_inf/17.webp"
+  - src: "/propiedades/casa-3-hab-guadalupe/17.webp"
     titulo: "patio_pileta"
 
 
