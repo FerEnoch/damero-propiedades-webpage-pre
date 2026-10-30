@@ -28,7 +28,7 @@ fotos:
   - src: "/propiedades/12_inf/15.webp"
     titulo: "dormitorios"
   - src: "/propiedades/12_inf/16.webp"
-    titulo: Cochera_galeria"
+    titulo: "Cochera_galeria"
   - src: "/propiedades/12_inf/17.webp"
     titulo: "patio_pileta"
 
