@@ -7,7 +7,7 @@ tipo: "casa"
 precio: 115000
 moneda: "USD"
 habitaciones: 3
-cochera: False
+cochera: false
 caracteristicas: ["patio", "gas", "cloacas"]
 zona: "Norte"
 localidad: "Santa Fe"

@@ -1,7 +1,7 @@
 ---
 titulo: "Casa estilo quinta excelente estado Villa California"
 descripcion: "Excepcional propiedad a 300m de R.1 sobre Calle del Sol, Villa California."
-slug: "calle_del_sol_2400_alq"
+slug: "calle_del_sol_2400_ven"
 operacion: "venta"
 tipo: "casa"
 precio: 170000
@@ -17,17 +17,17 @@ map_lon: -60.5900
 # Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
 whatsapp: "+54 9 3424 727748"
 fotos:
-  - src: "/propiedades/calle_del_sol_2400_alq/18.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/18.webp"
     titulo: "Fachada"
-  - src: "/propiedades/calle_del_sol_2400_alq/19.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/19.webp"
     titulo: "Tranquera"
-  - src: "/propiedades/calle_del_sol_2400_alq/20.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/20.webp"
     titulo: "Estar"
-  - src: "/propiedades/calle_del_sol_2400_alq/22.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/22.webp"
     titulo: "Dormitorios"
-  - src: "/propiedades/calle_del_sol_2400_alq/23.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/23.webp"
     titulo: "Living"
-  - src: "/propiedades/calle_del_sol_2400_alq/24.webp"
+  - src: "/propiedades/calle_del_sol_2400_ven/24.webp"
     titulo: "Patio"
 destacada: false
 ---

@@ -7,7 +7,7 @@ tipo: "casa"
 precio: 50000
 moneda: "USD"
 habitaciones: 2
-cochera: True
+cochera: true
 caracteristicas: ["patio", "pavimento", "cloacas"]
 zona: "Este"
 localidad: "Santo Tome"
