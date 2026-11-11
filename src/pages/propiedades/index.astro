@@ -42,7 +42,7 @@ import FilterChip from '../../components/FilterChip.astro';
 import FilterControls from '../../components/FilterControls.astro';
 import FilterSelect from '../../components/FilterSelect.astro';
 import PropertyCard from '../../components/PropertyCard.astro';
-import shareIcon from '../../icons/share.svg?raw';
+import ShareMenu from '../../components/ShareMenu.astro';
 
 const propiedades = await getCollection('propiedades');
 
@@ -219,10 +219,12 @@ const hasCochera = (cochera: boolean | number) =>
           <Button variant="secondary-tint" class="search-share__button">
             Copiar búsqueda
           </Button>
-          <Button variant="secondary-tint" class="search-share__button-share">
-            <span class="search-share__icon" set:html={shareIcon} />
-            Compartir
-          </Button>
+          <ShareMenu
+            variant="strip"
+            title="Búsqueda de propiedades"
+            text="Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: "
+            id="search-share"
+          />
         </div>
         <p class="visually-hidden" role="status" data-share-status></p>
       </div>
@@ -814,23 +816,6 @@ const hasCochera = (cochera: boolean | number) =>
       }
     });
 
-    document.querySelector('.search-share__button-share')?.addEventListener('click', async () => {
-      try {
-        if (typeof navigator.share === 'function') {
-          await navigator.share({
-            title: document.title,
-            text: 'Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: ',
-            url: window.location.href,
-          });
-        } else {
-          await navigator.clipboard.writeText(window.location.href);
-          if (shareStatus) shareStatus.textContent = 'Enlace copiado al portapapeles';
-        }
-      } catch {
-        // Cancellation or unavailable sharing/clipboard: stay silent, claim nothing.
-      }
-    });
-
     // ---- Bottom sheet (R14 dialog semantics) ----------------------------
     let previousFocus: Element | null = null;
 
@@ -1062,16 +1047,6 @@ const hasCochera = (cochera: boolean | number) =>
   }
 
   .search-share__action :global(.search-share__button) {
-    flex: none;
-  }
-
-  .search-share__action :global(.search-share__button-share) {
-    flex: none;
-    gap: var(--space-2);
-  }
-
-  .search-share__icon {
-    display: inline-flex;
     flex: none;
   }
 

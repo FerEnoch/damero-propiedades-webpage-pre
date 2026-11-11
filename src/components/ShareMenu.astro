@@ -1,0 +1,268 @@
+---
+import shareNodes from '../icons/share-nodes.svg?raw';
+
+interface Props {
+  title: string;
+  text: string;
+  variant: 'panel' | 'strip';
+  class?: string;
+  id: string;
+}
+
+const { title, text, variant, class: className, id } = Astro.props;
+const channels = ['WhatsApp', 'Telegram', 'Email'];
+---
+
+<div class:list={['share-menu', `share-menu--${variant}`, className]} data-share-menu data-title={title} data-text={text}>
+  <div class="share-menu__control">
+    {/* Button.astro styles are scoped to its own component, so its secondary
+        metrics are replicated here alongside the real disclosure state. */}
+    <button
+      type="button"
+      class="share-menu__trigger"
+      id={`${id}-trigger`}
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-controls={`${id}-menu`}
+    >
+      <Fragment set:html={shareNodes} />
+      Compartir
+    </button>
+    <div class="share-menu__panel" hidden>
+      <div id={`${id}-menu`} role="menu" aria-labelledby={`${id}-trigger`}>
+        {channels.map((channel) => (
+          <a
+            href="#"
+            role="menuitem"
+            data-share-channel={channel}
+            target={channel === 'Email' ? undefined : '_blank'}
+            rel={channel === 'Email' ? undefined : 'noopener noreferrer'}
+          >{channel}</a>
+        ))}
+        <button type="button" role="menuitem" data-share-channel="Copiar enlace">Copiar enlace</button>
+      </div>
+      <p class="share-menu__url" data-share-url></p>
+      <p
+        class="share-menu__status"
+        role="status"
+        aria-live="polite"
+        data-share-status-menu
+      ></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { buildShareLinks, copyToClipboard } from '../lib/share';
+
+  document.querySelectorAll<HTMLElement>('[data-share-menu]').forEach((root) => {
+    const trigger = root.querySelector<HTMLButtonElement>('.share-menu__trigger')!;
+    const panel = root.querySelector<HTMLElement>('.share-menu__panel')!;
+    const status = root.querySelector<HTMLElement>('.share-menu__status')!;
+    const plainUrl = root.querySelector<HTMLElement>('[data-share-url]')!;
+    const actions = Array.from(panel.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('[role="menuitem"]'));
+    const title = root.dataset.title ?? '';
+    const text = root.dataset.text ?? '';
+    let url = '';
+    let sharing = false;
+
+    const positionPanel = () => {
+      if (panel.hidden) return;
+      // Measure the visible panel at its natural height, including current feedback.
+      panel.style.maxHeight = '';
+      const height = panel.offsetHeight;
+      const gap = parseFloat(getComputedStyle(root).getPropertyValue('--space-2'));
+      const bounds = trigger.getBoundingClientRect();
+      // The detail page's mobile CTA must not cover the floating panel.
+      const stickyHeight = document.querySelector<HTMLElement>('.whatsapp-sticky')?.offsetHeight ?? 0;
+      const below = Math.max(0, window.innerHeight - stickyHeight - bounds.bottom - gap);
+      let viewportTop = 0;
+      document.querySelectorAll<HTMLElement>('.site-header, .mobile-bar').forEach((bar) => {
+        const style = getComputedStyle(bar);
+        const rect = bar.getBoundingClientRect();
+        if (style.position === 'sticky' && rect.top <= parseFloat(style.top) + 1) {
+          viewportTop = Math.max(viewportTop, rect.bottom);
+        }
+      });
+      const above = Math.max(0, bounds.top - viewportTop - gap);
+      const up = height > below;
+      panel.classList.toggle('share-menu__panel--up', up);
+      // Long URLs, zoom or small windows may leave neither side tall enough.
+      panel.style.maxHeight = `${up ? above : below}px`;
+    };
+
+    const close = () => {
+      panel.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+    const open = () => {
+      // Filters update history in-place: capture the live URL at disclosure time.
+      url = window.location.href;
+      plainUrl.textContent = url;
+      const links = buildShareLinks(title, text, url);
+      actions.forEach((action) => {
+        const channel = action.dataset.shareChannel as keyof typeof links;
+        if (action instanceof HTMLAnchorElement && channel in links) action.href = links[channel];
+      });
+      panel.hidden = false;
+      positionPanel();
+      trigger.setAttribute('aria-expanded', 'true');
+      actions[0].focus({ preventScroll: true });
+    };
+
+    trigger.addEventListener('click', async () => {
+      if (!panel.hidden) { close(); return; }
+      if (sharing) return;
+      if (typeof navigator.share === 'function') {
+        sharing = true;
+        try {
+          await navigator.share({ title, text, url: window.location.href });
+          return;
+        } catch (error) {
+          // Cancellation is not a request to copy or change existing feedback.
+          if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') return;
+        } finally {
+          sharing = false;
+        }
+      }
+      open();
+    });
+
+    actions.forEach((action) => action.addEventListener('click', async (event) => {
+      if (action instanceof HTMLAnchorElement) {
+        // Never navigate to the inert server-rendered placeholder.
+        if (action.getAttribute('href') === '#') event.preventDefault();
+        return;
+      }
+      const copied = await copyToClipboard(url);
+      status.textContent = copied
+        ? 'Enlace copiado al portapapeles'
+        : 'No se pudo copiar: seleccioná el enlace y copialo';
+      positionPanel();
+      // Keep feedback readable even when neither side fits the full panel.
+      panel.scrollTop = panel.scrollHeight;
+    }));
+
+    window.addEventListener('resize', positionPanel);
+    window.addEventListener('scroll', positionPanel, { passive: true });
+
+    document.addEventListener('click', (event) => {
+      if (event.target instanceof Node && !root.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (panel.hidden) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        trigger.focus();
+      }
+    });
+    panel.addEventListener('keydown', (event) => {
+      const index = actions.indexOf(document.activeElement as HTMLAnchorElement | HTMLButtonElement);
+      let next: number;
+      if (event.key === 'ArrowDown') next = (index + 1) % actions.length;
+      else if (event.key === 'ArrowUp') next = (index - 1 + actions.length) % actions.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = actions.length - 1;
+      else return;
+      event.preventDefault();
+      actions[next].focus();
+    });
+    // Dismiss only on outside click, Escape or trigger toggle. A focusout
+    // listener would also dismiss during legacy copy's temporary focus transfer.
+  });
+</script>
+
+<style>
+  .share-menu { min-width: 0; }
+
+  .share-menu--panel { margin-top: var(--space-3); }
+  .share-menu--strip { flex: none; }
+  .share-menu__control { position: relative; min-width: 0; }
+
+  .share-menu__trigger {
+    display: inline-flex;
+    vertical-align: top;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 48px;
+    padding-inline: var(--space-6);
+    border: 1px solid var(--color-border-interactive);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.004em;
+    cursor: pointer;
+  }
+  .share-menu--panel .share-menu__trigger { width: 100%; }
+  .share-menu__trigger:hover { background-color: var(--color-bg-subtle); }
+  .share-menu--strip .share-menu__trigger { border-color: var(--color-text-primary); }
+  .share-menu--strip .share-menu__trigger:hover { background-color: var(--color-bg-surface); }
+
+  .share-menu__panel {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    z-index: 30;
+    width: max(100%, 220px);
+    overflow-y: auto;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-decorative);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-surface);
+    box-shadow: var(--shadow-md);
+  }
+  .share-menu__panel[hidden] { display: none; }
+  .share-menu__panel--up {
+    top: auto;
+    bottom: calc(100% + var(--space-2));
+  }
+  .share-menu__panel [role="menuitem"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .share-menu__panel [role="menuitem"]:hover { background-color: var(--color-bg-subtle); }
+  .share-menu__url {
+    margin: var(--space-2) var(--space-3);
+    overflow-wrap: anywhere;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+    user-select: text;
+  }
+  .share-menu__status {
+    margin: var(--space-2) var(--space-3);
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    color: var(--color-text-secondary);
+  }
+  .share-menu__status:empty { margin: 0; }
+
+  @media (max-width: 767.98px) {
+    .share-menu--panel { margin-top: 0; }
+    .share-menu--strip { flex: 1 1 100%; }
+    .share-menu__panel { left: 0; right: 0; width: auto; }
+  }
+  @media (min-width: 768px) {
+    .share-menu__trigger { min-height: 52px; }
+  }
+</style>
