@@ -137,7 +137,7 @@ Ninguno bloquea el build ni el deploy: bloquean el **lanzamiento**.
 | B4 | Nombre legal del corredor | **Abierto.** Brief: "Alejandro" · sitio fase 1: "Alejando". Requiere confirmación humana. |
 | B5 | Tinte `#C3CDB8` del logo knockout | **Abierto.** Percepción visual, no verificable por código. |
 | B6 | Prefijo `icon-` en los nombres de archivo | ✅ **Cerrado (2026-09-22):** en uso consistente en todo `src/icons/`. |
-| B7 | `icon-handshake.svg` a 44 px | **Abierto.** Punto débil declarado del set. Revisión visual. |
+| B7 | `icon-handshake.svg` a 44 px | ✅ **Cerrado (2026-11-11):** stakeholder eligió rediseñar Negociación y Asesoramiento legal; glifos implementados. Registro: [damero-service-icon-redesign.md](damero-service-icon-redesign.md). |
 | B8 | Métricas / prueba social en la landing | **Abierto.** No se inventó ninguna; sólo si el stakeholder las quiere. |
 
 > Backlog de trabajo por bloqueante (contexto, archivos exactos y verificación): `odd/tasks/damero-launch-blockers.md`.

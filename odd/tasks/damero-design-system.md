@@ -64,7 +64,7 @@
 ## Artefactos locales
 
 - **Revisión del stakeholder:** `design/screens/` — `index.html` (galería navegable, CSS inline, rutas relativas: funciona copiada a otro host), 8 PNG full-page, 8 HTML exportados y `README.md`. **Los PNG son renders con Chrome headless del HTML exportado, no del canvas de Stitch** (el mapa se ve como stand-in: MapLibre no carga tiles en headless).
-- **Íconos de servicios:** `public/icons/services/icon-{appraisal,megaphone,handshake,pen-seal,documents,keys,camera,target}.svg` — **6.550 B total** (vs. 4,4 MB de los PNG viejos, ≈ −99,85%).
+- **Íconos de servicios:** `public/icons/services/icon-{appraisal,megaphone,handshake,pen-seal,documents,keys,camera,target}.svg` — **6.550 B total** (vs. 4,4 MB de los PNG viejos, ≈ −99,85%). **Actualización (2026-11-11):** inventario anterior conservado como registro de esta fase; en `src/icons/services/`, `icon-pen-seal.svg` pasó a `icon-shield-check.svg` y `icon-handshake.svg` fue rediseñado. Registro: [damero-service-icon-redesign.md](damero-service-icon-redesign.md).
 - **Logo knockout:** `img/png/damero_logo_white.png` (33 KB) + `img/damero_logo_white.svg` (34,7 KB, trazado automático).
 - **Fuera de alcance de T6:** `house.png` y `search_house.png` no eran íconos de servicio, sino los dos glifos de UI (`icon-house.svg` empty-state, `icon-search-house.svg` buscador). Quedan como T8.
 
@@ -109,7 +109,7 @@
 - **Nombre del corredor — SIGUE ABIERTO (2026-09-22):** el sitio de fase 1 dice "Luis Alej**ando** Da Silva" y el brief dice "Luis Alej**andro**". El build usa "Alejandro" (§6), pero el sitio viejo es copy del cliente: **no se resuelve por contrato**, lo confirma una persona.
 - **Revisar la sección de FAQ de la landing de fase 1:** Stitch redactó 2 respuestas inventadas, con preguntas que no son las 6 semilla del PRD §8. Contradice el bloqueante de lanzamiento.
 - **Métricas / prueba social reales** si las quiere en la landing (no se inventó ninguna).
-- **Revisar `icon-handshake.svg` a 44 px** — es el punto débil del set (a 24 px con stroke 1,5 entran pocos trazos paralelos; son los dedos los que hacen reconocible un apretón de manos).
+- ~~**Revisar `icon-handshake.svg` a 44 px** — es el punto débil del set (a 24 px con stroke 1,5 entran pocos trazos paralelos; son los dedos los que hacen reconocible un apretón de manos).~~ — **CERRADO (2026-11-11):** el stakeholder eligió reelaborar ambos: apretón basado en Lucide para Negociación y escudo con check para Asesoramiento legal. Glifos de 28px mobile / 30px desktop en badge de 48px; B7 cerrado. Registro: [damero-service-icon-redesign.md](damero-service-icon-redesign.md).
 - **Confirmar el tinte `#C3CDB8`** del rombo sage en el logo knockout: ¿punto justo de claridad, o más claro / más verde?
 - ~~**Confirmar el prefijo `icon-`** en los nombres de archivo~~ — **CERRADO (2026-09-22):** en uso consistente en todo `src/icons/` (`icon-house.svg`). Si se prefiere sin prefijo, es un rename mecánico.
 

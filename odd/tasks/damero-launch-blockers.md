@@ -113,22 +113,22 @@
 
 ### B7 — `icon-handshake.svg` a 44 px
 
-**Qué falta:** revisión visual del ícono "Negociación" (manos estrechadas), declarado punto débil del set: a 24 px con stroke 1,5 entran pocos trazos paralelos y son los dedos los que hacen reconocible un apretón de manos. Decisión: se deja como está o se rediseña.
+**Qué falta:** revisión visual del ícono "Negociación" (manos estrechadas), declarado punto débil del set: a 24 px con stroke 1,5 entran pocos trazos paralelos y son los dedos los que hacen reconocible un apretón de manos. Decisión original: se deja como está o se rediseña. **Resuelto (2026-11-11):** el stakeholder eligió rediseñar Negociación y Asesoramiento legal.
 
-**Quién decide:** stakeholder (revisión visual).
+**Quién decide:** stakeholder (revisión visual completada).
 
 **Dónde impacta:**
-- `src/icons/services/icon-handshake.svg:1` — el asset (viewBox `0 0 24 24`; trazos `stroke-width="1.5"` desde `:4`).
-- `src/components/ServiceIcon.astro:16` — import del SVG; `:26` — mapa del nombre.
-- `src/components/ServiceIcon.astro:48` — tamaño de render: `width="24" height="24"`; CSS 24 px en `:58`.
-- `src/pages/index.astro:293` — badge host de 44 px (`.services__badge`; comentario "44px square" en `:287`).
-- `docs/DESIGN.md:251` — el badge de 44 px del contrato (§5).
-- `odd/tasks/damero-design-system.md:112` — el abierto ("Revisar `icon-handshake.svg` a 44 px").
-- Nota de contexto: el ícono se renderiza a **24 px dentro** del badge de **44 px**; el abierto está registrado "a 44 px". La escala que se revisa la define el stakeholder.
+- `src/icons/services/icon-handshake.svg` — apretón de manos basado en Lucide, con acento en la palma cercana.
+- `src/icons/services/icon-shield-check.svg` — escudo con check; reemplaza `icon-pen-seal.svg` para Asesoramiento legal.
+- `src/components/ServiceIcon.astro` — import `iconShieldCheck` y mapa `icon-shield-check`; conserva `icon-handshake`.
+- `src/data/landing.ts` — union type `ServiceIconName` y entrada de "Asesoramiento legal" actualizados a `icon-shield-check`.
+- Contexto vigente (`docs/DESIGN.md` §5 y §8): glifos de **28px mobile / 30px desktop** dentro de un badge cuadrado de **48px**. El título conserva la escala histórica del abierto.
 
-**Verificación:** el stakeholder ve el ícono en contexto (landing `/`, banda SERVICIOS) y decide. Si se rediseña: mismo tratamiento duotono (masa sage + trazo `currentColor`, excepción documentada en `docs/DESIGN.md:525`) y `pnpm test:e2e` en verde.
+**Verificación:** el stakeholder revisó propuestas renderizadas a **24 / 28 / 30px** en el canvas `design/service-icon-redesign/` y eligió el rediseño (propuesta A para ambos servicios). Los nuevos glifos están implementados con el duotono del contrato; `pnpm test:e2e` en verde: **459 passed / 21 skipped / 0 failed**.
 
-**Estado:** Abierto
+**Registro completo:** [Rediseño de los íconos de servicios ilegibles](damero-service-icon-redesign.md) (`odd/tasks/damero-service-icon-redesign.md`), con elecciones, diagnóstico, atribución y evidencia.
+
+**Estado:** Cerrado (2026-11-11)
 
 ### B8 — Métricas / prueba social en la landing
 
