@@ -709,6 +709,7 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 - Left: eyebrow `BÚSQUEDA COMPARTIBLE` in `--text-label-sm` mono.
 - Right: a read-only field — `--color-bg-surface`, `1px solid --color-border-hairline`, `--radius-sm` — containing the query string in `--text-body-sm` mono, truncated so the **params stay visible**.
 - Action: `Copiar búsqueda` as a **secondary** button. Never primary.
+- **Copy confirmation.** The action confirms in place: the label becomes `✓ Copiado` for 2.4s and then reverts. It never turns primary and never resizes — every label shares one grid cell, so the band does not reflow. A refused clipboard shows `No copiado` and announces the failure instead of claiming success.
 - **Why this exists:** the filter state lives in the URL (PRD §5). This strip is the only place the URL appears as content, and it is the visible proof that a search is linkable. It is functional, not decorative — do not replace it with an icon-only share affordance.
 
 **Collapsed filter pattern (mobile < `md`) — the critical mobile decision.**

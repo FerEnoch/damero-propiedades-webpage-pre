@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
     Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: ShareData) => {
       window.searchShares.push(data);
     } });
-    Object.defineProperty(navigator, 'clipboard', { value: {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
       writeText: async (text: string) => { window.searchWrites.push(text); },
     } });
   });
@@ -98,4 +98,56 @@ test('reopening reads changed filters and prepares encoded channel destinations 
   await expect(page).toHaveURL(url);
   expect(await page.evaluate(() => window.searchWrites)).toEqual([url]);
   await expect(page.locator('[data-share-status]')).toHaveText('');
+});
+
+test('the copy action confirms in the button itself, without resizing it', async ({ page }) => {
+  await page.goto('/propiedades?operacion=venta');
+  const copy = page.getByRole('button', { name: 'Copiar búsqueda', exact: true });
+  await expect(copy).toBeVisible();
+
+  const widthBefore = (await copy.boundingBox())!.width;
+  const heightBefore = (await copy.boundingBox())!.height;
+
+  await copy.click();
+
+  // The control confirms the copy where the user's finger already is.
+  const confirmed = page.getByRole('button', { name: 'Copiado', exact: true });
+  await expect(confirmed).toBeVisible();
+  await expect(confirmed.locator('svg')).toHaveCount(1);
+  // While confirming, the resting label leaves the accessible name: the name
+  // always matches the label the control is actually showing (WCAG 2.5.3).
+  await expect(page.getByRole('button', { name: 'Copiar búsqueda', exact: true })).toHaveCount(0);
+
+  // The confirmation replaces the label in place: the band must not shift.
+  const widthAfter = (await confirmed.boundingBox())!.width;
+  const heightAfter = (await confirmed.boundingBox())!.height;
+  expect(Math.round(widthAfter)).toBe(Math.round(widthBefore));
+  expect(Math.round(heightAfter)).toBe(Math.round(heightBefore));
+
+  // The screen-reader status still carries the full sentence.
+  await expect(page.locator('[data-share-status]')).toHaveText(COPIED);
+
+  // And the control returns to its resting label on its own.
+  await expect(page.getByRole('button', { name: 'Copiar búsqueda', exact: true })).toBeVisible();
+});
+
+test('a refused clipboard never claims the link was copied', async ({ page }) => {
+  await page.goto('/propiedades?operacion=venta');
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async () => { throw new Error('Permission denied'); } },
+    });
+  });
+
+  const copy = page.getByRole('button', { name: 'Copiar búsqueda', exact: true });
+  await copy.click();
+
+  // No false confirmation, in the button or in the live region.
+  await expect(page.getByRole('button', { name: 'Copiado', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'No copiado', exact: true })).toBeVisible();
+  await expect(page.locator('[data-share-status]')).not.toHaveText(COPIED);
+  await expect(page.locator('[data-share-status]')).toHaveText(
+    'No se pudo copiar: seleccioná el enlace y copialo',
+  );
 });
