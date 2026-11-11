@@ -29,14 +29,18 @@
 
 ## Tareas
 
-Implementación y decisiones completadas; el commit todavía no fue creado. T1–T6 integran la misma unidad prevista: `feat(landing): redesign negotiation and legal service glyphs`.
+Implementación y decisiones completadas. Los commits que cierran cada tarea:
 
-- [x] **T1 — S1, S2, S4, S5, S6:** diagnóstico del set y propuestas en el canvas → `design/service-icon-redesign/`, artboards `01-diagnosis.html`, `02-negociacion.html` y `03-asesoramiento-legal.html` (con `design.json` y `comments.json`); commit: pending (misma unidad prevista).
-- [x] **T2 — S1, S2, S4, S5:** `src/icons/services/icon-handshake.svg` reconstruido sobre la geometría de Lucide, adaptada al duotono; commit: pending (misma unidad prevista).
-- [x] **T3 — S1, S2, S4, S6:** `src/icons/services/icon-pen-seal.svg` → `src/icons/services/icon-shield-check.svg`, escudo con check; commit: pending (misma unidad prevista).
-- [x] **T4 — S1, S6:** import y mapa de `src/components/ServiceIcon.astro`, union type `ServiceIconName` y servicio en `src/data/landing.ts` actualizados al nuevo nombre; commit: pending (misma unidad prevista).
-- [x] **T5 — S2, S3, S5, S6:** `docs/DESIGN.md` §5 y §8 actualizados: badge de 48px, glifos de 28/30px, tabla y “Glyph legibility budget”; commit: pending (misma unidad prevista).
-- [x] **T6 — S2, S5, S6:** cierre de B7 en `odd/tasks/damero-launch-blockers.md` y sus referencias en release prep y sistema visual; commit: pending (misma unidad prevista).
+- `137246d` — `feat(landing): redesign negotiation and legal service glyphs` (T1–T4: glifos, referencias y el spec e2e que protege el contrato duotono).
+- `863ae14` — `docs(design): record the service icon redesign and sync the design system` (T1, T5).
+- `04e0f9b` — `docs(odd): close the icon-handshake blocker and record the redesign` (T6).
+
+- [x] **T1 — S1, S2, S4, S5, S6:** diagnóstico del set y propuestas en el canvas → `design/service-icon-redesign/`, artboards `01-diagnosis.html`, `02-negociacion.html` y `03-asesoramiento-legal.html` (con `design.json` y `comments.json`); commits `863ae14` y `137246d`.
+- [x] **T2 — S1, S2, S4, S5:** `src/icons/services/icon-handshake.svg` reconstruido sobre la geometría de Lucide, adaptada al duotono; commit `137246d`.
+- [x] **T3 — S1, S2, S4, S6:** `src/icons/services/icon-pen-seal.svg` → `src/icons/services/icon-shield-check.svg`, escudo con check; commit `137246d`.
+- [x] **T4 — S1, S6:** import y mapa de `src/components/ServiceIcon.astro`, union type `ServiceIconName` y servicio en `src/data/landing.ts` actualizados al nuevo nombre; commit `137246d`.
+- [x] **T5 — S2, S3, S5, S6:** `docs/DESIGN.md` §5 y §8 actualizados: badge de 48px, glifos de 28/30px, tabla y “Glyph legibility budget”; commits `863ae14` y `137246d`.
+- [x] **T6 — S2, S5, S6:** cierre de B7 en `odd/tasks/damero-launch-blockers.md` y sus referencias en release prep y sistema visual; commit `04e0f9b`.
 
 ## Restricciones
 
