@@ -202,9 +202,11 @@ Notas importantes:
 - **`map_lat` y `map_lon` son la ubicación exacta de la propiedad.**
   No se muestran nunca como números: solo se usan para dibujar el círculo
   de referencia de 100 m de la zona.
-- **`whatsapp`**: mientras el responsable no entregue el número real, dejá el
-  mismo valor de relleno que usan las propiedades existentes
-  (`"+54 9 2304 000000"`). No inventes un número real.
+- **`whatsapp`**: el WhatsApp de contacto de **esta propiedad**. Puede ser el
+  de la inmobiliaria (`"+54 9 342 4727748"`) o el del gestor asignado, a
+  criterio interno — lo que no cambia es que esté **siempre completo**. Si el
+  campo falta o trae un valor viejo de relleno, la consulta cae al número
+  general de la inmobiliaria. No inventes un número.
 
 ### `descripcion` y el texto de abajo: no son lo mismo
 
@@ -240,8 +242,8 @@ localidad: "Santa Fe"
 # Ubicación exacta de la propiedad. Nunca se muestran como números.
 map_lat: -31.6375
 map_lon: -60.6873
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
-whatsapp: "+54 9 2304 000000"
+# Contacto de ESTA propiedad: el de la inmobiliaria o el del gestor asignado, a criterio interno. Siempre completo.
+whatsapp: "+54 9 342 4727748"
 fotos:
   - src: "/propiedades/casa-3-amb-guadalupe-santa-fe/01-fachada.webp"
     titulo: "Fachada"

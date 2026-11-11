@@ -9,21 +9,26 @@
  * the message carrying the listing title and slug. `wa.me` requires digits
  * only, so the display-formatted number is normalised before use.
  *
- * R11: the href stays INERT until the stakeholder supplies the real number.
- * While the frontmatter carries the pending placeholder (or nothing), the
- * resolver returns the same inert anchor the landing uses
- * (`WHATSAPP_URL_PENDING`) — a `wa.me` URL is never shipped pointing at the
- * placeholder, because it could resolve to a stranger's number. Activating
- * every CTA is then a content change, not a code change.
+ * R11: a `wa.me` URL never ships pointing at the retired placeholder. Now
+ * that the stakeholder has supplied the production number, listings whose
+ * frontmatter is absent or still carries the old obvious placeholder fall
+ * back to the site-level production link (`WHATSAPP_URL`) instead of an
+ * inert anchor — because the placeholder could resolve to a stranger's
+ * number. Activating every CTA is then a content change, not a code change.
  */
-import { WHATSAPP_NUMBER_PENDING, WHATSAPP_URL_PENDING } from '../data/site';
+import { WHATSAPP_URL } from '../data/site';
 
-/** The pending placeholder, normalised the same way real numbers are. */
-const PENDING_WHATSAPP_DIGITS = WHATSAPP_NUMBER_PENDING.replace(/\D/g, '');
+/**
+ * Retired obvious placeholder (docs/DESIGN.md §17.4), digits-normalised the
+ * same way real numbers are. Frozen here — never derived from site data — so
+ * a stale frontmatter value resolves to the site link, never to a stranger's
+ * number.
+ */
+const RETIRED_PLACEHOLDER_DIGITS = '5492304000000';
 
 /**
  * Build the PRD §6 deep-link for a real, already verified number.
- * Never call this with the pending placeholder — use `resolveWhatsAppHref`.
+ * Never call this with the retired placeholder — use `resolveWhatsAppHref`.
  */
 export function buildWhatsAppUrl(whatsapp: string, titulo: string, slug: string): string {
   const digits = whatsapp.replace(/\D/g, '');
@@ -32,11 +37,11 @@ export function buildWhatsAppUrl(whatsapp: string, titulo: string, slug: string)
 }
 
 /**
- * Resolve the href a CTA should render. Returns the inert pending anchor
- * while the number is absent or still the stakeholder placeholder.
+ * Resolve the href a CTA should render. Returns the per-listing `wa.me`
+ * deep-link for a real number, otherwise the site-level production link.
  *
- * `titulo`/`slug` default to empty because the href is inert anyway until the
- * real number exists; the per-listing context is wired by the detail page
+ * `titulo`/`slug` default to empty because a fallback href carries no
+ * prefilled message; the per-listing context is wired by the detail page
  * (S3) when it renders the CTA for a specific property.
  */
 export function resolveWhatsAppHref(
@@ -44,8 +49,8 @@ export function resolveWhatsAppHref(
   titulo = '',
   slug = '',
 ): string {
-  if (!whatsapp) return WHATSAPP_URL_PENDING;
+  if (!whatsapp) return WHATSAPP_URL;
   const digits = whatsapp.replace(/\D/g, '');
-  if (digits === '' || digits === PENDING_WHATSAPP_DIGITS) return WHATSAPP_URL_PENDING;
+  if (digits === '' || digits === RETIRED_PLACEHOLDER_DIGITS) return WHATSAPP_URL;
   return buildWhatsAppUrl(digits, titulo, slug);
 }

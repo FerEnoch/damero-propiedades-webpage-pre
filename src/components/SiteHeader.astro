@@ -4,7 +4,7 @@ import {
   BRAND_WORDMARK_TRAIL,
   NAV_ROUTES,
   SITE_NAME,
-  WHATSAPP_URL_PENDING,
+  WHATSAPP_URL,
 } from '../data/site';
 
 // Normalise `/propiedades/` to `/propiedades` so the active indicator does not
@@ -83,7 +83,7 @@ function isActive(href: string): boolean {
         `display:none` keeps exactly one accessible name). Full text is
         untouched everywhere else (DESIGN §16 verbatim).
       */}
-      <a class="site-header__whatsapp" href={WHATSAPP_URL_PENDING}>
+      <a class="site-header__whatsapp" href={WHATSAPP_URL}>
         <span class="site-header__whatsapp-full">Consultar por WhatsApp</span>
         <span class="site-header__whatsapp-short">WhatsApp</span>
       </a>

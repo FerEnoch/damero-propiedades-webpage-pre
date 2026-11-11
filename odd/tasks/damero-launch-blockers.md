@@ -52,7 +52,9 @@
 
 **Verificación:** número y href reales en `src/data/site.ts` (y frontmatter de listings si corresponde); specs que hoy assertan `#whatsapp-pendiente` actualizadas; grep sobre `dist/`: 0 `#whatsapp-pendiente` y 0 `2304 000000`; `pnpm test:e2e` en verde.
 
-**Estado:** Abierto
+**Activación (2026-11-11):** el stakeholder entrega `+54 9 342 4727748` → `WHATSAPP_URL = https://wa.me/5493424727748` y `WHATSAPP_NUMBER` en `src/data/site.ts` (sufijo `_PENDING` retirado); `resolveWhatsAppHref` con guardia congelada del placeholder retirado; espejo actualizado en `e2e/helpers/content-expectations.ts` y R11 en `e2e/faqs-content.spec.ts`. Los 11 frontmatter ya traían dígitos reales. `dist/`: 0 `#whatsapp-pendiente`, 0 `2304`; gate en verde en `feat/whatsapp-production-number`.
+
+**Estado:** Cerrado (2026-11-11)
 
 ### B3 — CCI / matrícula del corredor
 
@@ -69,7 +71,9 @@
 
 **Verificación:** `LEGAL_LINES` con el número real; spec del bloque legal actualizada; grep de `CCI 000` en `src/` y `e2e/` = 0; `pnpm test:e2e` en verde.
 
-**Estado:** Abierto
+**Activación (2026-11-11):** el stakeholder entrega matrícula `677` → `LEGAL_LINES` con `CCI 677`; spec `e2e/faqs-content.spec.ts` actualizada. `docs/DESIGN.md:342` y las pantallas conservan `CCI 000` como placeholder del contrato (divergencia conocida, no silenciosa: el contrato documenta el pre-lanzamiento; el sitio lleva el dato de producción).
+
+**Estado:** Cerrado (2026-11-11)
 
 ### B4 — Nombre legal del corredor ("Alejandro" vs "Alejando")
 

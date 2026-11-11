@@ -18,9 +18,10 @@
  * current seeds they are unreachable (same untestable-by-design status as
  * R13).
  *
- * R11 — every WhatsApp href comes from `resolveWhatsAppHref` and stays the
- * inert `#whatsapp-pendiente` anchor until the stakeholder supplies the real
- * number; no `wa.me` URL ever ships pointing at the placeholder.
+ * R11 — every WhatsApp href comes from `resolveWhatsAppHref`: the
+ * per-listing `wa.me` deep-link for a real number, the site-level production
+ * link otherwise; no `wa.me` URL ever ships pointing at the retired
+ * placeholder.
  *
  * R12 — ficha técnica degradation: `expensas` null/absent renders the
  * `EXPENSAS — No aplica` row (never a dropped row); a numeric `cochera`
