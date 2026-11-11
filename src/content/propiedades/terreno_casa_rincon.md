@@ -14,8 +14,8 @@ localidad: "Rincon"
 # Ubicación exacta de la propiedad. Nunca se muestran como números.
 map_lat: -31.6118
 map_lon: -60.5722
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
-whatsapp: "+54 9 3424 727748"
+# Contacto de ESTA propiedad: el de la inmobiliaria o el del gestor asignado, a criterio interno. Siempre completo.
+whatsapp: "+54 9 342 4727748"
 fotos:
   - src: "/propiedades/terreno_casa_rincon/14.webp"
     titulo: "vista"

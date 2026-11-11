@@ -17,16 +17,16 @@
  * The glyph path is the CC0 simple-icons WhatsApp mark, rendered with
  * `fill="currentColor"` so no raw hex ships in the component.
  *
- * R11: the href comes from `resolveWhatsAppHref` and stays inert while the
- * stakeholder number is pending. `target`/`rel` only apply to a real
- * external deep-link, never to the in-page pending anchor.
+ * R11: the href comes from `resolveWhatsAppHref` — the per-listing `wa.me`
+ * deep-link for a real number, the site-level production link otherwise.
+ * `target`/`rel` apply to those real external deep-links.
  */
 import Button from './Button.astro';
 import { resolveWhatsAppHref } from '../lib/whatsapp';
 
 interface Props {
   variant?: 'inline' | 'sticky';
-  /** Per-listing agent number (frontmatter `whatsapp`); pending ⇒ inert href. */
+  /** Per-listing agent number (frontmatter `whatsapp`); absent or retired placeholder ⇒ site-level link. */
   whatsapp?: string;
   /** Listing context for the prefilled message (wired by the detail page). */
   titulo?: string;

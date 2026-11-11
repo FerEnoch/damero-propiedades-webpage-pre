@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "comments": [
+    {
+      "id": "cb1jve8n",
+      "file": "02-negociacion.html",
+      "selector": "body > div > div:nth-of-type(2) > div:nth-of-type(1)",
+      "excerpt": "A — Clasped hands, sage palm RECOMMENDED Tasación Comercialización Negociación Gestión doc. Alquileres Fotografía Ases. legal Marketing The Lucide clasp with the mass moved onto the palm of the near hand. The palm is the one region that stays a closed shape once the fingers are drawn as line, so the",
+      "comment": "I choose this. The recommended one",
+      "createdAt": "2026-11-11T15:10:39.354Z",
+      "status": "resolved",
+      "sentAt": "2026-11-11T15:10:39.382Z",
+      "resolvedAt": "2026-11-11T15:13:18.989Z"
+    },
+    {
+      "id": "03vtkwxg",
+      "file": "03-asesoramiento-legal.html",
+      "selector": "body > div > div:nth-of-type(2) > div:nth-of-type(1)",
+      "excerpt": "A — Shield with a check RECOMMENDED Tasación Comercialización Negociación Gestión doc. Alquileres Fotografía Ases. legal Marketing The shield is a closed silhouette with a single straight-edged interior mark, so it holds at 24px without any sub-pixel detail. It also matches the service copy most lit",
+      "comment": "I choose this. The recommended",
+      "createdAt": "2026-11-11T15:11:59.112Z",
+      "status": "resolved",
+      "sentAt": "2026-11-11T15:11:59.120Z",
+      "resolvedAt": "2026-11-11T15:16:34.144Z"
+    }
+  ]
+}
