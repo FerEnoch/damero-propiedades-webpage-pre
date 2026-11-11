@@ -22,7 +22,7 @@ export type ServiceIconName =
   | 'icon-appraisal'
   | 'icon-megaphone'
   | 'icon-handshake'
-  | 'icon-pen-seal'
+  | 'icon-shield-check'
   | 'icon-documents'
   | 'icon-keys'
   | 'icon-camera'
@@ -98,7 +98,7 @@ export const SERVICES: {
     {
       name: 'Asesoramiento legal',
       description: 'Brindamos asesoramiento legal integral para garantizar operaciones seguras.',
-      icon: 'icon-pen-seal',
+      icon: 'icon-shield-check',
     },
     {
       name: 'Gestión documental',

@@ -1,0 +1,27 @@
+{
+  "title": "Service icon redesign — Negotiation & Asesoramiento legal",
+  "brief": "Redesign the two unreadable glyphs of the Damero Propiedades service icon set (handshake, pen-seal). The other six stay. Candidates must hold the DESIGN.md §8 duotone contract and read at 24–30px inside a 48px badge.",
+  "artboards": [
+    {
+      "file": "01-diagnosis.html",
+      "title": "Diagnosis",
+      "tradeoff": "Explains why the two current glyphs fail at badge size and shows the four rejected candidates; costs a full board before any proposal",
+      "width": 1180,
+      "height": 1400
+    },
+    {
+      "file": "02-negociacion.html",
+      "title": "Negociación — three proposals",
+      "tradeoff": "Keeps the literal handshake via Lucide geometry, tuned two ways, plus an abstract dialogue option",
+      "width": 1180,
+      "height": 1500
+    },
+    {
+      "file": "03-asesoramiento-legal.html",
+      "title": "Asesoramiento legal — three proposals",
+      "tradeoff": "Three different objects (shield, scale, seal) chosen against the service copy's promise of a safe operation",
+      "width": 1180,
+      "height": 1500
+    }
+  ]
+}

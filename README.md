@@ -131,6 +131,32 @@ is no `vercel.json` and no deploy step in this repository.
 The site is deployed but **not launched**: the public launch is still blocked by
 the stakeholder-pending content listed under [Status](#status).
 
+## Third-party assets
+
+The service icon set in `src/icons/services/` is original work except for one
+glyph. `icon-handshake.svg` is adapted from Lucide's `handshake`
+(`lucide-static` v1.72.0), re-toned to this project's duotone construction.
+Lucide is distributed under the ISC licence:
+
+```
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+```
+
+The brand fonts (Newsreader, Hanken Grotesk, JetBrains Mono) are self-hosted
+under the SIL Open Font License.
+
 ## Contributing
 
 `.opencode/` — the per-developer AI agent harness — is gitignored on purpose:

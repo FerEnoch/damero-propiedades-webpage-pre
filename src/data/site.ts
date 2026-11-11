@@ -26,29 +26,26 @@ export const NAV_ROUTES: readonly NavRoute[] = [
 ];
 
 /**
- * WhatsApp destination. Pending stakeholder value: the real number has not
- * been supplied (odd/tasks/damero-pages.md, "Pendientes del stakeholder").
- * The href is an inert placeholder anchor so the link stays keyboard-reachable
- * without shipping the screens' fabricated WhatsApp deep-link
- * (docs/DESIGN.md §17.4: no real WhatsApp link ships until the stakeholder
- * provides the number).
+ * WhatsApp destination. Production number supplied by the stakeholder
+ * (2026-11-11). `wa.me` requires digits only, so the display-formatted
+ * `WHATSAPP_NUMBER` is normalised before use. The retired obvious placeholder
+ * (`#whatsapp-pendiente` / `+54 9 2304 000000`, docs/DESIGN.md §17.4) must
+ * never ship again — `src/lib/whatsapp.ts` keeps it as a frozen guard so a
+ * stale frontmatter value can never resolve to a stranger's number (R11).
  */
-export const WHATSAPP_URL_PENDING = '#whatsapp-pendiente';
+export const WHATSAPP_URL = 'https://wa.me/5493424727748';
 
 /**
- * Placeholder label shown where the real WhatsApp number will go.
- *
- * Kept verbatim from the validated visual references
- * (design/screens/01-landing-desktop.html:416, 02-landing-mobile.html:347),
- * where it is the contract's designated obvious placeholder
- * (docs/DESIGN.md §17.4). PENDING: replace with the real number before launch.
+ * Display label for the production WhatsApp number, rendered in the footer
+ * contact block. Santa Fe city grouping, matching the canonical per-listing
+ * frontmatter form (`+54 9 342 4727748`).
  */
-export const WHATSAPP_NUMBER_PENDING = '+54 9 2304 000000';
+export const WHATSAPP_NUMBER = '+54 9 342 4727748';
 
 /**
  * Contact hours. Taken verbatim from the validated visual references
  * (design/screens/01-landing-desktop.html, 02-landing-mobile.html).
- * Confirm with the stakeholder before launch.
+ * Confirmed by the stakeholder (2026-11-11): Monday to Friday, 9 to 18.
  */
 export const CONTACT_HOURS = 'Lunes a viernes, 9 a 18 h';
 
@@ -74,10 +71,11 @@ export const FOOTER_CONTACT_HEADING = 'WhatsApp';
  * Fixed legal block — copied verbatim from docs/DESIGN.md §6. Never truncated,
  * never hidden behind a disclosure, never rendered below 13px.
  *
- * `CCI 000` is a placeholder written by the contract itself; it is kept exactly
- * as the contract writes it and flagged as pending. Do not invent a real number.
+ * Production matrícula supplied by the stakeholder (2026-11-11): `CCI 677`.
+ * The contract (`docs/DESIGN.md:342`) keeps `CCI 000` as its pre-launch
+ * placeholder; the site carries the production value. Never invent one.
  */
 export const LEGAL_LINES: readonly string[] = [
   'Todas las propiedades exhibidas tienen el permiso firmado de los titulares para su difusión y promoción.',
-  'Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 000.',
+  'Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 677.',
 ];

@@ -50,7 +50,7 @@ O sea: sumar el gate e2e a CI cubre 4 y 5 de una; el check 3 queda como deuda ex
 
 **H4 — El tinte `#C3CDB8` sí necesita al stakeholder.** `damero-design-system.md:113` pide confirmar si es el punto justo de claridad. Es percepción visual, no verificable por código. Sigue abierto. Nota: el valor ya está horneado en `public/images/damero_logo_white.svg` y `damero_mark_white.svg`; son assets SVG sueltos (no pueden consumir `var()`), así que el hex es legítimo ahí — se registra como desviación documentada, no como fallo.
 
-**H5 — El teléfono `+54 9 2304 000000` NO es un invento nuestro.** `DESIGN.md` §17.4:736 lo designa placeholder **obvio** del contrato, y `src/data/site.ts` lo documenta. El `href` es inerte y el gate verifica 0 `wa.me`. No requiere acción.
+**H5 — El teléfono ya es el de producción (2026-11-11).** `+54 9 342 4727748` entregado por el stakeholder: `WHATSAPP_URL` / `WHATSAPP_NUMBER` en `src/data/site.ts`, guardia del placeholder retirado en `src/lib/whatsapp.ts`, specs actualizadas. El `href` es `wa.me` real y el gate lo verifica.
 
 ---
 
@@ -132,12 +132,12 @@ Ninguno bloquea el build ni el deploy: bloquean el **lanzamiento**.
 | # | Bloqueante | Estado |
 |---|---|---|
 | B1 | Las 6 respuestas de FAQ (PRD §8) | Diferido por el stakeholder (2026-09-22). Hoy `PENDIENTE` ×6. |
-| B2 | Número real de WhatsApp | Diferido. Hoy `#whatsapp-pendiente` inerte + `+54 9 2304 000000`, placeholder **obvio designado por el contrato** (`DESIGN.md` §17.4:736), no un invento nuestro. |
-| B3 | CCI real | Diferido. Hoy `CCI 000`. CCI = **Colegio de Corredores Inmobiliarios**; el número es la matrícula del corredor. `DESIGN.md` §734 prohíbe inventarlo. |
+| B2 | Número real de WhatsApp | ✅ **Cerrado (2026-11-11):** `+54 9 342 4727748` en producción (`wa.me/5493424727748`). |
+| B3 | CCI real | ✅ **Cerrado (2026-11-11):** matrícula `677` en `LEGAL_LINES` (`CCI 677`). `DESIGN.md` conserva el placeholder del contrato. |
 | B4 | Nombre legal del corredor | **Abierto.** Brief: "Alejandro" · sitio fase 1: "Alejando". Requiere confirmación humana. |
 | B5 | Tinte `#C3CDB8` del logo knockout | **Abierto.** Percepción visual, no verificable por código. |
 | B6 | Prefijo `icon-` en los nombres de archivo | ✅ **Cerrado (2026-09-22):** en uso consistente en todo `src/icons/`. |
-| B7 | `icon-handshake.svg` a 44 px | **Abierto.** Punto débil declarado del set. Revisión visual. |
+| B7 | `icon-handshake.svg` a 44 px | ✅ **Cerrado (2026-11-11):** stakeholder eligió rediseñar Negociación y Asesoramiento legal; glifos implementados. Registro: [damero-service-icon-redesign.md](damero-service-icon-redesign.md). |
 | B8 | Métricas / prueba social en la landing | **Abierto.** No se inventó ninguna; sólo si el stakeholder las quiere. |
 
 > Backlog de trabajo por bloqueante (contexto, archivos exactos y verificación): `odd/tasks/damero-launch-blockers.md`.

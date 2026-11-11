@@ -248,7 +248,7 @@ All shadows are **tinted with the brand ink** (`62,72,55`), never neutral black.
 
 [ SERVICIOS ]   surface-tint band, full-bleed
             8 items as a 2-column hairline index list (4 rows × 2 cols on desktop, 1 col mobile).
-            Each item: 44px square surface-tint badge + duotone icon · heading-sm · body-sm.
+            Each item: 48px square badge + duotone icon · heading-sm · body-sm.
             NO cards. NO 3-equal-column feature row. Hairline separators only.
 
 [ FOOTER ]  forest-ink band, on-forest text
@@ -399,16 +399,45 @@ The eight existing PNG icons (`img/png/*.png`, 4.4MB total) are **discarded**: 3
   1. **Accent mass** — a solid `fill="#7C916F"` shape with **no stroke**, occupying **≤40% of the icon area**, drawn first so it sits behind. This is the sage layer.
   2. **Primary line** — `stroke="currentColor"`, `fill="none"`. Inherits `--color-forest-ink` by default, and `--color-on-forest` automatically when placed on the footer band.
 - **No third colour. No gradients. No shadows. No rounded-rectangle backgrounds inside the icon.** Duotone means exactly two inks.
-- **Scaling:** the SVG ships at a `24px` viewBox and scales by CSS. Rendered at 32px, the stroke resolves to 2px — optically correct without a second asset. Do not ship separate size variants.
+- **Scaling:** the SVG ships at a `24px` viewBox and scales by CSS. Rendered at 32px, the stroke resolves to 2px — optically correct without a second asset. Do not ship separate size variants. The set renders at `28px` mobile and `30px` desktop; the `24px` viewBox is the authoring grid, not a shipping size.
 - **Delivery:** inline SVG via an Astro icon component (or an SVG sprite with `<use>`), so `currentColor` resolves. **Not** `<img src="icon.svg">` — that breaks the inherited stroke colour. No icon font.
 - **Accessibility:** every icon is decorative and carries `aria-hidden="true"` and `focusable="false"`. The adjacent text label is always the accessible name. No icon is ever the sole carrier of meaning.
 - **Do not use the accent mass as the only differentiator** between two icons — shape must differ.
 
 ### Badge container
 
-- `44 × 44` (mobile) / `48 × 48` (desktop), `--color-bg-subtle` fill, `--radius-sm` (4px), icon centred at `24px`.
+- `48 × 48` at every breakpoint, `--color-bg-surface` fill, `--radius-sm` (4px), icon centred at `28px` (`30px` from `768px`).
 - **Square with a 4px radius — never a circle.** The container echoes the damero cell.
+- **Badge fill exception.** The fill is `--color-bg-surface`, not `--color-bg-subtle` as §5 would imply: the §5 services band *is* `--color-bg-subtle`, so a subtle badge on it would be invisible. Decided with the approved screens and recorded in `odd/tasks/damero-pages.md`.
 - Sage at 2.84:1 against the `surface-tint` container is acceptable here **only because the icon is decorative**; the service name in real text immediately beside it carries the meaning.
+
+### Glyph legibility budget
+
+A glyph is read at **24–30px inside a 48px badge**, never larger. That budget is the real
+constraint on this set, and it is stricter than it looks:
+
+- **Stroke budget.** At `1.5px` on a `24px` grid, each parallel stroke consumes `1.5px` of the
+  roughly `8px` a glyph can occupy. A form with more than about five parallel strokes merges
+  into a grey mass at badge size, no matter how well it is drawn at 96px.
+- **Sub-pixel detail is invisible.** A feature below `1px` (`0.8px` rings, hairline ticks)
+  does not render — it only adds noise to the strokes around it.
+- **Silhouette carries the meaning.** If the outline does not read at 24px, the accent mass
+  cannot rescue it.
+- **The accent mass is not a differentiator.** §8 forbids using the mass as the only thing
+  separating two glyphs; shape must differ on its own.
+
+**Consequences for the set.** Both glyphs that failed this budget were replaced on
+2026-11-11 (see `odd/tasks/damero-service-icon-redesign.md`):
+
+- `icon-handshake.svg` was rebuilt on Lucide's `handshake` geometry (ISC, Copyright (c) Lucide
+  Icons and Contributors), re-toned to `1.5px` with the sage mass on the near palm. The previous
+  drawing spent eight strokes on the clasp and read as a keyboard at badge size.
+- `icon-pen-seal.svg` was replaced by `icon-shield-check.svg`. The old drawing's `0.8px` inner
+  ring rendered as a speck and the whole glyph read as a lollipop; the shield carries its meaning
+  in a closed silhouette that survives at 24px.
+
+Any future glyph in this set is reviewed at 24px inside a 48px badge before it ships — not at
+preview size.
 
 ### The eight glyphs
 
@@ -416,8 +445,8 @@ The eight existing PNG icons (`img/png/*.png`, 4.4MB total) are **discarded**: 3
 |---|---|---|---|
 | 1 | Tasación | `icon-appraisal.svg` | Clipboard with a small rising bar mark — a valuation sheet. |
 | 2 | Comercialización | `icon-megaphone.svg` | Megaphone, angled. Accent mass = sound field. |
-| 3 | Negociación | `icon-handshake.svg` | Two clasped hands. Accent mass = the joining wrist. |
-| 4 | Asesoramiento legal | `icon-pen-seal.svg` | Nib pen over a notarial seal disc. Accent mass = the seal. |
+| 3 | Negociación | `icon-handshake.svg` | Two clasped hands. Accent mass = the near palm. |
+| 4 | Asesoramiento legal | `icon-shield-check.svg` | Shield with a check. Accent mass = the check. |
 | 5 | Gestión documental | `icon-documents.svg` | Two stacked sheets, folded corner. Accent mass = rear sheet. |
 | 6 | Alquileres | `icon-keys.svg` | Key ring with a house outline. Accent mass = the ring. |
 | 7 | Fotografía profesional | `icon-camera.svg` | Rangefinder body, top plate. Accent mass = the lens. |

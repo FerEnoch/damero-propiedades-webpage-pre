@@ -14,8 +14,8 @@ localidad: "Rincon"
 # Ubicación exacta de la propiedad. Nunca se muestran como números.
 map_lat: -31.6123
 map_lon: -60.5900
-# Número de WhatsApp de relleno mientras no exista el real. No inventes uno.
-whatsapp: "+54 9 3424 727748"
+# Contacto de ESTA propiedad: el de la inmobiliaria o el del gestor asignado, a criterio interno. Siempre completo.
+whatsapp: "+54 9 342 4727748"
 fotos:
   - src: "/propiedades/calle_del_sol_2400_ven/18.webp"
     titulo: "Fachada"

@@ -384,27 +384,27 @@ export function expectedLocalidadesBySlug(): Record<string, string> {
 }
 
 /*
- * Sync points with `src/data/site.ts:36,46` and `src/lib/whatsapp.ts`: the
- * stakeholder pending placeholder (digits-normalised the same way real
- * numbers are) and the inert anchor it resolves to. A `wa.me` URL never
- * ships pointing at the placeholder (R11).
+ * Sync points with `src/data/site.ts` and `src/lib/whatsapp.ts`: the retired
+ * obvious placeholder digits (frozen guard — never shipped as a `wa.me` URL,
+ * R11) and the site-level production link that CTAs without a real number
+ * fall back to.
  */
-const PENDING_WHATSAPP_DIGITS = '5492304000000';
-const WHATSAPP_URL_PENDING = '#whatsapp-pendiente';
+const RETIRED_PLACEHOLDER_DIGITS = '5492304000000';
+const SITE_WHATSAPP_URL = 'https://wa.me/5493424727748';
 
 /**
  * Expected WhatsApp CTA href for every listing, keyed by `slug`. Mirrors
- * `resolveWhatsAppHref` in `src/lib/whatsapp.ts`: the inert pending anchor
- * while the number is absent or still the placeholder, otherwise the
- * `wa.me` deep link carrying the listing title and slug. Activating a CTA
- * is then a content change, not a spec change.
+ * `resolveWhatsAppHref` in `src/lib/whatsapp.ts`: the `wa.me` deep link
+ * carrying the listing title and slug for a real number, otherwise the
+ * site-level production link. Activating a CTA is a content change, not a
+ * spec change.
  */
 export function expectedWhatsAppHrefsBySlug(): Record<string, string> {
   const entries: Record<string, string> = {};
   for (const listing of readListings()) {
     const digits = (listing.whatsapp ?? '').replace(/\D/g, '');
-    if (digits === '' || digits === PENDING_WHATSAPP_DIGITS) {
-      entries[listing.slug] = WHATSAPP_URL_PENDING;
+    if (digits === '' || digits === RETIRED_PLACEHOLDER_DIGITS) {
+      entries[listing.slug] = SITE_WHATSAPP_URL;
     } else {
       const text = encodeURIComponent(`Hola Damero, me interesa ${listing.titulo} (${listing.slug})`);
       entries[listing.slug] = `https://wa.me/${digits}?text=${text}`;

@@ -154,20 +154,18 @@ test('the desktop closing row is a text link, never a second primary (§6)', asy
   );
 });
 
-test('R11: the CTA is the inert pending anchor — no wa.me ships', async ({ page }) => {
+test('R11: the CTAs ship the production wa.me link (activated 2026-11-11)', async ({
+  page,
+}) => {
   await page.goto('/faqs');
 
+  // Sync point with `WHATSAPP_URL` in `src/data/site.ts`.
+  const href = 'https://wa.me/5493424727748';
   const html = await page.content();
-  expect(html.includes('wa.me'), '/faqs ships a wa.me link').toBe(false);
+  expect(html.includes('wa.me'), '/faqs ships no wa.me link').toBe(true);
 
-  await expect(page.locator('.faqs-rail .whatsapp-cta')).toHaveAttribute(
-    'href',
-    '#whatsapp-pendiente',
-  );
-  await expect(page.locator('.faqs-closing .whatsapp-cta')).toHaveAttribute(
-    'href',
-    '#whatsapp-pendiente',
-  );
+  await expect(page.locator('.faqs-rail .whatsapp-cta')).toHaveAttribute('href', href);
+  await expect(page.locator('.faqs-closing .whatsapp-cta')).toHaveAttribute('href', href);
 });
 
 test('the footer legal block is exactly two lines, verbatim, with no extra legal links (§17.4)', async ({
@@ -181,7 +179,7 @@ test('the footer legal block is exactly two lines, verbatim, with no extra legal
     'Todas las propiedades exhibidas tienen el permiso firmado de los titulares para su difusión y promoción.',
   );
   await expect(legal.nth(1)).toHaveText(
-    'Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 000.',
+    'Damero Propiedades funciona bajo la coordinación del Corredor Inmobiliario Luis Alejandro Da Silva — CCI 677.',
   );
 
   // §17.4 — never a copyright line, a matrícula, a privacy or a terms link.

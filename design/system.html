@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damero Propiedades — Design system</title>
+<style>
+:root {
+  /* Raw values: src/styles/tokens.css. Rules: docs/DESIGN.md.
+     Only intentional substitutions: offline system-font fallback stacks.
+     SVG namespace punctuation is URI-encoded; no external resource is loaded. */
+  --color-forest-ink: #3E4837;
+  --color-forest-ink-hover: #4A5541;
+  --color-sage-ink: #4F6144;
+  --color-sage: #7C916F;
+  --color-on-forest: #FFFFFF;
+  --color-on-forest-muted: rgba(255, 255, 255, 0.78);
+  --color-canvas: #F4F5F3;
+  --color-surface: #FFFFFF;
+  --color-surface-tint: #E8EBE3;
+  --color-muted-text: #5F6B57;
+  --color-border-hairline: #DCE1D6;
+  --color-border-on-forest: rgba(255, 255, 255, 0.16);
+  --color-bg-page: var(--color-canvas);
+  --color-bg-surface: var(--color-surface);
+  --color-bg-subtle: var(--color-surface-tint);
+  --color-bg-inverse: var(--color-forest-ink);
+  --color-text-primary: var(--color-forest-ink);
+  --color-text-secondary: var(--color-muted-text);
+  --color-text-accent: var(--color-sage-ink);
+  --color-text-on-inverse: var(--color-on-forest);
+  --color-border-decorative: var(--color-border-hairline);
+  --color-border-interactive: var(--color-sage);
+  --color-graphic-accent: var(--color-sage);
+  --color-action-primary: var(--color-forest-ink);
+  --color-focus-ring: var(--color-sage-ink);
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', monospace;
+  --text-display-xl: clamp(2.25rem, 1.35rem + 4.2vw, 4.25rem);
+  --text-display-lg: clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem);
+  --text-card-title-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+  --text-card-title-sm: 1.125rem;
+  --text-heading-sm: 1.0625rem;
+  --text-body-lg: 1.125rem;
+  --text-body-md: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-price-lg: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+  --text-price-md: 1.0625rem;
+  --text-label-md: 0.8125rem;
+  --text-label-sm: 0.75rem;
+  --text-legal: 0.8125rem;
+  --leading-display-xl: 1.04;
+  --leading-display-lg: 1.1;
+  --leading-card-title-lg: 1.22;
+  --leading-card-title-sm: 1.3;
+  --leading-heading-sm: 1.35;
+  --leading-body-lg: 1.6;
+  --leading-body-md: 1.65;
+  --leading-body-sm: 1.55;
+  --leading-price-lg: 1.15;
+  --leading-price-md: 1.2;
+  --leading-label-md: 1.3;
+  --leading-label-sm: 1.25;
+  --leading-legal: 1.6;
+  --tracking-display-xl: -0.022em;
+  --tracking-display-lg: -0.018em;
+  --tracking-card-title-lg: -0.012em;
+  --tracking-card-title-sm: -0.008em;
+  --tracking-heading-sm: -0.004em;
+  --tracking-price-lg: -0.01em;
+  --tracking-price-md: -0.005em;
+  --tracking-label-md: 0.06em;
+  --tracking-label-sm: 0.08em;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+  --section-y: clamp(4rem, 8vw, 7.5rem);
+  --section-y-tight: clamp(2.5rem, 5vw, 4rem);
+  --stack-xs: 4px;
+  --stack-sm: 8px;
+  --stack-md: 16px;
+  --stack-lg: 24px;
+  --stack-xl: 40px;
+  --card-body-pad: 20px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --shadow-xs: 0 1px 2px rgba(62, 72, 55, 0.05);
+  --shadow-sm: 0 2px 10px rgba(62, 72, 55, 0.06);
+  --shadow-md: 0 10px 30px rgba(62, 72, 55, 0.08);
+  --shadow-lg: 0 24px 56px rgba(62, 72, 55, 0.1);
+  --shadow-lg-up: 0 -24px 56px rgba(62, 72, 55, 0.1);
+  --pattern-damero-tile: url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width='224' height='224' viewBox='0 0 224 224'%3E%3Cpath fill='%23E8EBE3' d='M28 0L56 28L28 56L0 28ZM140 0L168 28L140 56L112 28ZM84 56L112 84L84 112L56 84ZM196 56L224 84L196 112L168 84ZM28 112L56 140L28 168L0 140ZM140 112L168 140L140 168L112 140ZM84 168L112 196L84 224L56 196ZM196 168L224 196L196 224L168 196Z'/%3E%3Cpath fill='none' stroke='%237C916F' stroke-width='1.5' opacity='0.4' d='M28 0L56 28L28 56L0 28Z'/%3E%3C/svg%3E");
+  --container-content: 1280px;
+  --container-bleed: 1600px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-micro: 120ms;
+  --duration-state: 180ms;
+  --duration-entrance: 320ms;
+}
+* { box-sizing: border-box; }
+html { font-size: 16px; background: var(--color-bg-page); color: var(--color-text-primary); }
+body { width: 1440px; margin: 0 auto; font-family: var(--font-sans); font-size: var(--text-body-md); line-height: var(--leading-body-md); }
+header, main, footer { width: 100%; }
+.container { max-width: var(--container-content); margin-inline: auto; padding-inline: var(--gutter); }
+header { padding-block: var(--space-16) var(--space-12); border-bottom: 1px solid var(--color-border-decorative); }
+section { padding-block: var(--section-y-tight); border-bottom: 1px solid var(--color-border-decorative); }
+footer { padding-block: var(--space-10); background: var(--color-bg-inverse); color: var(--color-text-on-inverse); }
+footer p { margin: 0; }
+h1, h2, h3, p, ul, dl, figure { margin: 0; }
+h1 { font-family: var(--font-serif); font-weight: 400; font-size: var(--text-display-xl); line-height: var(--leading-display-xl); letter-spacing: var(--tracking-display-xl); margin-block: var(--space-3) var(--space-6); }
+h2 { font: 400 var(--text-display-lg)/var(--leading-display-lg) var(--font-serif); letter-spacing: var(--tracking-display-lg); margin-bottom: var(--space-4); }
+h3 { font: 500 var(--text-card-title-lg)/var(--leading-card-title-lg) var(--font-serif); letter-spacing: var(--tracking-card-title-lg); margin-bottom: var(--space-3); }
+p { max-width: 65ch; }
+code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums lining-nums; }
+code { overflow-wrap: anywhere; }
+.eyebrow { font: 500 var(--text-label-md)/var(--leading-label-md) var(--font-mono); letter-spacing: var(--tracking-label-md); text-transform: uppercase; }
+.source, .small { font-size: var(--text-body-sm); line-height: var(--leading-body-sm); color: var(--color-text-secondary); }
+.source { margin-bottom: var(--space-8); }
+.intro { max-width: 52ch; font-size: var(--text-body-lg); line-height: var(--leading-body-lg); }
+.note { border-left: var(--space-1) solid var(--color-text-primary); padding: var(--space-4) var(--space-5); background: var(--color-bg-subtle); margin-block: var(--space-6); }
+.note p { max-width: 68ch; }
+.grid { display: grid; gap: var(--space-6); }
+.swatches { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.swatch { min-width: 0; }
+.swatch .paint { height: var(--space-20); border: 1px solid var(--color-border-decorative); border-radius: var(--radius-sm); margin-bottom: var(--space-3); }
+.swatch code { display: block; font-size: var(--text-label-sm); line-height: var(--leading-body-sm); }
+.swatch figcaption > span { display: block; }
+.graphic-warning { font: 500 var(--text-label-sm)/var(--leading-label-sm) var(--font-mono); margin-top: var(--space-2); }
+.paint.forest { background: var(--color-forest-ink); }
+.paint.forest-hover { background: var(--color-forest-ink-hover); }
+.paint.sage-ink { background: var(--color-sage-ink); }
+.paint.sage { background: var(--color-sage); }
+.paint.white { background: var(--color-on-forest); }
+.paint.inverse-muted { background: var(--color-bg-inverse); padding: var(--space-4); }
+.paint.inverse-muted::after { content: ''; display: block; height: 100%; background: var(--color-on-forest-muted); }
+.paint.canvas { background: var(--color-canvas); }
+.paint.surface { background: var(--color-surface); }
+.paint.tint { background: var(--color-surface-tint); }
+.paint.muted { background: var(--color-muted-text); }
+.paint.hairline { background: var(--color-border-hairline); }
+.paint.inverse-border { background: var(--color-bg-inverse); padding: var(--space-4); }
+.paint.inverse-border::after { content: ''; display: block; height: 100%; background: var(--color-border-on-forest); }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+caption { text-align: left; padding-bottom: var(--space-4); font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+th, td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border-decorative); vertical-align: top; }
+thead th { font: 500 var(--text-label-sm)/var(--leading-label-sm) var(--font-mono); letter-spacing: var(--tracking-label-sm); text-transform: uppercase; }
+tbody th { font-weight: 500; }
+.contrast td:nth-child(3) { font-family: var(--font-mono); font-variant-numeric: tabular-nums lining-nums; }
+.restricted { background: var(--color-bg-subtle); }
+.restricted th { border-left: var(--space-1) solid var(--color-text-primary); }
+.voices { grid-template-columns: 7fr 5fr; margin-bottom: var(--space-10); }
+.voices > div { padding-block: var(--space-5); border-top: 1px solid var(--color-border-decorative); }
+.voices .serif-voice { font: 400 var(--text-display-lg)/var(--leading-display-lg) var(--font-serif); }
+.voices .sans-voice { font: 400 var(--text-body-lg)/var(--leading-body-lg) var(--font-sans); }
+.voices .mono-voice { font: 500 var(--text-price-lg)/var(--leading-price-lg) var(--font-mono); }
+.voices code { font-size: var(--text-label-sm); }
+.scale { table-layout: fixed; }
+.scale th:first-child { width: 32%; }
+.scale th:last-child { width: 12%; }
+.scale tbody th { font: 400 var(--text-label-sm)/var(--leading-body-sm) var(--font-mono); }
+.scale td { vertical-align: middle; }
+.type-display-xl { font-family: var(--font-serif); font-size: var(--text-display-xl); line-height: var(--leading-display-xl); letter-spacing: var(--tracking-display-xl); font-weight: 400; }
+.type-display-lg { font-family: var(--font-serif); font-size: var(--text-display-lg); line-height: var(--leading-display-lg); letter-spacing: var(--tracking-display-lg); font-weight: 400; }
+.type-card-title-lg { font-family: var(--font-serif); font-size: var(--text-card-title-lg); line-height: var(--leading-card-title-lg); letter-spacing: var(--tracking-card-title-lg); font-weight: 500; }
+.type-card-title-sm { font-family: var(--font-serif); font-size: var(--text-card-title-sm); line-height: var(--leading-card-title-sm); letter-spacing: var(--tracking-card-title-sm); font-weight: 500; }
+.type-heading-sm { font-family: var(--font-sans); font-size: var(--text-heading-sm); line-height: var(--leading-heading-sm); letter-spacing: var(--tracking-heading-sm); font-weight: 600; }
+.type-body-lg { font-family: var(--font-sans); font-size: var(--text-body-lg); line-height: var(--leading-body-lg); letter-spacing: 0; font-weight: 400; }
+.type-body-md { font-family: var(--font-sans); font-size: var(--text-body-md); line-height: var(--leading-body-md); letter-spacing: 0; font-weight: 400; }
+.type-body-sm { font-family: var(--font-sans); font-size: var(--text-body-sm); line-height: var(--leading-body-sm); letter-spacing: 0; font-weight: 400; }
+.type-price-lg { font-family: var(--font-mono); font-size: var(--text-price-lg); line-height: var(--leading-price-lg); letter-spacing: var(--tracking-price-lg); font-weight: 500; font-variant-numeric: tabular-nums lining-nums; }
+.type-price-md { font-family: var(--font-mono); font-size: var(--text-price-md); line-height: var(--leading-price-md); letter-spacing: var(--tracking-price-md); font-weight: 500; font-variant-numeric: tabular-nums lining-nums; }
+.type-label-md { font-family: var(--font-mono); font-size: var(--text-label-md); line-height: var(--leading-label-md); letter-spacing: var(--tracking-label-md); text-transform: uppercase; font-weight: 500; }
+.type-label-sm { font-family: var(--font-mono); font-size: var(--text-label-sm); line-height: var(--leading-label-sm); letter-spacing: var(--tracking-label-sm); text-transform: uppercase; font-weight: 500; }
+.type-legal { font-family: var(--font-sans); font-size: var(--text-legal); line-height: var(--leading-legal); letter-spacing: 0; font-weight: 400; }
+.split { display: grid; grid-template-columns: 7fr 5fr; gap: var(--space-12); }
+.spaces { margin: 0; padding: 0; list-style: none; }
+.spaces li { display: grid; grid-template-columns: 128px 64px 1fr; align-items: center; gap: var(--space-4); padding-block: var(--space-2); }
+.spaces code, .spaces span { font-size: var(--text-label-sm); }
+.bar { display: block; height: var(--space-3); background: var(--color-graphic-accent); }
+.rhythm dt { font-family: var(--font-mono); font-size: var(--text-label-sm); margin-top: var(--space-4); }
+.rhythm dd { margin: 0; font-size: var(--text-body-sm); }
+.radius-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.radius-box { width: var(--space-20); height: var(--space-20); border: 1px solid var(--color-border-interactive); background: var(--color-bg-surface); margin-bottom: var(--space-4); }
+.radius-grid code { display: block; font-size: var(--text-label-sm); }
+.banned-box { border: 2px dashed var(--color-text-primary); display: grid; place-items: center; font-size: var(--text-heading-sm); }
+.elevations { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-block: var(--space-6) var(--space-12); }
+.elevation { padding: var(--space-8) var(--space-5); background: var(--color-bg-surface); border: 1px solid var(--color-border-decorative); border-radius: var(--radius-md); }
+.elevation code { font-size: var(--text-label-sm); }
+.elevation p { margin-top: var(--space-3); }
+.tint-proof { display: flex; align-items: center; gap: var(--space-6); padding-block: var(--space-6); }
+.tint-proof .ink-source { width: var(--space-16); height: var(--space-16); background: var(--color-forest-ink); }
+.tint-proof .shadow-proof { width: var(--space-16); height: var(--space-16); background: var(--color-bg-surface); border: 1px solid var(--color-border-decorative); box-shadow: var(--shadow-lg); }
+a { color: var(--color-text-accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-6); margin-block: var(--space-5) var(--space-10); }
+.button { display: inline-flex; min-height: 52px; align-items: center; justify-content: center; padding-inline: var(--space-6); border: 1px solid var(--color-action-primary); border-radius: var(--radius-sm); background: var(--color-action-primary); color: var(--color-on-forest); font: 600 var(--text-body-md)/var(--leading-body-md) var(--font-sans); letter-spacing: var(--tracking-heading-sm); text-decoration: none; transition: transform var(--duration-state) var(--ease-out-expo), background-color var(--duration-micro) var(--ease-out-expo), box-shadow var(--duration-state) var(--ease-out-expo); }
+.button:hover { background: var(--color-forest-ink-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.button:active { transform: translateY(0); box-shadow: none; }
+.text-link { display: inline-flex; align-items: center; min-height: 44px; text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--color-text-accent) 40%, transparent); }
+.text-link:hover { text-decoration-color: var(--color-text-accent); }
+.component-grid { display: grid; grid-template-columns: 5fr 7fr; gap: var(--space-12); align-items: start; }
+.property-list { list-style: none; margin: 0; padding: 0; }
+.property { display: block; overflow: hidden; background: var(--color-bg-surface); border: 1px solid var(--color-border-decorative); border-radius: var(--radius-md); color: var(--color-text-primary); text-decoration: none; transition: transform var(--duration-state) var(--ease-out-expo), border-color var(--duration-state) var(--ease-out-expo), box-shadow var(--duration-state) var(--ease-out-expo); }
+.property:hover { border-color: var(--color-border-interactive); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.media { aspect-ratio: 3 / 2; background-color: var(--color-bg-page); background-image: var(--pattern-damero-tile); display: grid; place-items: center; border-bottom: 1px solid var(--color-border-decorative); }
+.media svg { height: var(--space-8); width: var(--space-16); fill: currentColor; opacity: 0.2; }
+.card-body { padding: var(--card-body-pad); }
+.badge-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--stack-md); }
+.operation, .pending { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-xs); font: 500 var(--text-label-sm)/var(--leading-label-sm) var(--font-mono); letter-spacing: var(--tracking-label-sm); text-transform: uppercase; }
+.operation.solid { background: var(--color-action-primary); color: var(--color-on-forest); border: 1px solid var(--color-action-primary); }
+.operation.outline { background: transparent; color: var(--color-text-primary); border: 1px solid var(--color-border-interactive); }
+.card-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-bottom: var(--stack-sm); }
+.price { margin-bottom: var(--stack-md); }
+.price .currency { vertical-align: baseline; }
+.card-location { color: var(--color-text-secondary); }
+.component-notes { margin-top: var(--space-4); }
+.component-notes p { margin-bottom: var(--space-3); }
+.badge-examples { display: flex; gap: var(--space-4); margin-block: var(--space-4) var(--space-6); }
+.service-band { background: var(--color-bg-subtle); padding: var(--space-6); margin-block: var(--space-8); }
+.service-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: var(--space-4); padding-block: var(--space-5); border-block: 1px solid var(--color-border-decorative); }
+.service-badge { width: var(--space-12); height: var(--space-12); background: var(--color-bg-subtle); border-radius: var(--radius-sm); display: grid; place-items: center; }
+.service-badge svg { width: var(--space-6); height: var(--space-6); color: var(--color-text-primary); }
+.service-row h4 { margin: 0 0 var(--space-1); }
+.pending { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+.faq-sample { padding-block: var(--space-5); border-block: 1px solid var(--color-border-decorative); }
+.faq-sample p { margin-top: var(--space-3); }
+.antipatterns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-12); }
+.antipatterns > div { border-top: 1px solid var(--color-border-decorative); padding-top: var(--space-4); }
+.antipatterns dt { font-weight: 600; }
+.antipatterns dd { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: var(--text-body-sm); line-height: var(--leading-body-sm); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .button:hover, .button:active, .property:hover { transform: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <p class="eyebrow">Damero Propiedades · Design system</p>
+    <h1>A quiet, sunlit archive.</h1>
+    <p class="intro">Two inks, editorial type and hairline structure. A source-bound reference board for the boutique legal-real-estate catalogue.</p>
+    <p class="small">1440px artboard · System-font specimens, not production font previews · No external assets</p>
+  </div>
+</header>
+<main class="container">
+  <section aria-labelledby="colors">
+    <h2 id="colors">Color swatches</h2>
+    <p class="source">Source: <code>src/styles/tokens.css</code>; <code>docs/DESIGN.md</code> §2, §14. Components consume the semantic aliases documented in <code>design/system.md</code>.</p>
+    <div class="grid swatches">
+      <figure class="swatch"><div class="paint forest" aria-hidden="true"></div><figcaption><code>--color-forest-ink</code><span class="mono">#3E4837</span><span class="small">Primary text / action / inverse band</span></figcaption></figure>
+      <figure class="swatch"><div class="paint forest-hover" aria-hidden="true"></div><figcaption><code>--color-forest-ink-hover</code><span class="mono">#4A5541</span><span class="small">Primary action hover</span></figcaption></figure>
+      <figure class="swatch"><div class="paint sage-ink" aria-hidden="true"></div><figcaption><code>--color-sage-ink</code><span class="mono">#4F6144</span><span class="small">Meaningful accent text / focus</span></figcaption></figure>
+      <figure class="swatch"><div class="paint sage" aria-hidden="true"></div><figcaption><code>--color-sage</code><span class="mono">#7C916F</span><strong class="graphic-warning">GRAPHIC ONLY — never rendered text</strong></figcaption></figure>
+      <figure class="swatch"><div class="paint white" aria-hidden="true"></div><figcaption><code>--color-on-forest</code><span class="mono">#FFFFFF</span><span class="small">Text / icons on forest</span></figcaption></figure>
+      <figure class="swatch"><div class="paint inverse-muted" aria-hidden="true"></div><figcaption><code>--color-on-forest-muted</code><span class="mono">rgba(255,255,255,0.78)</span><span class="small">78% white over forest</span></figcaption></figure>
+      <figure class="swatch"><div class="paint canvas" aria-hidden="true"></div><figcaption><code>--color-canvas</code><span class="mono">#F4F5F3</span><span class="small">Page / hero / featured background</span></figcaption></figure>
+      <figure class="swatch"><div class="paint surface" aria-hidden="true"></div><figcaption><code>--color-surface</code><span class="mono">#FFFFFF</span><span class="small">Cards / inputs, not page background</span></figcaption></figure>
+      <figure class="swatch"><div class="paint tint" aria-hidden="true"></div><figcaption><code>--color-surface-tint</code><span class="mono">#E8EBE3</span><span class="small">Services / badges / placeholders</span></figcaption></figure>
+      <figure class="swatch"><div class="paint muted" aria-hidden="true"></div><figcaption><code>--color-muted-text</code><span class="mono">#5F6B57</span><span class="small">Metadata / secondary copy</span></figcaption></figure>
+      <figure class="swatch"><div class="paint hairline" aria-hidden="true"></div><figcaption><code>--color-border-hairline</code><span class="mono">#DCE1D6</span><span class="small">Decorative only, not control boundaries</span></figcaption></figure>
+      <figure class="swatch"><div class="paint inverse-border" aria-hidden="true"></div><figcaption><code>--color-border-on-forest</code><span class="mono">rgba(255,255,255,0.16)</span><span class="small">16% white over forest / footer rule</span></figcaption></figure>
+    </div>
+    <aside class="note" aria-label="Hard accessibility constraint">
+      <p><strong>Never set text in sage.</strong> Its 3.42:1 on surface fails normal-text AA. Use sage-ink (6.72:1), including for labels, placeholders, disabled text and text inside SVGs. Sage is for non-text graphics only.</p>
+      <p><strong>On tint bands, use forest borders for interactive controls.</strong> Sage on tint is 2.84:1: below even the non-text minimum. Sage control borders are valid on surface or canvas only.</p>
+    </aside>
+  </section>
+  <section aria-labelledby="contrast">
+    <h2 id="contrast">Verified contrast matrix</h2>
+    <p class="source">Source: <code>docs/DESIGN.md</code> §2. These are the documented measurements. Restricted rows describe failures in accessible text; they do not render those failed colour pairs.</p>
+    <table class="contrast">
+      <caption>Foreground / background contract — a ratio is not permission to ignore a stricter house rule.</caption>
+      <thead><tr><th scope="col">Foreground</th><th scope="col">Background</th><th scope="col">Ratio</th><th scope="col">Verdict</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">forest-ink #3E4837</th><td>surface #FFFFFF</td><td>9.60:1</td><td>AAA</td></tr>
+        <tr><th scope="row">forest-ink</th><td>canvas #F4F5F3</td><td>8.78:1</td><td>AAA</td></tr>
+        <tr><th scope="row">forest-ink</th><td>surface-tint #E8EBE3</td><td>7.97:1</td><td>AAA</td></tr>
+        <tr><th scope="row">on-forest #FFFFFF</th><td>forest-ink</td><td>9.60:1</td><td>AAA</td></tr>
+        <tr><th scope="row">sage-ink #4F6144</th><td>surface</td><td>6.72:1</td><td>AA</td></tr>
+        <tr><th scope="row">sage-ink</th><td>canvas</td><td>6.14:1</td><td>AA</td></tr>
+        <tr><th scope="row">sage-ink</th><td>surface-tint</td><td>5.57:1</td><td>AA</td></tr>
+        <tr><th scope="row">muted-text #5F6B57</th><td>surface</td><td>5.63:1</td><td>AA</td></tr>
+        <tr><th scope="row">muted-text</th><td>canvas</td><td>5.15:1</td><td>AA</td></tr>
+        <tr><th scope="row">muted-text</th><td>surface-tint</td><td>4.67:1</td><td>AA</td></tr>
+        <tr><th scope="row">on-forest-muted, 78% white</th><td>forest-ink</td><td>6.60:1</td><td>AA</td></tr>
+        <tr class="restricted"><th scope="row">sage #7C916F</th><td>surface</td><td>3.42:1</td><td><strong>BANNED FOR TEXT.</strong> Graphics only.</td></tr>
+        <tr class="restricted"><th scope="row">sage</th><td>surface-tint</td><td>2.84:1</td><td><strong>FAIL: not even a valid border here.</strong></td></tr>
+        <tr class="restricted"><th scope="row">border-hairline</th><td>surface</td><td>1.33:1</td><td><strong>Decorative only.</strong> Not a functional boundary.</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section aria-labelledby="typography">
+    <h2 id="typography">Three voices. One semantic rule.</h2>
+    <p class="source">Source: <code>src/styles/tokens.css</code>; <code>docs/DESIGN.md</code> §3, §6 Footer. The production families are not loaded here; the following are system-stack substitutes.</p>
+    <div class="grid voices">
+      <div><h3>Serif · Newsreader in production</h3><p class="serif-voice">Names and titles.</p><code>Georgia, 'Times New Roman', serif</code><p class="small">Content nouns: hero, section and property titles.</p></div>
+      <div><h3>Sans · Hanken Grotesk in production</h3><p class="sans-voice">Reading and UI. Sentences carry the facts.</p><code>system-ui, -apple-system, 'Segoe UI', sans-serif</code><p class="small">Body, controls and legal statements.</p></div>
+      <div><h3>Mono · JetBrains Mono in production</h3><p class="mono-voice">USD · ARS · 0123456789</p><code>ui-monospace, 'SFMono-Regular', monospace</code><p class="small">Numbers, categories and apparatus; tabular lining figures.</p></div>
+      <div><h3>Measure and numbers</h3><p>Body 65ch · Hero subhead 52ch · Long-form 68ch.</p><p class="small">Always currency-code prefix, never a bare dollar sign. Currency in label-sm, amount in the price token. The numeric specimen above is a glyph test, not listing data.</p><p class="small">No text below 12px; mobile body at least 16px. Legal is sans at 13px (§6), not mono despite the §3 introductory table.</p></div>
+    </div>
+    <table class="scale">
+      <caption>Actual CSS font sizes, line heights, tracking and weights. Fluid sizes resolve against the viewing viewport; the artboard itself is fixed at 1440px.</caption>
+      <thead><tr><th scope="col">Token · size / leading / tracking</th><th scope="col">Rendered specimen</th><th scope="col">Weight</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">--text-display-xl<br>clamp(2.25rem, 1.35rem + 4.2vw, 4.25rem)<br>1.04 / -0.022em</th><td class="type-display-xl">Quiet archive</td><td>400</td></tr>
+        <tr><th scope="row">--text-display-lg<br>clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem)<br>1.10 / -0.018em</th><td class="type-display-lg">A curated portfolio</td><td>400</td></tr>
+        <tr><th scope="row">--text-card-title-lg<br>clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem)<br>1.22 / -0.012em</th><td class="type-card-title-lg">Property title</td><td>500</td></tr>
+        <tr><th scope="row">--text-card-title-sm<br>1.125rem / 1.30 / -0.008em</th><td class="type-card-title-sm">Compact property title</td><td>500</td></tr>
+        <tr><th scope="row">--text-heading-sm<br>1.0625rem / 1.35 / -0.004em</th><td class="type-heading-sm">Service heading</td><td>600</td></tr>
+        <tr><th scope="row">--text-body-lg<br>1.125rem / 1.60 / 0</th><td class="type-body-lg">A sentence with room to breathe.</td><td>400</td></tr>
+        <tr><th scope="row">--text-body-md<br>1rem / 1.65 / 0</th><td class="type-body-md">Reading and interface copy.</td><td>400</td></tr>
+        <tr><th scope="row">--text-body-sm<br>0.875rem / 1.55 / 0</th><td class="type-body-sm">Secondary text and metadata.</td><td>400</td></tr>
+        <tr><th scope="row">--text-price-lg<br>clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem)<br>1.15 / -0.01em</th><td class="type-price-lg"><span class="type-label-sm">USD</span> PENDIENTE</td><td>500</td></tr>
+        <tr><th scope="row">--text-price-md<br>1.0625rem / 1.20 / -0.005em</th><td class="type-price-md"><span class="type-label-sm">ARS</span> PENDIENTE</td><td>500</td></tr>
+        <tr><th scope="row">--text-label-md<br>0.8125rem / 1.30 / 0.06em uppercase</th><td class="type-label-md">Data and apparatus</td><td>500</td></tr>
+        <tr><th scope="row">--text-label-sm<br>0.75rem / 1.25 / 0.08em uppercase</th><td class="type-label-sm">Category label</td><td>500</td></tr>
+        <tr><th scope="row">--text-legal<br>0.8125rem / 1.60 / 0</th><td class="type-legal">Legal statements are real text, never tiny artwork.</td><td>400</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section aria-labelledby="spacing">
+    <h2 id="spacing">Spacing is rhythm, not repetition.</h2>
+    <p class="source">Source: <code>src/styles/tokens.css</code>; <code>docs/DESIGN.md</code> §4, §14. 4px base; bars below are actual pixel widths, not scaled illustrations.</p>
+    <div class="split">
+      <div><h3>Base scale</h3>
+        <ul class="spaces">
+          <li><code>--space-1</code><span>4px</span><i class="bar" style="width:var(--space-1)" aria-hidden="true"></i></li>
+          <li><code>--space-2</code><span>8px</span><i class="bar" style="width:var(--space-2)" aria-hidden="true"></i></li>
+          <li><code>--space-3</code><span>12px</span><i class="bar" style="width:var(--space-3)" aria-hidden="true"></i></li>
+          <li><code>--space-4</code><span>16px</span><i class="bar" style="width:var(--space-4)" aria-hidden="true"></i></li>
+          <li><code>--space-5</code><span>20px</span><i class="bar" style="width:var(--space-5)" aria-hidden="true"></i></li>
+          <li><code>--space-6</code><span>24px</span><i class="bar" style="width:var(--space-6)" aria-hidden="true"></i></li>
+          <li><code>--space-8</code><span>32px</span><i class="bar" style="width:var(--space-8)" aria-hidden="true"></i></li>
+          <li><code>--space-10</code><span>40px</span><i class="bar" style="width:var(--space-10)" aria-hidden="true"></i></li>
+          <li><code>--space-12</code><span>48px</span><i class="bar" style="width:var(--space-12)" aria-hidden="true"></i></li>
+          <li><code>--space-16</code><span>64px</span><i class="bar" style="width:var(--space-16)" aria-hidden="true"></i></li>
+          <li><code>--space-20</code><span>80px</span><i class="bar" style="width:var(--space-20)" aria-hidden="true"></i></li>
+          <li><code>--space-24</code><span>96px</span><i class="bar" style="width:var(--space-24)" aria-hidden="true"></i></li>
+          <li><code>--space-32</code><span>128px</span><i class="bar" style="width:var(--space-32)" aria-hidden="true"></i></li>
+        </ul>
+      </div>
+      <div><h3>Semantic rhythm</h3>
+        <dl class="rhythm">
+          <dt>--gutter</dt><dd>clamp(1.25rem, 5vw, 3rem) · 20–48px</dd>
+          <dt>--section-y</dt><dd>clamp(4rem, 8vw, 7.5rem) · 64–120px</dd>
+          <dt>--section-y-tight</dt><dd>clamp(2.5rem, 5vw, 4rem) · 40–64px</dd>
+          <dt>--stack-xs / --stack-sm</dt><dd>4px / 8px</dd>
+          <dt>--stack-md / --stack-lg / --stack-xl</dt><dd>16px / 24px / 40px</dd>
+          <dt>--card-body-pad</dt><dd>20px</dd>
+        </dl>
+        <aside class="note"><p>Title to price: stack-sm. Major band to band: section-y. Tight groupings and generous separations create the editorial cadence.</p></aside>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="radius">
+    <h2 id="radius">Restrained radius. Square ancestry.</h2>
+    <p class="source">Source: <code>src/styles/tokens.css</code>; <code>docs/DESIGN.md</code> §4, §8. The rotated square is the governing geometry.</p>
+    <div class="grid radius-grid">
+      <figure><div class="radius-box" style="border-radius:var(--radius-xs)" aria-hidden="true"></div><figcaption><code>--radius-xs · 2px</code><span class="small">Badges / chips / checkbox</span></figcaption></figure>
+      <figure><div class="radius-box" style="border-radius:var(--radius-sm)" aria-hidden="true"></div><figcaption><code>--radius-sm · 4px</code><span class="small">Buttons / inputs / icon badges</span></figcaption></figure>
+      <figure><div class="radius-box" style="border-radius:var(--radius-md)" aria-hidden="true"></div><figcaption><code>--radius-md · 6px</code><span class="small">Cards / media frames</span></figcaption></figure>
+      <figure><div class="radius-box" style="border-radius:var(--radius-lg)" aria-hidden="true"></div><figcaption><code>--radius-lg · 12px</code><span class="small">Sheets / overlays</span></figcaption></figure>
+      <figure><div class="radius-box banned-box" aria-hidden="true">×</div><figcaption><s>999px / pill</s><br><strong class="small">BANNED — no circles or pills</strong></figcaption></figure>
+    </div>
+  </section>
+  <section aria-labelledby="shadows">
+    <h2 id="shadows">Hairlines first. Shadows last.</h2>
+    <p class="source">Source: <code>src/styles/tokens.css</code>; <code>docs/DESIGN.md</code> §4, §6. All four levels are brand-tinted with RGB 62,72,55 — never neutral black.</p>
+    <div class="grid elevations">
+      <div class="elevation" style="box-shadow:var(--shadow-xs)"><code>--shadow-xs</code><p class="small">0 1px 2px<br>rgba(62,72,55,0.05)</p></div>
+      <div class="elevation" style="box-shadow:var(--shadow-sm)"><code>--shadow-sm</code><p class="small">0 2px 10px<br>rgba(62,72,55,0.06)</p></div>
+      <div class="elevation" style="box-shadow:var(--shadow-md)"><code>--shadow-md</code><p class="small">0 10px 30px<br>rgba(62,72,55,0.08)</p></div>
+      <div class="elevation" style="box-shadow:var(--shadow-lg)"><code>--shadow-lg</code><p class="small">0 24px 56px<br>rgba(62,72,55,0.10)</p></div>
+    </div>
+    <figure class="tint-proof"><div class="ink-source" aria-hidden="true"></div><span aria-hidden="true">→</span><div class="shadow-proof" aria-hidden="true"></div><figcaption><strong>Forest source → olive-tinted elevation</strong><p class="small">The tint stays warm against canvas. Neutral-black shadows are excluded, not demonstrated as a new colour.</p></figcaption></figure>
+    <aside class="note"><p><strong>Resting surfaces use a 1px hairline, not a shadow.</strong> These are elevation specimens. Production shadows belong to floating layers, scrolled headers and hover lifts. The mobile CTA uses the upward variant <code>--shadow-lg-up</code>.</p></aside>
+  </section>
+  <section aria-labelledby="components">
+    <h2 id="components">Core components</h2>
+    <p class="source">Source: <code>docs/DESIGN.md</code> §6 Button / Property card / Operation badge; §7 Brand placeholder; §8 Icon system; §17.3 Pending-content placeholder.</p>
+    <h3>One primary. The next action is a text link.</h3>
+    <p class="small">52px desktop target, radius-sm, sans 600. The primary below navigates to the card specimen; the text link returns to the contrast contract.</p>
+    <div class="actions" lang="es">
+      <a class="button" href="#property-specimen">Ver cartera de propiedades</a>
+      <a class="text-link" href="#contrast" lang="en">Read the contrast rules →</a>
+    </div>
+    <div class="component-grid">
+      <div>
+        <h3 id="property-specimen">Property card</h3>
+        <ul class="property-list" lang="es">
+          <li><a class="property" href="#property-rule" aria-label="Ficha de propiedad pendiente: ver reglas del componente">
+            <div class="media" aria-hidden="true"><svg viewBox="0 0 64 32" focusable="false" aria-hidden="true"><path d="M16 0 32 16 16 32 0 16ZM48 0 64 16 48 32 32 16ZM32 0 40 8 32 16 24 8Z"></path></svg></div>
+            <div class="card-body">
+              <div class="badge-row"><span class="operation solid">Venta</span><span class="type-label-sm">USD</span></div>
+              <h4 class="card-title type-card-title-lg">PENDIENTE</h4>
+              <p class="price type-price-lg"><span class="currency type-label-sm">USD</span> PENDIENTE</p>
+              <p class="card-location type-body-sm">PENDIENTE · PENDIENTE</p>
+            </div>
+          </a></li>
+        </ul>
+        <div class="component-notes" id="property-rule">
+          <p class="small">3:2 media → 20px body → badge / currency → title → price → zone / locality. No badge or text overlays. One whole-card link; no shadow at rest.</p>
+          <p class="small">Hover: −2px, interactive border, shadow-sm; 180ms ease-out-expo. Unknown listing facts stay visibly pending.</p>
+          <p class="small">The media reuses the source SVG data-URI: 56px grid, 45° tint/canvas cells; a sage outline every fourth cell at 40% opacity. No image request.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Operation badge · weight, not hue</h3>
+        <div class="badge-examples" lang="es"><span class="operation solid">Venta</span><span class="operation outline">Alquiler</span></div>
+        <p class="small">Solid / outline. Uppercase mono 12px, 0.08em tracking, radius-xs. Real text carries the operation, not colour alone.</p>
+        <div class="service-band">
+          <h3>Service row · §8 Badge container</h3>
+          <div class="service-row">
+            <span class="service-badge"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#7C916F" stroke="none" d="M8 12h8v7H8z"></path><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M9 4H6v17h12V4h-3M9 3h6v3H9zM9 10h6M9 17v-3m3 3v-5m3 5v-7"></path></svg></span>
+            <div><h4 class="type-heading-sm" lang="es">Tasación</h4><p class="small">Valuation-sheet glyph · decorative two-layer SVG</p></div>
+          </div>
+          <p class="small">48×48 desktop / 44×44 mobile; bg-subtle; radius-sm; centred 24px icon. Sage mass first (≤40% area), currentColor 1.5px line second. Never a circle.</p>
+        </div>
+        <h3>FAQ pending marker · §17.3</h3>
+        <div class="faq-sample"><span class="pending" lang="es">PENDIENTE</span><p class="small">Stakeholder answer pending. Scope and expected length must come from the content brief; this specimen supplies no legal advice.</p></div>
+        <p class="small">Radius-xs, subtle fill, primary text, uppercase mono label-sm. Follow with neutral body-sm metadata, never a fabricated answer.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="anti-patterns">
+    <h2 id="anti-patterns">Anti-patterns</h2>
+    <p class="source">Source: <code>docs/DESIGN.md</code> §11; sage prohibition from §2 and §12. This is an archive, not a marketplace template.</p>
+    <aside class="note"><p><strong>First and absolute: sage is never rendered text.</strong> Not even headings, placeholders, disabled labels or SVG text. Use sage-ink for meaning carried through type.</p></aside>
+    <dl class="antipatterns">
+      <div><dt>Portal density and urgency</dt><dd>No dense 4-up grids, saturated badges, DESTACADO ribbons, photo corner tags, fake urgency, scarcity or social proof.</dd></div>
+      <div><dt>Photo overlays and price colours</dt><dd>No text, badges, prices or gradients over photographs. No red/green prices; use text-primary only.</dd></div>
+      <div><dt>Competing actions and spreadsheet filters</dt><dd>No more than one primary per viewport. No spreadsheet-like filter bar or saturated pill filter chips.</dd></div>
+      <div><dt>Heavy shadows and glow</dt><dd>No shadow on a resting card. No neon, outer glow or coloured-glow focus ring. Elevation tint is forest, never neutral black.</dd></div>
+      <div><dt>Stock clichés or missing media</dt><dd>No smiling agents, handed-over keys, generic skylines, broken or hotlinked stock images. Only §7's downloaded, committed provisional-photo exception applies before launch.</dd></div>
+      <div><dt>Fabricated data or advice</dt><dd>No invented counts, years, testimonials, response times, credentials, registration numbers or legal statements. Unknown required values stay PENDIENTE.</dd></div>
+      <div><dt>Generic type and emoji</dt><dd>No emoji, Inter, or generic production serifs: Times, Georgia, Garamond, Palatino. This offline board's system fallbacks are an explicit artifact exception.</dd></div>
+      <div><dt>Off-palette colour</dt><dd>No pure black, neon or oversaturated accents, gradient headings, or colours outside §2. White is surface/on-forest only, never the page background.</dd></div>
+      <div><dt>Glassmorphism</dt><dd>No blur, translucent panels or backdrop effects. Header is a sticky opaque surface with a hairline.</dd></div>
+      <div><dt>Pills, circles and oversized icons</dt><dd>No 999px radii, pill buttons/chips, circular icon containers or a large rounded icon above every heading.</dd></div>
+      <div><dt>Template grouping</dt><dd>No three-equal-card feature row, nested cards, or cards used purely to group content.</dd></div>
+      <div><dt>Centred text and unnecessary modals</dt><dd>No centred heroes or text blocks. Use inline/full-page patterns; the mobile filter sheet is the single approved modal exception.</dd></div>
+      <div><dt>Decorative interaction</dt><dd>No custom cursor, “Scroll to explore”, “Swipe down”, bouncing chevrons, scroll arrows or perpetual animation.</dd></div>
+      <div><dt>Filler formatting and copy</dt><dd>No LABEL // YEAR. No “Elevá tu experiencia”, “Encontrá el hogar de tus sueños”, “Soluciones sinérgicas”, “Next-Gen” or “Seamless”.</dd></div>
+      <div><dt>Off-brand WhatsApp fill</dt><dd>§6: WhatsApp brand green is banned as a fill. Use forest primary styling; identity comes from the decorative glyph and real label.</dd></div>
+      <div><dt>Meaning by hue alone</dt><dd>§12: use text, fill weight, border and shape. Every action has a visible 2px sage-ink focus ring with a 2px offset; targets are at least 44×44px.</dd></div>
+    </dl>
+  </section>
+</main>
+<footer><div class="container"><p class="eyebrow">Damero Propiedades · Reference artifact</p><p class="type-legal">Sources: src/styles/tokens.css and docs/DESIGN.md. This English-labelled, fixed-width board is not a production page or a legal footer specimen.</p></div></footer>
+</body>
+</html>
