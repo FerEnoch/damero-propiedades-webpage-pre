@@ -1,184 +1,101 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
 
+const TITLE = 'Búsqueda de propiedades';
+const TEXT = 'Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: ';
 const COPIED = 'Enlace copiado al portapapeles';
 
 declare global {
-  interface Window {
-    searchShareMock: {
-      shares: ShareData[];
-      writes: string[];
-      clipboard: string;
-    };
-  }
+  interface Window { searchShares: ShareData[]; searchWrites: string[]; }
 }
 
-async function mockSharing(
-  page: Page,
-  share: 'success' | 'absent' | 'abort' | 'error',
-  clipboardFails = false,
-) {
-  await page.addInitScript(({ share, clipboardFails }) => {
-    const state = { shares: [] as ShareData[], writes: [] as string[], clipboard: 'unchanged' };
-    window.searchShareMock = state;
-    Object.defineProperty(navigator, 'share', {
-      configurable: true,
-      value: share === 'absent' ? undefined : async (data: ShareData) => {
-        state.shares.push(data);
-        if (share === 'abort') throw new DOMException('Cancelled', 'AbortError');
-        if (share === 'error') throw new DOMException('Unavailable', 'NotAllowedError');
-      },
-    });
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          state.writes.push(text);
-          if (clipboardFails) throw new DOMException('Denied', 'NotAllowedError');
-          state.clipboard = text;
-        },
-      },
-    });
-  }, { share, clipboardFails });
-}
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.searchShares = [];
+    window.searchWrites = [];
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: ShareData) => {
+      window.searchShares.push(data);
+    } });
+    Object.defineProperty(navigator, 'clipboard', { value: {
+      writeText: async (text: string) => { window.searchWrites.push(text); },
+    } });
+  });
+});
 
-const shareStrip = (page: Page) =>
-  page.getByRole('region', { name: 'Búsqueda compartible', exact: true });
-const shareButton = (page: Page) =>
-  shareStrip(page).getByRole('button', { name: 'Compartir', exact: true });
-const shareStatus = (page: Page) => shareStrip(page).getByRole('status');
-
-test('Compartir adds an icon and tint-safe action beside the unchanged copy strip', async ({ page }) => {
+test('the original copy action, field, hidden status and bands remain intact', async ({ page }) => {
   await page.goto('/propiedades?operacion=venta');
-
-  const copy = shareStrip(page).getByRole('button', { name: 'Copiar búsqueda', exact: true });
-  const share = shareButton(page);
-  await expect(copy).toBeVisible();
-  await expect(share).toBeVisible();
-  await expect(copy).toHaveClass(/\bbutton--secondary-tint\b/);
-  await expect(share).toHaveClass(/\bbutton--secondary-tint\b/);
-  await expect(share.locator('svg')).toHaveAttribute('width', '24');
-  await expect(share.locator('svg')).toHaveAttribute('height', '24');
-  await expect(share.locator('svg')).toHaveAttribute('stroke', 'currentColor');
-  await expect(share.locator('svg')).toHaveAttribute('aria-hidden', 'true');
-  await expect(shareStatus(page)).toHaveText('');
-  await expect(shareStatus(page)).toHaveClass(/visually-hidden/);
+  const copy = page.getByRole('button', { name: 'Copiar búsqueda', exact: true });
+  await expect(copy).toHaveClass(/button--secondary-tint\b/);
   await expect(page.locator('[data-share-field]')).toHaveText('/propiedades?operacion=venta');
   await expect(page.locator('[data-share-field]')).toHaveAttribute('title', '/propiedades?operacion=venta');
-  await expect(page.locator('.search-share__eyebrow')).toHaveText('BÚSQUEDA COMPARTIBLE');
-  await expect(page.locator('.search-share__body')).toHaveText(
-    'Copiá este enlace para compartir exactamente los filtros aplicados actualmente.',
-  );
-  expect(await page.locator('main [data-band]').evaluateAll((bands) =>
-    bands.map((band) => band.getAttribute('data-band')),
-  )).toEqual(['head', 'filters', 'share', 'results', 'empty']);
-  const copyBox = (await copy.boundingBox())!;
-  const shareBox = (await share.boundingBox())!;
-  if (test.info().project.name === 'desktop-1280') {
-    expect(shareBox.x).toBeGreaterThanOrEqual(copyBox.x + copyBox.width + 8);
-    expect(shareBox.y).toBe(copyBox.y);
-  } else {
-    // Narrow viewports wrap the actions by design (no horizontal overflow
-    // wins over side-by-side): Compartir sits at or below the copy row,
-    // left-aligned within the strip.
-    expect(shareBox.y).toBeGreaterThanOrEqual(copyBox.y);
-    expect(shareBox.x).toBeGreaterThanOrEqual(copyBox.x - 1);
-  }
-  expect(shareBox.height).toBeGreaterThanOrEqual(44);
-  expect(await share.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { color: style.color, border: style.borderTopColor };
-  })).toEqual({ color: 'rgb(62, 72, 55)', border: 'rgb(62, 72, 55)' });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth
-    <= document.documentElement.clientWidth + 1)).toBe(true);
+  await expect(page.locator('[data-share-status]')).toHaveClass(/visually-hidden/);
+  await copy.click();
+  await expect(page.locator('[data-share-status]')).toHaveText(COPIED);
+  await expect(page.locator('[data-share-status-menu]')).toHaveText('');
+  expect(await page.evaluate(() => window.searchShares)).toEqual([]);
+  expect(await page.evaluate(() => window.searchWrites)).toEqual([page.url()]);
+  expect(await page.locator('main [data-band]').evaluateAll((bands) => bands.map((band) => band.getAttribute('data-band'))))
+    .toEqual(['head', 'filters', 'share', 'results', 'empty']);
 });
 
-test('native share uses the title, commercial intro and live URL after applying a filter', async ({
-  page, viewport,
-}) => {
-  await mockSharing(page, 'success');
-  await page.goto('/propiedades');
-  const mobile = !!viewport && viewport.width < 768;
-  if (mobile) await page.getByRole('button', { name: 'Filtros', exact: true }).click();
-  await page.locator(`[data-filters="${mobile ? 'sheet' : 'desktop'}"]`)
-    .getByText('Venta', { exact: true }).click();
-  if (mobile) await page.locator('.sheet__apply').click();
-  await expect(page).toHaveURL(/\?operacion=venta$/);
-  const url = page.url();
-
-  await shareButton(page).click();
-
-  await expect.poll(() => page.evaluate(() => window.searchShareMock.shares)).toEqual([{
-    title: await page.title(),
-    text: 'Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: ',
-    url,
-  }]);
-  expect(await page.evaluate(() => window.searchShareMock.writes)).toEqual([]);
-  expect(await page.evaluate(() => window.searchShareMock.clipboard)).toBe('unchanged');
-  await expect(shareStatus(page)).toHaveText('');
-  await expect(page).toHaveURL(url);
-});
-
-test('absent native share copies the live URL and announces the existing exact status', async ({ page }) => {
-  await mockSharing(page, 'absent');
-  await page.goto('/propiedades?operacion=venta');
-  const url = page.url();
-
-  await shareButton(page).click();
-
-  await expect(shareStatus(page)).toHaveText(COPIED);
-  expect(await page.evaluate(() => window.searchShareMock.shares)).toEqual([]);
-  expect(await page.evaluate(() => window.searchShareMock.writes)).toEqual([url]);
-  expect(await page.evaluate(() => window.searchShareMock.clipboard)).toBe(url);
-  await expect(page).toHaveURL(url);
-});
-
-for (const share of ['abort', 'error'] as const) {
-  test(`${share} from native share stays silent without copying or navigating`, async ({ page }) => {
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-    await mockSharing(page, share);
-    await page.goto('/propiedades?operacion=venta');
-    const url = page.url();
-
-    await shareButton(page).click();
-
-    await expect.poll(() => page.evaluate(() => window.searchShareMock.shares.length)).toBe(1);
-    expect(await page.evaluate(() => window.searchShareMock.writes)).toEqual([]);
-    expect(await page.evaluate(() => window.searchShareMock.clipboard)).toBe('unchanged');
-    await expect(shareStatus(page)).toHaveText('');
-    expect(errors).toEqual([]);
-    await expect(page).toHaveURL(url);
+for (const mode of ['success', 'abort', 'error'] as const) {
+  test(`native ${mode} uses the live filtered URL without automatic copying`, async ({ page, viewport }) => {
+    await page.goto('/propiedades');
+    const mobile = viewport!.width < 768;
+    if (mobile) await page.getByRole('button', { name: 'Filtros', exact: true }).click();
+    await page.locator(`[data-filters="${mobile ? 'sheet' : 'desktop'}"]`).getByText('Venta', { exact: true }).click();
+    if (mobile) await page.locator('.sheet__apply').click();
+    await expect(page).toHaveURL(/\?operacion=venta$/);
+    await page.evaluate((mode) => {
+      Object.defineProperty(navigator, 'share', { value: async (data: ShareData) => {
+        window.searchShares.push(data);
+        if (mode !== 'success') throw new DOMException('Share unavailable', mode === 'abort' ? 'AbortError' : 'NotAllowedError');
+      } });
+    }, mode);
+    const root = page.locator('[data-share-menu]');
+    await root.getByRole('button', { name: 'Compartir', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => window.searchShares)).toEqual([{ title: TITLE, text: TEXT, url: page.url() }]);
+    if (mode === 'error') await expect(root.getByRole('menu')).toBeVisible();
+    else await expect(root.getByRole('menu')).toBeHidden();
+    await expect(root.getByRole('status', { includeHidden: true })).toHaveText('');
+    expect(await page.evaluate(() => window.searchWrites)).toEqual([]);
+    await expect(page).toHaveURL(/\?operacion=venta$/);
   });
 }
 
-test('clipboard rejection stays silent without claiming a successful copy', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  await mockSharing(page, 'absent', true);
+test('reopening reads changed filters and prepares encoded channel destinations without launching apps', async ({ page }) => {
+  await page.goto('/propiedades');
+  await page.evaluate(() => Object.defineProperty(navigator, 'share', { value: undefined }));
+  const root = page.locator('[data-share-menu]');
+  const trigger = root.getByRole('button', { name: 'Compartir', exact: true });
+  await trigger.click();
+  await expect(root.locator('[data-share-url]')).toHaveText(page.url());
+  await page.keyboard.press('Escape');
+  // Remove an actual applied filter in-place, then reopen the same component.
   await page.goto('/propiedades?operacion=venta');
+  await page.evaluate(() => Object.defineProperty(navigator, 'share', { value: undefined }));
+  await trigger.click();
+  await page.keyboard.press('Escape');
+  await page.locator('.filter-chip:visible').first().click();
+  await expect(page).toHaveURL(/\/propiedades$/);
+  await trigger.click();
   const url = page.url();
-
-  await shareButton(page).click();
-
-  await expect.poll(() => page.evaluate(() => window.searchShareMock.writes)).toEqual([url]);
-  expect(await page.evaluate(() => window.searchShareMock.shares)).toEqual([]);
-  expect(await page.evaluate(() => window.searchShareMock.clipboard)).toBe('unchanged');
-  await expect(shareStatus(page)).toHaveText('');
-  expect(errors).toEqual([]);
+  await expect(root.locator('[data-share-url]')).toHaveText(url);
+  const destinations = {
+    WhatsApp: `https://wa.me/?text=${encodeURIComponent(TEXT + url)}`,
+    Telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(TEXT)}`,
+    Email: `mailto:?subject=${encodeURIComponent(TITLE)}&body=${encodeURIComponent(TEXT + url)}`,
+  };
+  for (const [channel, destination] of Object.entries(destinations)) {
+    const action = root.getByRole('menuitem', { name: channel, exact: true });
+    expect(await action.evaluate((el) => el.tagName)).toBe('A');
+    await expect(action).toHaveAttribute('href', destination);
+  }
+  await root.getByRole('menuitem', { name: 'Copiar enlace', exact: true }).click();
+  const status = root.locator('.share-menu__panel').getByRole('status');
+  await expect(status).toHaveText(COPIED);
+  await expect(status).toBeVisible();
+  await expect(status).toHaveAttribute('aria-live', 'polite');
   await expect(page).toHaveURL(url);
-});
-
-test('the existing copy action still copies directly even when native share exists', async ({ page }) => {
-  await mockSharing(page, 'success');
-  await page.goto('/propiedades?operacion=venta');
-  const url = page.url();
-
-  await shareStrip(page).getByRole('button', { name: 'Copiar búsqueda', exact: true }).click();
-
-  await expect(shareStatus(page)).toHaveText(COPIED);
-  expect(await page.evaluate(() => window.searchShareMock.shares)).toEqual([]);
-  expect(await page.evaluate(() => window.searchShareMock.writes)).toEqual([url]);
-  expect(await page.evaluate(() => window.searchShareMock.clipboard)).toBe(url);
-  await expect(page).toHaveURL(url);
+  expect(await page.evaluate(() => window.searchWrites)).toEqual([url]);
+  await expect(page.locator('[data-share-status]')).toHaveText('');
 });

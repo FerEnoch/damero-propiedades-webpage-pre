@@ -1,159 +1,97 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
-import {
-  expectedSlugs,
-  expectedTitlesBySlug,
-  expectedWhatsAppHrefsBySlug,
-} from './helpers/content-expectations';
+import { expectedSlugs, expectedTitlesBySlug, expectedWhatsAppHrefsBySlug } from './helpers/content-expectations';
 
 const SLUG = expectedSlugs()[0];
-const COPIED = 'Enlace copiado al portapapeles';
+const TITLE = expectedTitlesBySlug()[SLUG];
+const TEXT = `Mirá esta propiedad de Damero Propiedades: ${TITLE} — `;
 
 declare global {
-  interface Window {
-    detailShareMock: {
-      shares: ShareData[];
-      writes: string[];
-      clipboard: string;
-    };
-  }
+  interface Window { detailShares: ShareData[]; detailWrites: string[]; }
 }
-
-async function mockSharing(
-  page: Page,
-  share: 'success' | 'absent' | 'abort' | 'error',
-  clipboardFails = false,
-) {
-  await page.addInitScript(({ share, clipboardFails }) => {
-    const state = { shares: [] as ShareData[], writes: [] as string[], clipboard: 'unchanged' };
-    window.detailShareMock = state;
-    Object.defineProperty(navigator, 'share', {
-      configurable: true,
-      value: share === 'absent' ? undefined : async (data: ShareData) => {
-        state.shares.push(data);
-        if (share === 'abort') throw new DOMException('Cancelled', 'AbortError');
-        if (share === 'error') throw new DOMException('Unavailable', 'NotAllowedError');
-      },
-    });
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          state.writes.push(text);
-          if (clipboardFails) throw new DOMException('Denied', 'NotAllowedError');
-          state.clipboard = text;
-        },
-      },
-    });
-  }, { share, clipboardFails });
-}
-
-const shareButton = (page: Page) =>
-  page.getByRole('complementary', { name: 'PRECIO' }).getByRole('button', {
-    name: 'Compartir', exact: true,
-  });
-const shareStatus = (page: Page) =>
-  page.getByRole('complementary', { name: 'PRECIO' }).getByRole('status');
 
 test.beforeEach(async ({ page }) => {
   test.skip(!SLUG, 'The collection is empty; no detail route exists.');
   await page.route(/openfreemap/, (route) => route.abort());
+  await page.addInitScript(() => {
+    window.detailShares = [];
+    window.detailWrites = [];
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: ShareData) => {
+      window.detailShares.push(data);
+    } });
+    Object.defineProperty(navigator, 'clipboard', { value: {
+      writeText: async (text: string) => { window.detailWrites.push(text); },
+    } });
+  });
 });
 
-test('Compartir is secondary below WhatsApp in the price panel, never in the sticky bar', async ({
-  page, viewport,
-}) => {
+test('share stays secondary in the price panel, not the sticky WhatsApp bar', async ({ page, viewport }) => {
   await page.goto(`/propiedades/${SLUG}`);
-  const button = shareButton(page);
+  const button = page.locator('.price-panel__cta').getByRole('button', { name: 'Compartir', exact: true });
   await expect(button).toBeVisible();
-  await expect(button).toHaveClass(/\bbutton--secondary\b/);
-  await expect(button.locator('svg')).toHaveAttribute('width', '24');
-  await expect(button.locator('svg')).toHaveAttribute('height', '24');
-  await expect(button.locator('svg')).toHaveAttribute('stroke', 'currentColor');
-  await expect(button.locator('svg')).toHaveAttribute('aria-hidden', 'true');
-  await expect(shareStatus(page)).toHaveText('');
-  await expect(shareStatus(page)).toHaveClass(/visually-hidden/);
-  await expect(page.locator('.whatsapp-sticky button')).toHaveCount(0);
-
-  // Preserve the detail bands, hrefs and single-primary responsive placement.
-  expect(await page.locator('main [data-band]').evaluateAll((bands) =>
-    bands.map((band) => band.getAttribute('data-band')),
-  )).toEqual(['gallery', 'title', 'characteristics', 'price', 'zone', 'map', 'more']);
+  await expect(button).toHaveClass(/share-menu__trigger/);
+  await expect(button).not.toHaveClass(/\bbutton(?:--[\w-]+)?\b/);
+  await expect(page.locator('[data-share-menu] [data-share-status]')).toHaveCount(0);
+  await expect(page.locator('[data-share-status-menu]')).toHaveCount(1);
+  expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(viewport!.width < 768 ? 48 : 52);
+  await expect(page.locator('.whatsapp-sticky').getByRole('button', { name: 'Compartir' })).toHaveCount(0);
   const inline = page.locator('.price-panel__cta .whatsapp-cta');
   const sticky = page.locator('.whatsapp-sticky__link');
   const href = expectedWhatsAppHrefsBySlug()[SLUG];
   await expect(inline).toHaveAttribute('href', href);
   await expect(sticky).toHaveAttribute('href', href);
-  expect(await button.evaluate((element) => {
-    const inline = document.querySelector('.price-panel__cta .whatsapp-cta');
-    return !!inline && !!(inline.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
-  })).toBe(true);
-  if (viewport && viewport.width >= 768) {
-    await expect(inline).toBeVisible();
-    await expect(sticky).toBeHidden();
-    const primaryBox = await inline.boundingBox();
-    const shareBox = await button.boundingBox();
-    expect(shareBox!.y).toBeGreaterThanOrEqual(primaryBox!.y + primaryBox!.height);
-  } else {
+  if (viewport!.width < 768) {
     await expect(inline).toBeHidden();
     await expect(sticky).toBeVisible();
+  } else {
+    await expect(inline).toBeVisible();
+    await expect(sticky).toBeHidden();
+    const primary = (await inline.boundingBox())!;
+    expect((await button.boundingBox())!.y).toBeGreaterThanOrEqual(primary.y + primary.height);
   }
-  expect(await page.evaluate(() => document.documentElement.scrollWidth
-    <= document.documentElement.clientWidth + 1)).toBe(true);
+  expect(await page.locator('main [data-band]').evaluateAll((bands) => bands.map((band) => band.getAttribute('data-band'))))
+    .toEqual(['gallery', 'title', 'characteristics', 'price', 'zone', 'map', 'more']);
 });
 
-test('native share receives the document title, commercial intro and live absolute URL', async ({ page }) => {
-  await mockSharing(page, 'success');
-  await page.goto(`/propiedades/${SLUG}?origen=compartir#precio`);
-  const url = page.url();
-  await shareButton(page).click();
-  await expect.poll(() => page.evaluate(() => window.detailShareMock.shares)).toEqual([{
-    title: await page.title(),
-    text: `Mirá esta propiedad de Damero Propiedades: ${expectedTitlesBySlug()[SLUG]} — `,
-    url,
-  }]);
-  expect(await page.evaluate(() => window.detailShareMock.writes)).toEqual([]);
-  expect(await page.evaluate(() => window.detailShareMock.clipboard)).toBe('unchanged');
-  await expect(shareStatus(page)).toHaveText('');
-  await expect(page).toHaveURL(url);
-});
-
-for (const share of ['absent', 'error'] as const) {
-  test(`${share} native share copies the live URL and announces the exact status`, async ({ page }) => {
-    await mockSharing(page, share);
+for (const mode of ['success', 'abort', 'error'] as const) {
+  test(`native ${mode} respects the payload and never auto-copies`, async ({ page }) => {
     await page.goto(`/propiedades/${SLUG}?origen=compartir#precio`);
-    const url = page.url();
-    await shareButton(page).click();
-    await expect(shareStatus(page)).toHaveText(COPIED);
-    expect(await page.evaluate(() => window.detailShareMock.writes)).toEqual([url]);
-    expect(await page.evaluate(() => window.detailShareMock.clipboard)).toBe(url);
-    expect(await page.evaluate(() => window.detailShareMock.shares.length)).toBe(share === 'absent' ? 0 : 1);
-    await expect(page).toHaveURL(url);
+    await page.evaluate((mode) => {
+      Object.defineProperty(navigator, 'share', { value: async (data: ShareData) => {
+        window.detailShares.push(data);
+        if (mode !== 'success') throw new DOMException('Share unavailable', mode === 'abort' ? 'AbortError' : 'NotAllowedError');
+      } });
+    }, mode);
+    const root = page.locator('[data-share-menu]');
+    await root.getByRole('button', { name: 'Compartir', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => window.detailShares)).toEqual([{ title: TITLE, text: TEXT, url: page.url() }]);
+    if (mode === 'error') await expect(root.getByRole('menu')).toBeVisible();
+    else await expect(root.getByRole('menu')).toBeHidden();
+    await expect(root.getByRole('status', { includeHidden: true })).toHaveText('');
+    expect(await page.evaluate(() => window.detailWrites)).toEqual([]);
+    expect(new URL(page.url()).hash).toBe('#precio');
   });
 }
 
-test('AbortError stays silent without copying or navigating', async ({ page }) => {
-  await mockSharing(page, 'abort');
+test('secure clipboard copies only the URL; native cancellation preserves prior visible feedback', async ({ page }) => {
   await page.goto(`/propiedades/${SLUG}`);
-  const url = page.url();
-  await shareButton(page).click();
-  await expect.poll(() => page.evaluate(() => window.detailShareMock.shares.length)).toBe(1);
-  expect(await page.evaluate(() => window.detailShareMock.writes)).toEqual([]);
-  expect(await page.evaluate(() => window.detailShareMock.clipboard)).toBe('unchanged');
-  await expect(shareStatus(page)).toHaveText('');
-  await expect(page).toHaveURL(url);
-});
-
-test('clipboard rejection stays silent and does not claim a successful copy', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  await mockSharing(page, 'absent', true);
-  await page.goto(`/propiedades/${SLUG}`);
-  const url = page.url();
-  await shareButton(page).click();
-  await expect.poll(() => page.evaluate(() => window.detailShareMock.writes)).toEqual([url]);
-  expect(await page.evaluate(() => window.detailShareMock.clipboard)).toBe('unchanged');
-  await expect(shareStatus(page)).toHaveText('');
-  expect(errors).toEqual([]);
-  await expect(page).toHaveURL(url);
+  await page.evaluate(() => Object.defineProperty(navigator, 'share', { value: undefined }));
+  const root = page.locator('[data-share-menu]');
+  const trigger = root.getByRole('button', { name: 'Compartir', exact: true });
+  await trigger.click();
+  await root.getByRole('menuitem', { name: 'Copiar enlace', exact: true }).click();
+  const status = root.locator('.share-menu__panel').getByRole('status', { includeHidden: true });
+  await expect(status).toHaveText('Enlace copiado al portapapeles');
+  await expect(status).toBeVisible();
+  await expect(status).toHaveAttribute('aria-live', 'polite');
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => Object.defineProperty(navigator, 'share', { value: async () => {
+    window.detailShares.push({ title: 'cancelled' });
+    throw new DOMException('Cancelled', 'AbortError');
+  } }));
+  await trigger.click();
+  await expect.poll(() => page.evaluate(() => window.detailShares.length)).toBe(1);
+  await expect(root.getByRole('menu')).toBeHidden();
+  await expect(status).toHaveText('Enlace copiado al portapapeles');
+  await expect(status).toBeHidden();
+  expect(await page.evaluate(() => window.detailWrites)).toEqual([page.url()]);
 });
