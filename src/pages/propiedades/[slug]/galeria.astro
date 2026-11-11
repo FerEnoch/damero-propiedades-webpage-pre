@@ -48,14 +48,19 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { titulo, slug, fotos } = entry.data;
+const { titulo, descripcion, slug, fotos } = entry.data;
 
 // §17.5: with no photographs the controls, counter, rail and transition
 // name are omitted — a fabricated `1 / N` line would be invented data (§11).
 const hasFotos = fotos.length > 0;
 ---
 
-<BaseLayout title={`${titulo} · Galería | Damero Propiedades`}>
+<BaseLayout
+  title={`${titulo} · Galería | Damero Propiedades`}
+  description={descripcion}
+  image={hasFotos ? fotos[0].src : undefined}
+  imageAlt={titulo}
+>
   <div class="gallery-page" data-gallery-page>
     <div class="container gallery-page__inner">
       <Button variant="text-link" href={`/propiedades/${slug}`} class="gallery-page__back"

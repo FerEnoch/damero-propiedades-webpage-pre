@@ -113,7 +113,12 @@ const houseGlyph = iconHouse
   );
 ---
 
-<BaseLayout title={`${titulo} | Damero Propiedades`}>
+<BaseLayout
+  title={`${titulo} | Damero Propiedades`}
+  description={descripcion}
+  image={hasFotos ? fotos[0].src : undefined}
+  imageAlt={titulo}
+>
   <div class="detail-page" data-detail-page>
     <div class="container detail-grid">
       {/* Breadcrumb (§17.2:673): mono uppercase, `/` separators, ancestors

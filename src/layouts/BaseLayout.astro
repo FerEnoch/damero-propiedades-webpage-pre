@@ -9,6 +9,7 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   canonicalPath?: string;
 }
 
@@ -16,8 +17,16 @@ const {
   title = SITE_NAME,
   description = SITE_TAGLINE,
   image = '/og/damero-og.png',
+  imageAlt = SITE_NAME,
   canonicalPath,
 } = Astro.props;
+
+// The static card dimensions are verified (public/og/damero-og.png is a
+// 1200x630 bake of damero-og.svg). Per-listing photos carry no width/height
+// tags: their dimensions are unknown at build time and a wrong tag is worse
+// than none. WebP is served as-is for og:image (WhatsApp support is
+// contested); check-image-limits.mjs already caps those files at 300 KB.
+const isDefaultCard = image === '/og/damero-og.png';
 
 // Absolute URLs are mandatory for crawlers (WhatsApp/Telegram ignore
 // relative og:image). Astro.site is set in astro.config.mjs; the fallback
@@ -44,9 +53,9 @@ const imageURL = new URL(image, siteOrigin).toString();
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={imageURL} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={SITE_NAME} />
+    {isDefaultCard && <meta property="og:image:width" content="1200" />}
+    {isDefaultCard && <meta property="og:image:height" content="630" />}
+    <meta property="og:image:alt" content={imageAlt} />
     <meta property="og:locale" content="es_AR" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
