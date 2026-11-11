@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+  <title>Damero Propiedades</title>
+  <!-- Brand favicon: forest square (forest ink token) + white damero tile +
+    sage diamond mass (graphic only exception per DESIGN.md 13,
+    same class as damero_mark.svg). Radius 6px = radius md, never pill. -->
+  <rect width="64" height="64" rx="6" fill="#3E4837"/>
+  <path d="M32 8 L56 32 L32 56 L8 32 Z" fill="#FFFFFF"/>
+  <path d="M32 20 L44 32 L32 44 L20 32 Z" fill="#7C916F"/>
+</svg>

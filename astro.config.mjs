@@ -3,6 +3,9 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
+  // Canonical origin for absolute OG/canonical URLs (WhatsApp/Telegram
+  // require absolute og:image). Domain supplied by the stakeholder.
+  site: 'https://dameropropiedades.com.ar',
   // Self-hosted brand fonts (DESIGN.md §3). Astro downloads the woff2 files at
   // build time and emits them under the site origin; no runtime request ever
   // reaches fonts.googleapis.com / fonts.gstatic.com.
