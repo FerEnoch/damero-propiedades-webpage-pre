@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">
+  <title>Damero Propiedades</title>
+  <!-- OG card source (1200x630). Baked pixels: raw palette values are the
+    documented PNG exception class (same as knockout SVGs). Layout: left
+    aligned, never centred (DESIGN.md 860). Sage only as diamond
+    mass, never text. Radii stay within radius md. -->
+  <rect width="1200" height="630" fill="#F4F5F3"/>
+  <!-- Right-edge watermark: one oversized diamond outline at 8% opacity. -->
+  <g transform="translate(1090,315) rotate(45)" opacity="0.08">
+    <rect x="-230" y="-230" width="460" height="460" fill="none" stroke="#3E4837" stroke-width="2"/>
+  </g>
+  <!-- Brand cluster: nested squares read as diamonds via 45-degree rotation. -->
+  <g transform="translate(168,252) rotate(45)">
+    <rect x="-64" y="-64" width="128" height="128" rx="6" fill="#3E4837"/>
+    <rect x="-36" y="-36" width="72" height="72" fill="#FFFFFF"/>
+    <rect x="-18" y="-18" width="36" height="36" fill="#7C916F"/>
+  </g>
+  <text x="280" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="84" letter-spacing="-1" fill="#3E4837">Damero Propiedades</text>
+  <text x="282" y="330" font-family="Verdana, system-ui, sans-serif" font-size="33" fill="#4F6144">Catálogo inmobiliario con respaldo jurídico.</text>
+  <text x="282" y="384" font-family="ui-monospace, SFMono-Regular, monospace" font-size="24" letter-spacing="3" fill="#5F6B57">DAMEROPROPIEDADES.COM.AR</text>
+  <rect x="96" y="520" width="1008" height="1" fill="#DCE1D6"/>
+</svg>

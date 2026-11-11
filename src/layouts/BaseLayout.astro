@@ -3,13 +3,28 @@ import { Font } from 'astro:assets';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { SITE_NAME } from '../data/site';
+import { SITE_NAME, SITE_TAGLINE } from '../data/site';
 
 interface Props {
   title?: string;
+  description?: string;
+  image?: string;
+  canonicalPath?: string;
 }
 
-const { title = SITE_NAME } = Astro.props;
+const {
+  title = SITE_NAME,
+  description = SITE_TAGLINE,
+  image = '/og/damero-og.png',
+  canonicalPath,
+} = Astro.props;
+
+// Absolute URLs are mandatory for crawlers (WhatsApp/Telegram ignore
+// relative og:image). Astro.site is set in astro.config.mjs; the fallback
+// keeps dev/preview builds working when the config is absent.
+const siteOrigin = Astro.site ?? new URL('https://dameropropiedades.com.ar');
+const canonicalURL = new URL(canonicalPath ?? Astro.url.pathname, siteOrigin).toString();
+const imageURL = new URL(image, siteOrigin).toString();
 ---
 
 <!doctype html>
@@ -19,6 +34,24 @@ const { title = SITE_NAME } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="theme-color" content="#3E4837" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={imageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={SITE_NAME} />
+    <meta property="og:locale" content="es_AR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
     <Font cssVariable="--font-newsreader" />
     <Font cssVariable="--font-hanken-grotesk" />
     <Font cssVariable="--font-jetbrains-mono" />
