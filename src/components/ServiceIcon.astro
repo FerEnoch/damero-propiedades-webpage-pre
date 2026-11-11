@@ -16,7 +16,7 @@ import iconDocuments from '../icons/services/icon-documents.svg?raw';
 import iconHandshake from '../icons/services/icon-handshake.svg?raw';
 import iconKeys from '../icons/services/icon-keys.svg?raw';
 import iconMegaphone from '../icons/services/icon-megaphone.svg?raw';
-import iconPenSeal from '../icons/services/icon-pen-seal.svg?raw';
+import iconShieldCheck from '../icons/services/icon-shield-check.svg?raw';
 import iconTarget from '../icons/services/icon-target.svg?raw';
 
 const ICONS = {
@@ -26,7 +26,7 @@ const ICONS = {
   'icon-handshake': iconHandshake,
   'icon-keys': iconKeys,
   'icon-megaphone': iconMegaphone,
-  'icon-pen-seal': iconPenSeal,
+  'icon-shield-check': iconShieldCheck,
   'icon-target': iconTarget,
 } as const;
 
@@ -57,5 +57,14 @@ const svg = ICONS[name]
     flex: none;
     width: 28px;
     height: 28px;
+  }
+
+  /* Desktop bump: badge stays 48px (§8 max), glyph 28 → 30px. Stroke
+     resolves to ~1.9px, still under the 2px optically-correct ceiling. */
+  @media (min-width: 768px) {
+    :global(.service-icon) {
+      width: 30px;
+      height: 30px;
+    }
   }
 </style>

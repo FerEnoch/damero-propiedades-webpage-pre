@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" focusable="false">
   <title>Manos estrechadas</title>
-  <path fill="#7C916F" d="M10.2 10H13.8A1.6 1.6 0 0 1 15.4 11.6V14A1.6 1.6 0 0 1 13.8 15.6H10.2A1.6 1.6 0 0 1 8.6 14V11.6A1.6 1.6 0 0 1 10.2 10Z"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M2 10.6H8V15H2Z"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M22 10.6H16V15H22Z"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4.6 10.6V15"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M19.4 10.6V15"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 9.4H14A2 2 0 0 1 16 11.4V14.2A2 2 0 0 1 14 16.2H10A2 2 0 0 1 8 14.2V11.4A2 2 0 0 1 10 9.4Z"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M9.8 9.4V12.2"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9.4V12.2"/>
-  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14.2 9.4V12.2"/>
+  <!--
+    Geometry adapted from Lucide's "handshake" (lucide-static v1.72.0, ISC licence,
+    Copyright (c) Lucide Icons and Contributors). Re-toned to the house duotone:
+    1.5px stroke at 24px, sage accent mass on the near palm.
+  -->
+  <path fill="#7C916F" d="M13.1 9.1a3 3 0 0 1 2.1.9l3.9 3.9a3 3 0 0 1 0 4.2 3 3 0 0 1-4.2 0l-3.9-3.9a3 3 0 0 1 .9-2.1 3 3 0 0 1 1.2-3Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="m11 17 2 2a1 1 0 1 0 3-3"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="m21 3 1 11h-2"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 4h8"/>
 </svg>
