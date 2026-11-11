@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">
   <title>Damero Propiedades</title>
-  <!-- OG card source (1200x630). Baked pixels: raw palette values are the
-    documented PNG exception class (same as knockout SVGs). Layout: left
-    aligned, never centred (DESIGN.md 860). Sage only as diamond
-    mass, never text. Radii stay within radius md. -->
+  <!-- OG card source (1200x630). Bake with pnpm bake:og (Chromium).
+    Do NOT bake with ImageMagick: its SVG renderer misplaces the
+    rotated badge over the wordmark. Single left axis at x=96.
+    Raw palette values here are the documented SVG exception class. -->
   <rect width="1200" height="630" fill="#F4F5F3"/>
   <!-- Right-edge watermark: one oversized diamond outline at 8% opacity.
     Single left axis at x=96 for badge, text and rule: nothing is centred. -->

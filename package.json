@@ -15,6 +15,7 @@
     "preview": "astro preview",
     "test:e2e": "pnpm check:images && playwright test",
     "check:images": "node scripts/check-image-limits.mjs",
+    "bake:og": "playwright screenshot --viewport-size=1200,630 file://$PWD/public/og/damero-og.svg public/og/damero-og.png",
     "astro": "astro",
     "audit": "pnpm audit",
     "audit:high": "pnpm audit --audit-level high",
