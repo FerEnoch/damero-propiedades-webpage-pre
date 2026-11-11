@@ -8,7 +8,7 @@
  * root SVG carries `aria-hidden="true"` + `focusable="false"` — the adjacent text
  * label is always the accessible name.
  *
- * Rendered at 24px by default and scaled by CSS; there are no size variants.
+ * Rendered at 28px by default and scaled by CSS; there are no size variants.
  */
 import iconAppraisal from '../icons/services/icon-appraisal.svg?raw';
 import iconCamera from '../icons/services/icon-camera.svg?raw';
@@ -45,7 +45,7 @@ const svg = ICONS[name]
   .replace(/\s+focusable="false"/g, '')
   .replace(
     /<svg\b([^>]*)>/,
-    '<svg$1 focusable="false" aria-hidden="true" class="service-icon" width="24" height="24">',
+    '<svg$1 focusable="false" aria-hidden="true" class="service-icon" width="28" height="28">',
   );
 ---
 
@@ -55,7 +55,7 @@ const svg = ICONS[name]
   :global(.service-icon) {
     display: block;
     flex: none;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
   }
 </style>
