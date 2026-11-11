@@ -42,6 +42,8 @@ import FilterChip from '../../components/FilterChip.astro';
 import FilterControls from '../../components/FilterControls.astro';
 import FilterSelect from '../../components/FilterSelect.astro';
 import PropertyCard from '../../components/PropertyCard.astro';
+import ShareMenu from '../../components/ShareMenu.astro';
+import checkIcon from '../../icons/icon-check.svg?raw';
 
 const propiedades = await getCollection('propiedades');
 
@@ -216,8 +218,27 @@ const hasCochera = (cochera: boolean | number) =>
             banned (§2:87). Never primary, never an icon-only affordance.
           */}
           <Button variant="secondary-tint" class="search-share__button">
-            Copiar búsqueda
+            {/*
+              Three labels share one grid cell, so the confirmation replaces
+              the label in place: the control keeps its resting width and the
+              band never shifts. `visibility` is what reserves the space and
+              what drops the hidden label from the accessible name — the
+              button is always named after the label it is actually showing.
+            */}
+            <span class="search-share__labels">
+              <span class="search-share__label search-share__label--resting">Copiar búsqueda</span>
+              <span class="search-share__label search-share__label--confirmed">
+                <Fragment set:html={checkIcon} /> Copiado
+              </span>
+              <span class="search-share__label search-share__label--failed">No copiado</span>
+            </span>
           </Button>
+          <ShareMenu
+            variant="strip"
+            title="Búsqueda de propiedades"
+            text="Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: "
+            id="search-share"
+          />
         </div>
         <p class="visually-hidden" role="status" data-share-status></p>
       </div>
@@ -799,14 +820,32 @@ const hasCochera = (cochera: boolean | number) =>
 
     // Class hooks, not data attributes: Button.astro forwards `class` but not
     // unknown attributes, so `data-*` passed to it would never reach the DOM.
-    document.querySelector('.search-share__button')?.addEventListener('click', async () => {
+    // The copy action confirms in place: the button itself reports the
+    // outcome, so the tap is never answered by silence.
+    const copyButton = document.querySelector<HTMLButtonElement>('.search-share__button');
+    let copyFeedbackTimer: number | undefined;
+    const showCopyFeedback = (state: 'confirmed' | 'failed') => {
+      if (!copyButton) return;
+      copyButton.classList.remove('is-confirmed', 'is-failed');
+      copyButton.classList.add(state === 'confirmed' ? 'is-confirmed' : 'is-failed');
+      window.clearTimeout(copyFeedbackTimer);
+      copyFeedbackTimer = window.setTimeout(() => {
+        copyButton.classList.remove('is-confirmed', 'is-failed');
+      }, 2400);
+    };
+
+    copyButton?.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(window.location.href);
-        if (shareStatus) shareStatus.textContent = 'Enlace copiado al portapapeles';
       } catch {
-        // Clipboard unavailable: select nothing, claim nothing — the field
-        // already shows the URL for manual copying.
+        // Clipboard unavailable: claim nothing — the field already shows the
+        // URL for manual copying. Say so rather than leave the tap unanswered.
+        if (shareStatus) shareStatus.textContent = 'No se pudo copiar: seleccioná el enlace y copialo';
+        showCopyFeedback('failed');
+        return;
       }
+      if (shareStatus) shareStatus.textContent = 'Enlace copiado al portapapeles';
+      showCopyFeedback('confirmed');
     });
 
     // ---- Bottom sheet (R14 dialog semantics) ----------------------------
@@ -1005,6 +1044,7 @@ const hasCochera = (cochera: boolean | number) =>
 
   .search-share__action {
     display: flex;
+    flex-wrap: wrap;
     flex: 1 1 24rem;
     align-items: center;
     gap: var(--space-3);
@@ -1040,6 +1080,46 @@ const hasCochera = (cochera: boolean | number) =>
 
   .search-share__action :global(.search-share__button) {
     flex: none;
+  }
+
+  /*
+   * The confirmation replaces the label in place (§17.1:711 — the action
+   * stays a secondary button, never primary). All three labels share one
+   * grid cell: the resting label is the widest, so the control keeps its
+   * width in every state and the band never reflows.
+   */
+  .search-share__labels {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .search-share__label {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
+  }
+
+  .search-share__label svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .search-share__label--confirmed,
+  .search-share__label--failed {
+    visibility: hidden;
+  }
+
+  :global(.search-share__button.is-confirmed) .search-share__label--confirmed,
+  :global(.search-share__button.is-failed) .search-share__label--failed {
+    visibility: visible;
+  }
+
+  :global(.search-share__button.is-confirmed) .search-share__label--resting,
+  :global(.search-share__button.is-failed) .search-share__label--resting {
+    visibility: hidden;
   }
 
   /* ---- 6. Results -------------------------------------------------------- */

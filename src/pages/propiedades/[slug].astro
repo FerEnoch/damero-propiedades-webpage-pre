@@ -45,6 +45,7 @@ import WhatsAppCta from '../../components/WhatsAppCta.astro';
 import { formatAmount } from '../../lib/format';
 import { CONTACT_HOURS } from '../../data/site';
 import iconHouse from '../../icons/icon-house.svg?raw';
+import ShareMenu from '../../components/ShareMenu.astro';
 
 interface Props {
   entry: CollectionEntry<'propiedades'>;
@@ -256,12 +257,19 @@ const houseGlyph = iconHouse
         <hr class="price-panel__rule" />
         {/*
           Desktop (≥ md): the CTA lives here, inside the panel (§17.2:697).
-          Mobile (< md): the in-flow CTA is omitted and the §6 sticky bar
-          takes over (§17.2:698) — exactly one primary action per viewport.
+          Mobile (< md): the in-flow WhatsApp CTA is omitted and the §6
+          sticky bar takes over (§17.2:698). Share stays secondary in the
+          panel — exactly one primary action per viewport.
         */}
         <div class="price-panel__cta">
           <WhatsAppCta variant="inline" whatsapp={whatsapp} titulo={titulo} slug={slug} />
           <p class="price-panel__note">Respuesta por WhatsApp. {CONTACT_HOURS}</p>
+          <ShareMenu
+            variant="panel"
+            title={titulo}
+            text={`Mirá esta propiedad de Damero Propiedades: ${titulo} — `}
+            id="detail-share"
+          />
         </div>
       </aside>
 
@@ -904,8 +912,10 @@ const houseGlyph = iconHouse
       scroll-snap-align: start;
     }
 
-    /* The in-flow CTA is omitted; the sticky bar takes over (§17.2:698). */
-    .price-panel__cta {
+    /* Only the primary CTA moves to the sticky bar (§17.2:698).
+       The secondary share action stays in the panel, never in the bar. */
+    .price-panel__cta :global(.whatsapp-cta),
+    .price-panel__note {
       display: none;
     }
 
