@@ -24,8 +24,8 @@
     "install:frozen": "pnpm install --frozen-lockfile"
   },
   "dependencies": {
-    "astro": "7.4.4",
-    "maplibre-gl": "6.16.0"
+    "astro": "7.4.12",
+    "maplibre-gl": "6.18.0"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0"
