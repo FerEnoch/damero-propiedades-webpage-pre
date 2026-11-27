@@ -86,7 +86,10 @@ diseño; si hay un cambio de diseño, se trae de forma explícita.
   levanta `pnpm build && pnpm preview --port 4321` como `webServer`.
 - Specs en `e2e/`: `landing-structure`, `landing-content`, `landing-cta-layout`,
   `landing-accessibility`, `propiedades-view-transitions`, más el helper `e2e/browser-audits.ts`.
-- Browser: chromium empaquetado de Playwright (revisión 1243 para 1.63.0).
+- Browser: chromium empaquetado de Playwright (la revisión la fija `@playwright/test`
+  en `package.json`; 1.65.1 → chromium-headless-shell r1255). Tras cada bump de Playwright,
+  `pnpm exec playwright install chromium` antes del gate — sin el binario nuevo, todos los
+  tests fallan en el launch (`Executable doesn't exist`).
   Fallback documentado si la descarga se bloquea: `use: { channel: 'chrome' }` — decisión del
   stakeholder, no default.
 - `playwright-report/` está gitignoreado.
@@ -94,9 +97,11 @@ diseño; si hay un cambio de diseño, se trae de forma explícita.
 ### Gotchas de entorno que ya costaron ida y vuelta
 
 - **`ASTRO_PREVIEW_BACKGROUND=0` es obligatorio en el `webServer`.** Astro >= 7.2 daemoniza
-  `astro preview` cuando detecta un shell de agente de IA: el comando de foreground sale 0,
-  Playwright aborta con `webServer exited early` y queda un server huérfano en 4321 que
-  `reuseExistingServer` después reusa **sin rebuild** — o sea, tests contra un `dist/` viejo.
+  `astro preview` cuando detecta un shell de agente de IA: el comando de foreground sale 0 y
+  Playwright aborta con `webServer exited early`. Y desde Astro 7.4.12 hay guarda singleton:
+  si cualquier preview sigue corriendo (aunque sea en otro puerto), el `webServer` del gate
+  no arranca (`Another astro preview server is already running`). **Antes del gate,
+  `pnpm astro preview stop`** — ningún preview manual puede quedar abierto.
 - **El minificador CSS de Astro pasa los hex a minúscula** (`#7C916F` -> `#7c916f`) y convierte
   `rgba()` a hex8. Al verificar tokens sobre `dist/`, usá `grep -i` o vas a leer un falso negativo.
 
