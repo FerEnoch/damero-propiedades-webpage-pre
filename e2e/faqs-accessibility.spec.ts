@@ -19,12 +19,13 @@ import {
  * represented by a real element from the markup. Pairs that only exist on one
  * viewport (the mobile closing band's sage-ink/muted-text on surface-tint)
  * are covered by the generic scan, which runs per viewport — same criterion
- * the S3 spec uses for pairs a page does not render.
+ * the S3 spec uses for pairs a page does not render. The pending marker
+ * (`forest-ink on surface-tint`) no longer renders — the sixteen
+ * stakeholder-owned answers closed the launch blocker — so it is not probed.
  */
 const MATRIX_PROBES: MatrixProbe[] = [
   { name: 'forest-ink on surface', selector: '.site-header__wordmark' },
   { name: 'forest-ink on canvas', selector: '.faqs-head__title' },
-  { name: 'forest-ink on surface-tint', selector: '.faq-item__marker' },
   { name: 'on-forest on forest-ink', selector: '.site-footer__wordmark' },
   { name: 'sage-ink on surface', selector: '.site-header__whatsapp' },
   { name: 'sage-ink on canvas', selector: '.faqs-head__eyebrow' },

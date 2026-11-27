@@ -76,7 +76,7 @@ test('accordion items are separated by a hairline only — no cards, fills, shad
   await page.goto('/faqs');
 
   const items = page.locator('.faq-item');
-  await expect(items).toHaveCount(6);
+  await expect(items).toHaveCount(16);
 
   const style = await items.first().evaluate((el) => {
     const computed = getComputedStyle(el);
@@ -103,7 +103,7 @@ test('the accordion wiring: aria-controls resolves and the first item is expande
   await page.goto('/faqs');
 
   const toggles = page.locator('.faq-item__toggle');
-  await expect(toggles).toHaveCount(6);
+  await expect(toggles).toHaveCount(16);
 
   // §17.3:718 — the whole row is a `<button>` with aria-expanded/aria-controls.
   const wiring = await page.evaluate(() =>
@@ -127,7 +127,7 @@ test('the accordion wiring: aria-controls resolves and the first item is expande
     expect(wiring[i].expanded).toBe('false');
   }
   await expect(page.locator('#faq-panel-1')).toBeVisible();
-  for (let i = 2; i <= 6; i++) {
+  for (let i = 2; i <= 16; i++) {
     await expect(page.locator(`#faq-panel-${i}`)).toBeHidden();
   }
 });

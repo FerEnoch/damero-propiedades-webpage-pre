@@ -1,29 +1,57 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * FAQ page content rules (ODD §17 slice S4): R7's verbatim questions in the
- * PRD §8 order, the §17.3 pending state on every answer (marker + neutral
- * meta line, never an invented answer), the serif question voice (§17.3:716,
- * ruling R8 — asserted on the landing teaser too), the single primary action
- * per viewport (§17.3:722-723), R11's inert WhatsApp href, and the §17.4
+ * FAQ page content rules (ODD §17 slice S4, stakeholder answers 2026-11-27):
+ * the sixteen stakeholder-owned questions and answers verbatim in the
+ * stakeholder's order, the serif question voice (§17.3:716, ruling R8 —
+ * asserted on the landing teaser too), the single primary action per
+ * viewport (§17.3:722-723), R11's production WhatsApp href, and the §17.4
  * legal block (exactly two lines, verbatim, no extra legal links).
  */
 
-/** The six questions, verbatim and in the PRD §8 order (R7). */
+/** The sixteen stakeholder-owned questions, verbatim and in order. */
 const QUESTIONS = [
-  '¿Qué necesito para publicar mi propiedad en venta?',
-  '¿Qué necesito para publicar mi propiedad en alquiler?',
-  '¿Qué requisitos tiene una publicación apta crédito?',
-  '¿Puedo vender sin título único?',
-  'Quiero comprar — ¿cómo me guían?',
-  '¿Qué necesito para alquilar una propiedad?',
+  '¿Por qué me conviene contratar a una inmobiliaria en lugar de publicar y vender o alquilar mi propiedad por mi cuenta en redes sociales?',
+  'Cuál es el costo de publicar mi propiedad con ustedes?',
+  'Qué debo tener al momento de negociar mi propiedad?',
+  '¿Cómo se determina el precio real de venta o alquiler de mi propiedad sin ilusionarme con un valor imposible?',
+  'Llegado el caso, un interesado me ofrece otra propiedad como parte de pago, un vehículo o un plan de cuotas. Qué debo hacer?',
+  '¿Tengo que dejar mi casa disponible todo el tiempo para las visitas o puedo coordinar días y horarios específicos?',
+  'Qué gastos además de los honorarios se pagan al momento de comprar o vender una propiedad?',
+  'Si quiero vender mi casa, pero vivo en ella y debo comprar otra antes de abandonarla. Cuál es el procedimiento?',
+  'Si encuentro una propiedad que me gusta, ¿puedo hacer una reserva para que se la saquen del mercado mientras juntamos los papeles?',
+  '¿Cómo sé que el inmueble no tiene deudas ocultas, juicios o hipotecas que me traigan problemas después?',
+  'Quiero alquilar. ¿Qué requisitos exactos y garantías (garantes, recibos de sueldo) me van a pedir para alquilar?',
+  'Quiero alquilar y quiero saber quién paga los gastos de mantenimiento extraordinarios o los arreglos estructurales si algo se rompe en el departamento',
+  '¿Cómo se calculan y cada cuánto tiempo se realizan los aumentos o actualizaciones del valor del alquiler?',
+  '¿Qué porcentaje de la renta mensual se queda la inmobiliaria en concepto de administración y qué tareas incluye ese servicio?',
+  '¿Por qué los precios de las propiedades varían tanto y de qué depende que suban o bajen en una zona específica?',
+  '¿Qué es una "reserva" y qué pasa con ese dinero si la operación se cae por culpa de alguna de las partes?',
 ] as const;
 
-/** §17.3:728 — the neutral meta line from `src/data/faqs.ts`. */
-const PENDING_META =
-  'Respuesta en preparación: va a cubrir el tema de esta consulta en un párrafo breve.';
+/** Spot checks: stakeholder-owned answer bodies, verbatim excerpts. */
+const ANSWER_EXCERPTS = [
+  'con el aval del CCI (Colegio de Corredores Inmobiliarios)',
+  'el monto de los honorarios el 3% del total negociado',
+  'todos los propietarios que figuren en el título deben estar de acuerdo',
+  'ni más ni menos',
+  'cerramos el negocio asegurandonos de que los términos propuestos sean entendidos',
+  'siempre se puede coordinar',
+  '⅓ lo abona la parte vendedora y ⅔ la parte compradora',
+  'promocionarla en forma “condicionada”',
+  'esa reserva se devuelve completa',
+  'nadie deba hacerse cargo de futuros problemas sorpresivos',
+  '4 recibos de sueldo de contactos aptos',
+  'los gastos de este tipo de averías corren por parte del propietario',
+  'el dato oficial del IPC',
+  'Este servicio es el 10% de la renta mensual',
+  'el acceso a servicios y distancia a centros de interés',
+  'un 3% del valor negociado, generalmente',
+] as const;
 
-test('the six questions render verbatim and in the PRD §8 order (R7)', async ({ page }) => {
+test('the sixteen questions render verbatim and in the stakeholder order', async ({
+  page,
+}) => {
   await page.goto('/faqs');
 
   const rendered = await page.evaluate(() =>
@@ -50,53 +78,29 @@ test('the question uses the serif voice (§17.3:716, ruling R8)', async ({ page 
   expect(font.size).toBe('18px');
 });
 
-test('every answer renders the PENDIENTE marker inline at its start (§17.3:727)', async ({
+test('every answer renders its stakeholder-owned body and no PENDIENTE marker', async ({
   page,
 }) => {
   await page.goto('/faqs');
 
-  const markers = page.locator('.faq-item__marker');
-  await expect(markers).toHaveCount(6);
+  // The launch blocker is closed: sixteen real answers, zero pending markers.
+  await expect(page.locator('.faq-item__marker')).toHaveCount(0);
+  await expect(page.locator('.faq-item__meta')).toHaveCount(0);
 
-  for (let i = 0; i < 6; i++) {
-    // The DOM text is the data's own case; the uppercase the design asks for
-    // is achieved with CSS `text-transform`, which `toHaveText` cannot see.
-    await expect(markers.nth(i)).toHaveText(/^PENDIENTE$/);
-    await expect(markers.nth(i)).toHaveCSS('text-transform', 'uppercase');
+  const bodies = page.locator('.faq-item__body');
+  await expect(bodies).toHaveCount(16);
+  for (let i = 0; i < 16; i++) {
+    await expect(bodies.nth(i)).toContainText(ANSWER_EXCERPTS[i]);
   }
 
-  // The marker is the first element inside the answer's meta line — inline at
-  // the start of the answer, never a block of its own.
-  const firstChildren = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.faq-item__meta')).map(
-      (meta) => meta.firstElementChild?.className ?? '',
-    ),
-  );
-  for (const className of firstChildren) {
-    expect(className).toContain('faq-item__marker');
-  }
-});
-
-test('every answer carries the neutral meta line and nothing else (§17.3:728-729)', async ({
-  page,
-}) => {
-  await page.goto('/faqs');
-
-  const metas = page.locator('.faq-item__meta');
-  await expect(metas).toHaveCount(6);
-  for (let i = 0; i < 6; i++) {
-    await expect(metas.nth(i)).toContainText(PENDING_META);
-  }
-
-  // Each answer region is exactly the pending meta line — no answer body ever
-  // ships while the answers are stakeholder-owned (PRD §8, §17.3:729).
+  // Each answer region is exactly the answer body — never the pending state.
   const shapes = await page.evaluate(() =>
     Array.from(document.querySelectorAll('.faq-item__answer')).map((answer) =>
       Array.from(answer.children).map((child) => child.className),
     ),
   );
   for (const shape of shapes) {
-    expect(shape).toEqual(['faq-item__meta']);
+    expect(shape).toEqual(['faq-item__body']);
   }
 });
 
@@ -104,12 +108,14 @@ test('no invented content renders on the page (§11, §17.3:729)', async ({ page
   await page.goto('/faqs');
 
   const renderedText = await page.evaluate(() => document.body.innerText);
+  // Percentages, fractions and counts below are stakeholder-owned copy
+  // (3%, 10%, ⅓/⅔, 4 recibos), not invented metrics — so they are not
+  // banned here. The bans below catch agent or designer inventions.
   const bannedMarkers: Array<[string, RegExp]> = [
     ['lorem ipsum filler (the screens’ answer bodies)', /lorem|ipsum/i],
     ['CUCICBA (superseded regulator name)', /CUCICBA/i],
     ['Ley 5115 (invented legal reference)', /Ley\s*5115/i],
     ['testimonials', /testimonio/i],
-    ['percentage metrics', /\d+([.,]\d+)?\s*%/],
     ['years-of-experience claims', /\d+\+?\s*años/i],
   ];
 
@@ -193,7 +199,7 @@ test('R8: the landing teaser matches the serif voice and derives from the /faqs 
 
   const questions = page.locator('.faq-teaser__question');
   await expect(questions).toHaveCount(2);
-  // The teaser carries the first two PRD questions, from `src/data/faqs.ts`.
+  // The teaser carries the first two stakeholder questions, from `src/data/faqs.ts`.
   await expect(questions.nth(0)).toHaveText(QUESTIONS[0]);
   await expect(questions.nth(1)).toHaveText(QUESTIONS[1]);
 

@@ -11,7 +11,7 @@
  * placeholder text, the landing renders an explicit `PENDIENTE` marker and no
  * answer body.
  */
-import { FAQ_ENTRIES, FAQ_PENDING_MARKER } from './faqs';
+import { FAQ_ENTRIES } from './faqs';
 
 /**
  * The eight duotone glyph filenames from `src/icons/services/`
@@ -127,14 +127,12 @@ export const SERVICES: {
 
 /**
  * FAQ teaser — the §5 list omits it, but the screens show it and the track's
- * task list includes it. Answers are stakeholder-owned (PRD §8, `[PENDIENTE]`)
- * and the screens fill them with filler placeholder copy; that must not ship
- * (§11). Only the seed questions render, each with an explicit pending marker
- * and *no* answer body — inventing one would be worse than an obvious gap
- * (§17.3).
+ * task list includes it. The stakeholder-owned answers (PRD §8) live on
+ * `/faqs`; the teaser renders only the questions and links there — never an
+ * answer body (§11, §17.3).
  *
- * The questions and the marker derive from `src/data/faqs.ts` (ODD §17 ruling
- * R7) so the teaser and the `/faqs` page can never drift apart.
+ * The questions derive from `src/data/faqs.ts` (ODD §17 ruling R7) so the
+ * teaser and the `/faqs` page can never drift apart.
  */
 export const FAQ_TEASER = {
   eyebrow: 'CONSULTAS HABITUALES',
@@ -143,8 +141,6 @@ export const FAQ_TEASER = {
     label: 'Ver todas las preguntas frecuentes →',
     href: '/faqs',
   } satisfies LandingLink,
-  /** §17.3 pending-content marker: explicit, never an invented answer. */
-  pendingMarker: FAQ_PENDING_MARKER,
   /** At most two or three questions on the landing; the screens carry two. */
   questions: FAQ_ENTRIES.slice(0, 2).map((entry) => entry.question),
 } as const;
