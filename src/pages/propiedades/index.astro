@@ -43,7 +43,6 @@ import FilterControls from '../../components/FilterControls.astro';
 import FilterSelect from '../../components/FilterSelect.astro';
 import PropertyCard from '../../components/PropertyCard.astro';
 import ShareMenu from '../../components/ShareMenu.astro';
-import checkIcon from '../../icons/icon-check.svg?raw';
 
 const propiedades = await getCollection('propiedades');
 
@@ -124,12 +123,20 @@ const hasCochera = (cochera: boolean | number) =>
   >
     <!-- 1. Page head band -->
     <section class="search-head" data-band="head" aria-labelledby="search-title">
-      <div class="container">
-        <p class="search-head__eyebrow">CARTERA COMPLETA</p>
-        <h1 class="search-head__title" id="search-title">Propiedades</h1>
-        <p class="search-head__subhead">
-          Filtrá por operación, zona y moneda. La búsqueda se puede compartir por URL.
-        </p>
+      <div class="container search-head__layout">
+        <div>
+          <p class="search-head__eyebrow">CARTERA COMPLETA</p>
+          <h1 class="search-head__title" id="search-title">Propiedades</h1>
+          <p class="search-head__subhead">
+            Filtrá por operación, zona y moneda. La búsqueda se puede compartir por URL.
+          </p>
+        </div>
+        <ShareMenu
+          variant="inline"
+          title="Búsqueda de propiedades"
+          text="Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: "
+          id="search-share"
+        />
       </div>
     </section>
 
@@ -192,59 +199,7 @@ const hasCochera = (cochera: boolean | number) =>
       <div class="search-chips" data-chips-desktop></div>
     </div>
 
-    <!-- 5. Shareable search strip (§17.1:644-649) -->
-    <section class="search-share" data-band="share" aria-label="Búsqueda compartible">
-      <div class="container search-share__row">
-        <div class="search-share__copy">
-          <p class="search-share__eyebrow">BÚSQUEDA COMPARTIBLE</p>
-          <p class="search-share__body">
-            Copiá este enlace para compartir exactamente los filtros aplicados actualmente.
-          </p>
-        </div>
-        <div class="search-share__action">
-          {/*
-            The query is split out so truncation clips the query's tail and the
-            params stay visible (§17.1:647). The full URL is on `title`; the
-            copy action uses the live `window.location.href`.
-          */}
-          <div class="search-share__field" title="/propiedades" data-share-field>
-            <span class="search-share__path">/propiedades</span><span
-              class="search-share__query"
-              data-share-query
-            ></span>
-          </div>
-          {/*
-            secondary-tint (R5): this is a tint band, where a sage border is
-            banned (§2:87). Never primary, never an icon-only affordance.
-          */}
-          <Button variant="secondary-tint" class="search-share__button">
-            {/*
-              Three labels share one grid cell, so the confirmation replaces
-              the label in place: the control keeps its resting width and the
-              band never shifts. `visibility` is what reserves the space and
-              what drops the hidden label from the accessible name — the
-              button is always named after the label it is actually showing.
-            */}
-            <span class="search-share__labels">
-              <span class="search-share__label search-share__label--resting">Copiar búsqueda</span>
-              <span class="search-share__label search-share__label--confirmed">
-                <Fragment set:html={checkIcon} /> Copiado
-              </span>
-              <span class="search-share__label search-share__label--failed">No copiado</span>
-            </span>
-          </Button>
-          <ShareMenu
-            variant="strip"
-            title="Búsqueda de propiedades"
-            text="Te comparto esta búsqueda de Damero Propiedades con los filtros aplicados: "
-            id="search-share"
-          />
-        </div>
-        <p class="visually-hidden" role="status" data-share-status></p>
-      </div>
-    </section>
-
-    <!-- 6. Results -->
+    <!-- 5. Results -->
     <section class="search-results" data-band="results" aria-labelledby="results-count">
       <div class="container">
         <div class="results-header">
@@ -293,7 +248,7 @@ const hasCochera = (cochera: boolean | number) =>
       </div>
     </section>
 
-    <!-- 7. Empty state — hidden until the filtered set is empty (§17.1:664-667) -->
+    <!-- 6. Empty state — hidden until the filtered set is empty (§17.1:664-667) -->
     <div data-band="empty" data-empty-wrap hidden>
       <EmptyState />
     </div>
@@ -360,7 +315,7 @@ const hasCochera = (cochera: boolean | number) =>
   /**
    * Client-side search state (R1/R2). Plain script, no framework: it reads
    * the URL, hides non-matching cards, and keeps `RESULTADOS · n`, the chips,
-   * the count badge, the share strip and the URL in sync. Without it, every
+   * the count badge and the URL in sync. Without it, every
    * listing stays visible — honest degradation.
    */
   const pageRoot = document.querySelector<HTMLElement>('[data-search-page]');
@@ -380,9 +335,6 @@ const hasCochera = (cochera: boolean | number) =>
     const countEl = document.querySelector<HTMLElement>('[data-results-count]');
     const statusEl = document.querySelector<HTMLElement>('[data-results-status]');
     const emptyWrap = document.querySelector<HTMLElement>('[data-empty-wrap]');
-    const shareField = document.querySelector<HTMLElement>('[data-share-field]');
-    const shareQuery = document.querySelector<HTMLElement>('[data-share-query]');
-    const shareStatus = document.querySelector<HTMLElement>('[data-share-status]');
     const badge = document.querySelector<HTMLElement>('[data-filter-count-badge]');
     const trigger = document.querySelector<HTMLButtonElement>('[data-sheet-open]');
     const sheet = document.querySelector<HTMLElement>('[data-sheet]');
@@ -493,11 +445,9 @@ const hasCochera = (cochera: boolean | number) =>
 
       const query = params.toString();
       const path = window.location.pathname;
-      // replaceState, not pushState: the URL is shareable state (§17.1:644),
+      // replaceState, not pushState: the URL is shareable state (§17.1),
       // not a history trail of every interaction.
       history.replaceState(null, '', query ? `${path}?${query}` : path);
-      if (shareField) shareField.title = query ? `${path}?${query}` : path;
-      if (shareQuery) shareQuery.textContent = query ? `?${query}` : '';
     };
 
     const matches = (card: HTMLElement, state: FilterState): boolean => {
@@ -818,36 +768,6 @@ const hasCochera = (cochera: boolean | number) =>
     // `Ordenar` is UI state, never a URL param (R2 lists exactly eight).
     sortSelect?.addEventListener('change', () => render(state));
 
-    // Class hooks, not data attributes: Button.astro forwards `class` but not
-    // unknown attributes, so `data-*` passed to it would never reach the DOM.
-    // The copy action confirms in place: the button itself reports the
-    // outcome, so the tap is never answered by silence.
-    const copyButton = document.querySelector<HTMLButtonElement>('.search-share__button');
-    let copyFeedbackTimer: number | undefined;
-    const showCopyFeedback = (state: 'confirmed' | 'failed') => {
-      if (!copyButton) return;
-      copyButton.classList.remove('is-confirmed', 'is-failed');
-      copyButton.classList.add(state === 'confirmed' ? 'is-confirmed' : 'is-failed');
-      window.clearTimeout(copyFeedbackTimer);
-      copyFeedbackTimer = window.setTimeout(() => {
-        copyButton.classList.remove('is-confirmed', 'is-failed');
-      }, 2400);
-    };
-
-    copyButton?.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-      } catch {
-        // Clipboard unavailable: claim nothing — the field already shows the
-        // URL for manual copying. Say so rather than leave the tap unanswered.
-        if (shareStatus) shareStatus.textContent = 'No se pudo copiar: seleccioná el enlace y copialo';
-        showCopyFeedback('failed');
-        return;
-      }
-      if (shareStatus) shareStatus.textContent = 'Enlace copiado al portapapeles';
-      showCopyFeedback('confirmed');
-    });
-
     // ---- Bottom sheet (R14 dialog semantics) ----------------------------
     let previousFocus: Element | null = null;
 
@@ -959,6 +879,18 @@ const hasCochera = (cochera: boolean | number) =>
     background-color: var(--color-bg-page);
   }
 
+  .search-head__layout {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .search-head__layout {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+  }
+
   .search-head__eyebrow {
     margin: 0;
     font-family: var(--font-mono);
@@ -1005,124 +937,7 @@ const hasCochera = (cochera: boolean | number) =>
     display: none;
   }
 
-  /* ---- 5. Shareable search strip (§17.1:644-649) ------------------------ */
-  .search-share {
-    max-width: var(--container-bleed);
-    margin: var(--space-12) auto 0;
-    padding-block: var(--section-y-tight);
-    background-color: var(--color-bg-subtle);
-  }
-
-  .search-share__row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-4) var(--space-8);
-  }
-
-  .search-share__copy {
-    flex: 1 1 16rem;
-  }
-
-  .search-share__eyebrow {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-label-sm);
-    font-weight: 500;
-    line-height: var(--leading-label-sm);
-    letter-spacing: var(--tracking-label-sm);
-    text-transform: uppercase;
-    color: var(--color-text-accent);
-  }
-
-  .search-share__body {
-    margin: var(--space-2) 0 0;
-    font-size: var(--text-body-sm);
-    line-height: var(--leading-body-sm);
-    color: var(--color-text-secondary);
-  }
-
-  .search-share__action {
-    display: flex;
-    flex-wrap: wrap;
-    flex: 1 1 24rem;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .search-share__field {
-    display: flex;
-    flex: 1 1 12rem;
-    align-items: center;
-    min-width: 0;
-    height: 44px;
-    padding-inline: var(--space-3);
-    border: 1px solid var(--color-border-decorative);
-    border-radius: var(--radius-sm);
-    background-color: var(--color-bg-surface);
-    font-family: var(--font-mono);
-    font-size: var(--text-body-sm);
-    line-height: var(--leading-body-sm);
-    color: var(--color-text-primary);
-  }
-
-  .search-share__path {
-    flex: none;
-  }
-
-  /* The query truncates at its own tail so the params stay visible (§17.1:647). */
-  .search-share__query {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .search-share__action :global(.search-share__button) {
-    flex: none;
-  }
-
-  /*
-   * The confirmation replaces the label in place (§17.1:711 — the action
-   * stays a secondary button, never primary). All three labels share one
-   * grid cell: the resting label is the widest, so the control keeps its
-   * width in every state and the band never reflows.
-   */
-  .search-share__labels {
-    display: grid;
-    align-items: center;
-    justify-items: center;
-  }
-
-  .search-share__label {
-    grid-area: 1 / 1;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    white-space: nowrap;
-  }
-
-  .search-share__label svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .search-share__label--confirmed,
-  .search-share__label--failed {
-    visibility: hidden;
-  }
-
-  :global(.search-share__button.is-confirmed) .search-share__label--confirmed,
-  :global(.search-share__button.is-failed) .search-share__label--failed {
-    visibility: visible;
-  }
-
-  :global(.search-share__button.is-confirmed) .search-share__label--resting,
-  :global(.search-share__button.is-failed) .search-share__label--resting {
-    visibility: hidden;
-  }
-
-  /* ---- 6. Results -------------------------------------------------------- */
+  /* ---- 5. Results -------------------------------------------------------- */
   .search-results {
     padding-block: var(--section-y-tight);
   }

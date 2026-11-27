@@ -704,13 +704,10 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 - One chip per active filter value; the price range collapses to a single chip (`USD 30.000–150.000 ×`) and a selected currency chips on its own (`Moneda USD ×`). Removing a chip re-runs the filter **and rewrites the URL**. Removing the currency chip returns to `Todas` and clears the price bounds with it.
 - Desktop: the chips wrap onto as many lines as needed, placed directly beneath the filter panel.
 
-**Shareable search strip.**
-- A full-bleed `--color-bg-subtle` band, `--section-y-tight` padding. One row.
-- Left: eyebrow `BÚSQUEDA COMPARTIBLE` in `--text-label-sm` mono.
-- Right: a read-only field — `--color-bg-surface`, `1px solid --color-border-hairline`, `--radius-sm` — containing the query string in `--text-body-sm` mono, truncated so the **params stay visible**.
-- Action: `Copiar búsqueda` as a **secondary** button. Never primary.
-- **Copy confirmation.** The action confirms in place: the label becomes `✓ Copiado` for 2.4s and then reverts. It never turns primary and never resizes — every label shares one grid cell, so the band does not reflow. A refused clipboard shows `No copiado` and announces the failure instead of claiming success.
-- **Why this exists:** the filter state lives in the URL (PRD §5). This strip is the only place the URL appears as content, and it is the visible proof that a search is linkable. It is functional, not decorative — do not replace it with an icon-only share affordance.
+**Sharing a search.**
+- The page header has one **secondary** action labeled `Compartir`, with the share-nodes icon. It aligns to the right of the heading block on desktop and sits below the introductory copy on mobile. It is never icon-only or part of the sticky filter bar.
+- Share the current URL, including applied filters (PRD §5). Use the device's native share sheet when available; otherwise the menu offers `WhatsApp`, `Telegram`, `Email`, and `Copiar enlace`. The menu displays the selectable URL and reports whether copying succeeded.
+- There is no separate URL band or dedicated copy button. This supersedes the share strip shown in the original desktop and mobile search references under `design/screens/`.
 
 **Collapsed filter pattern (mobile < `md`) — the critical mobile decision.**
 - The filter bar collapses to a **56px sticky bar** pinned directly under the header.

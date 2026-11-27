@@ -92,12 +92,10 @@ for (const surface of ['detail', 'search'] as const) {
         const reserved = await root.evaluate((el) => el.getBoundingClientRect().bottom - el.querySelector('button')!.getBoundingClientRect().bottom);
         expect.soft(reserved).toBeGreaterThanOrEqual(0);
         expect.soft(reserved).toBeLessThan(30);
-        if (surface === 'search' && viewport!.width === 320) {
-          const field = (await page.locator('[data-share-field]').boundingBox())!;
-          const copy = (await page.getByRole('button', { name: 'Copiar búsqueda', exact: true }).boundingBox())!;
-          const share = (await trigger.boundingBox())!;
-          expect(copy.y).toBeGreaterThanOrEqual(field.y + field.height);
-          expect(share.y).toBeGreaterThanOrEqual(copy.y + copy.height);
+        if (surface === 'search' && direction === 'above') {
+          // The header action sits high on entry; a short viewport forces it to open upwards.
+          const { y, height } = (await trigger.boundingBox())!;
+          await page.setViewportSize({ width: viewport!.width, height: Math.ceil(y + height + 24) });
         }
         // Exercise both directions with the actual rendered URL and panel height.
         await trigger.evaluate((el, direction) => {
@@ -251,9 +249,6 @@ for (const surface of ['detail', 'search'] as const) {
       await expect(page.locator('textarea')).toHaveCount(0);
       await expect(page).toHaveURL(url);
       expect(errors).toEqual([]);
-      if (surface === 'search') {
-        await expect(page.locator('[data-share-status]')).toHaveText('');
-      }
     });
 
     for (const failure of ['false', 'throw'] as const) {
