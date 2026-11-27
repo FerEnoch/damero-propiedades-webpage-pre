@@ -4,7 +4,7 @@ import shareNodes from '../icons/share-nodes.svg?raw';
 interface Props {
   title: string;
   text: string;
-  variant: 'panel' | 'strip';
+  variant: 'panel' | 'inline';
   class?: string;
   id: string;
 }
@@ -177,7 +177,6 @@ const channels = ['WhatsApp', 'Telegram', 'Email'];
   .share-menu { min-width: 0; }
 
   .share-menu--panel { margin-top: var(--space-3); }
-  .share-menu--strip { flex: none; }
   .share-menu__control { position: relative; min-width: 0; }
 
   .share-menu__trigger {
@@ -201,8 +200,7 @@ const channels = ['WhatsApp', 'Telegram', 'Email'];
   }
   .share-menu--panel .share-menu__trigger { width: 100%; }
   .share-menu__trigger:hover { background-color: var(--color-bg-subtle); }
-  .share-menu--strip .share-menu__trigger { border-color: var(--color-text-primary); }
-  .share-menu--strip .share-menu__trigger:hover { background-color: var(--color-bg-surface); }
+  .share-menu--inline .share-menu__trigger { border-color: var(--color-text-primary); }
 
   .share-menu__panel {
     position: absolute;
@@ -259,7 +257,8 @@ const channels = ['WhatsApp', 'Telegram', 'Email'];
 
   @media (max-width: 767.98px) {
     .share-menu--panel { margin-top: 0; }
-    .share-menu--strip { flex: 1 1 100%; }
+    /* The search popup can overlap the collapsed filter bar in normal flow. */
+    .share-menu--inline .share-menu__panel { z-index: 31; }
     .share-menu__panel { left: 0; right: 0; width: auto; }
   }
   @media (min-width: 768px) {

@@ -11,7 +11,7 @@ import {
  * `RESULTADOS · n` count, client-side filtering with URL rewrite, the
  * three-state currency filter (`Todas` / `ARS` / `USD`) and its disabled
  * price range, chip removal, the empty state, first-paint URL loading, the
- * share strip, sorting, and the sheet's mobile path. Viewport-gated rows
+ * shareable URLs, sorting, and the sheet's mobile path. Viewport-gated rows
  * follow the landing specs' skip pattern.
  */
 
@@ -195,24 +195,21 @@ test('the empty state stays hidden while results exist', async ({ page }) => {
   await expect(page.locator('.empty-state')).toBeHidden();
 });
 
-test('the share strip shows the current URL and tracks filter changes', async ({ page }) => {
-  await page.goto('/propiedades?operacion=venta');
-
-  const field = page.locator('[data-share-field]');
-  await expect(field).toContainText('/propiedades');
-  await expect(field).toContainText('operacion=venta');
-  await expect(field).toHaveAttribute('title', '/propiedades?operacion=venta');
-});
-
-test('the copy action writes the live URL to the clipboard', async ({ page, context }) => {
+test('the share menu copies a filtered URL that restores the search', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.addInitScript(() => Object.defineProperty(navigator, 'share', { value: undefined }));
   await page.goto('/propiedades?operacion=venta');
 
-  await page.locator('.search-share__button').click();
+  await page.getByRole('button', { name: 'Compartir', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Copiar enlace', exact: true }).click();
+  await expect(page.getByText('Enlace copiado al portapapeles', { exact: true })).toBeVisible();
 
   const clipboard = await page.evaluate(() => navigator.clipboard.readText());
   expect(clipboard).toBe(page.url());
-  await expect(page.locator('[data-share-status]')).toHaveText('Enlace copiado al portapapeles');
+
+  const recipient = await context.newPage();
+  await recipient.goto(clipboard);
+  await expect(recipient.getByRole('button', { name: /Quitar.*Venta/i }).first()).toBeVisible();
 });
 
 test('Ordenar reorders every match and is never written to the URL (R2/R9)', async ({ page }) => {

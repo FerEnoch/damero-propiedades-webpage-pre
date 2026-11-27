@@ -27,7 +27,7 @@ test('the §17.1 bands render in order', async ({ page }) => {
       band.getAttribute('data-band'),
     ),
   );
-  expect(bands).toEqual(['head', 'filters', 'share', 'results', 'empty']);
+  expect(bands).toEqual(['head', 'filters', 'results', 'empty']);
 });
 
 test('header, main and footer landmarks are present', async ({ page }) => {

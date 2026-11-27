@@ -24,14 +24,12 @@ import {
 const MATRIX_PROBES: MatrixProbe[] = [
   { name: 'forest-ink on surface', selector: '.results-grid .card__title' },
   { name: 'forest-ink on canvas', selector: '.search-head__title' },
-  { name: 'forest-ink on surface-tint', selector: '.search-share__button' },
+  { name: 'share trigger on canvas', selector: '.search-head .share-menu__trigger' },
   { name: 'on-forest on forest-ink', selector: '.site-footer__wordmark' },
   { name: 'sage-ink on surface', selector: '.site-header__whatsapp' },
   { name: 'sage-ink on canvas', selector: '.search-head__eyebrow' },
-  { name: 'sage-ink on surface-tint', selector: '.search-share__eyebrow' },
   { name: 'muted-text on surface', selector: '.results-grid .card__location' },
   { name: 'muted-text on canvas', selector: '.search-head__subhead' },
-  { name: 'muted-text on surface-tint', selector: '.search-share__body' },
   { name: 'on-forest-muted on forest-ink', selector: '.site-footer__legal p' },
 ];
 
