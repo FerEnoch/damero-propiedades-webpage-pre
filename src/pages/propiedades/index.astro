@@ -879,14 +879,17 @@ const hasCochera = (cochera: boolean | number) =>
     background-color: var(--color-bg-page);
   }
 
+  /* Title and share action share one row on every viewport: on mobile the
+     share trigger is icon-only, so the row stays compact. */
   .search-head__layout {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-4);
+    align-items: start;
   }
 
   @media (min-width: 768px) {
     .search-head__layout {
-      grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
     }
   }

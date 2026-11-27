@@ -24,9 +24,10 @@ const channels = ['WhatsApp', 'Telegram', 'Email'];
       aria-haspopup="menu"
       aria-expanded="false"
       aria-controls={`${id}-menu`}
+      aria-label="Compartir"
     >
       <Fragment set:html={shareNodes} />
-      Compartir
+      <span class="share-menu__label">Compartir</span>
     </button>
     <div class="share-menu__panel" hidden>
       <div id={`${id}-menu`} role="menu" aria-labelledby={`${id}-trigger`}>
@@ -258,7 +259,31 @@ const channels = ['WhatsApp', 'Telegram', 'Email'];
   @media (max-width: 767.98px) {
     .share-menu--panel { margin-top: 0; }
     /* The search popup can overlap the collapsed filter bar in normal flow. */
-    .share-menu--inline .share-menu__panel { z-index: 31; }
+    /* The icon-only trigger is 48px wide, so the popup takes the content
+       width explicitly (right-aligned to the trigger) instead of collapsing
+       to the trigger's width. */
+    .share-menu--inline .share-menu__panel {
+      z-index: 31;
+      left: auto;
+      right: 0;
+      width: calc(100vw - var(--gutter) * 2);
+    }
+    /* Mobile search header: icon-only trigger sharing the title row. The
+       accessible name stays on aria-label; the label span hides visually. */
+    .share-menu--inline .share-menu__trigger {
+      min-width: 48px;
+      padding-inline: var(--space-3);
+    }
+    .share-menu--inline .share-menu__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
     .share-menu__panel { left: 0; right: 0; width: auto; }
   }
   @media (min-width: 768px) {

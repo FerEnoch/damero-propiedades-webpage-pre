@@ -707,6 +707,7 @@ Specifications for the three phase-2 pages (`/propiedades`, `/propiedades/<slug>
 **Sharing a search.**
 - The page header has one **secondary** action labeled `Compartir`, with the share-nodes icon. It aligns to the right of the heading block on desktop and sits below the introductory copy on mobile. It is never icon-only or part of the sticky filter bar.
 - Share the current URL, including applied filters (PRD §5). Use the device's native share sheet when available; otherwise the menu offers `WhatsApp`, `Telegram`, `Email`, and `Copiar enlace`. The menu displays the selectable URL and reports whether copying succeeded.
+- On mobile the trigger is icon-only, sharing the heading row with the title to save vertical space; the accessible name `Compartir` is preserved on `aria-label`. On desktop it always shows label + icon — never icon-only there — and it is never part of the sticky filter bar.
 - There is no separate URL band or dedicated copy button. This supersedes the share strip shown in the original desktop and mobile search references under `design/screens/`.
 
 **Collapsed filter pattern (mobile < `md`) — the critical mobile decision.**
