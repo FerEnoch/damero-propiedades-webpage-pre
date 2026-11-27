@@ -145,6 +145,23 @@ function isActive(href: string): boolean {
           setOpen(!header.classList.contains('is-nav-open'));
         });
 
+        // The panel floats, so clicking outside the header dismisses it.
+        document.addEventListener('click', (event) => {
+          if (header.classList.contains('is-nav-open') && !header.contains(event.target)) {
+            setOpen(false);
+          }
+        });
+
+        // Crossing to desktop clears the mobile state so returning to mobile
+        // starts closed.
+        const desktop = window.matchMedia('(min-width: 768px)');
+        const syncDesktop = (event) => {
+          if (event.matches) setOpen(false);
+        };
+        if (typeof desktop.addEventListener === 'function') {
+          desktop.addEventListener('change', syncDesktop);
+        }
+
         header.addEventListener('keydown', (event) => {
           if (event.key === 'Escape' && header.classList.contains('is-nav-open')) {
             setOpen(false);
@@ -328,13 +345,44 @@ function isActive(href: string): boolean {
     display: none;
   }
 
-  /* Enhanced state: collapse on mobile, reveal with JS. */
-  .site-header.is-enhanced .site-nav {
-    display: none;
+  /*
+   * Enhanced mobile: the nav floats over the page instead of pushing content
+   * down — the same idea as the filter bottom sheet. Hidden with
+   * `visibility` (out of the tab order and the accessibility tree) and
+   * animated with opacity + translate; reduced motion collapses instantly.
+   */
+  @media (max-width: 767.98px) {
+    .site-header__inner {
+      position: relative;
+    }
+
+    .site-header.is-enhanced .site-nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border-bottom: 1px solid var(--color-border-decorative);
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+    }
+
+    .site-header.is-enhanced.is-nav-open .site-nav {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
   }
 
-  .site-header.is-enhanced.is-nav-open .site-nav {
-    display: block;
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header.is-enhanced .site-nav {
+      transition:
+        opacity var(--duration-state) var(--ease-out-expo),
+        transform var(--duration-state) var(--ease-out-expo),
+        visibility var(--duration-state);
+    }
   }
 
   .site-header.is-enhanced .site-nav-toggle {

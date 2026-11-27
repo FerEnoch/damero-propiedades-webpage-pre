@@ -328,7 +328,7 @@ Composed, on-brand, never an apology.
 
 - Sticky, `--color-bg-surface` fill, `1px` `--color-border-hairline` bottom. Height `64px` mobile / `72px` desktop.
 - Logo at `28px` height mobile / `32px` desktop. Nav in Hanken Grotesk 500, `0.9375rem`, `--color-text-primary`; active item gets a `2px` `--color-graphic-accent` underline offset `6px` — an indicator, not coloured text.
-- Right side: `Consultar por WhatsApp` as a **text link** in `sage-ink`, not a button. On mobile, nav collapses to a single menu affordance; the WhatsApp link stays visible.
+- Right side: `Consultar por WhatsApp` as a **text link** in `sage-ink`, not a button. On mobile, nav collapses to a single menu affordance opening a floating dropdown (opacity + translate, instant under reduced motion) that overlays content instead of pushing it down; the WhatsApp link stays visible.
 - On scroll, the header may drop the bottom hairline and gain `--shadow-xs`. No blur, no glassmorphism.
 
 ### Footer
